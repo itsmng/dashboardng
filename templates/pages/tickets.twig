@@ -1,0 +1,21 @@
+{% extends 'layouts/base.twig' %}
+
+{% block content %}
+<div id="dashboardng-tickets" class="container-fluid py-3">
+    {% include 'components/loading_spinner.twig' with {
+        'message': translations.loading
+    } %}
+</div>
+
+{% include 'components/javascript_config.twig' with {
+    'config': {
+        'apiBaseUrl': plugin_dir ~ '/api.php',
+        'pollInterval': 60000,
+        'entities': entities,
+        'csrfToken': csrf_token,
+        'i18n': translations,
+        'userId': userId
+    }
+} %}
+<script type="module" src="{{ plugin_dir }}/js/ticketReports.js"></script>
+{% endblock %}

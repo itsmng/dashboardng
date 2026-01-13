@@ -1,82 +1,106 @@
 <?php
 
-function plugin_skeleton_install() {
-   set_time_limit(900);
-   ini_set('memory_limit', '2048M');
+use GlpiPlugin\Dashboardng\PluginDashboardngConfig;
+use GlpiPlugin\Dashboardng\PluginDashboardngProfile;
+use GlpiPlugin\Dashboardng\PluginDashboardngDashboard;
+use GlpiPlugin\Dashboardng\PluginDashboardngWidgetDefinition;
+use GlpiPlugin\Dashboardng\PluginDashboardngDashboardWidget;
 
-   $classesToInstall = [
-      'PluginSkeletonConfig',
-      'PluginSkeletonProfile',
-   ];
+/**
+ * Plugin installation
+ *
+ * @return boolean
+ */
+function plugin_dashboardng_install()
+{
+    global $DB;
 
-   echo "<center>";
-   echo "<table class='tab_cadre_fixe'>";
-   echo "<tr><th>".__("MySQL tables installation", "skeleton")."<th></tr>";
+    if (!PluginDashboardngConfig::install()) {
+        return false;
+    }
 
-   echo "<tr class='tab_bg_1'>";
-   echo "<td align='center'>";
+    if (!PluginDashboardngProfile::install()) {
+        return false;
+    }
 
-   //load all classes
-   $dir  = Plugin::getPhpDir('skeleton') . "/inc/";
-   foreach ($classesToInstall as $class) {
-      if ($plug = isPluginItemType($class)) {
-         $item = strtolower($plug['class']);
-         if (file_exists("$dir$item.class.php")) {
-            include_once ("$dir$item.class.php");
-         }
-      }
-   }
+    $dashboardId = PluginDashboardngDashboard::install();
+    if ($dashboardId === false) {
+        return false;
+    }
 
-   //install
-   foreach ($classesToInstall as $class) {
-      if ($plug = isPluginItemType($class)) {
-         $item =strtolower($plug['class']);
-         if (file_exists("$dir$item.class.php")) {
-            if (!call_user_func([$class,'install'])) {
-               return false;
-            }
-         }
-      }
-   }
+    if (!PluginDashboardngWidgetDefinition::install()) {
+        return false;
+    }
 
-   echo "</td>";
-   echo "</tr>";
-   echo "</table></center>";
+    if (!PluginDashboardngDashboardWidget::install($dashboardId)) {
+        return false;
+    }
 
-   return true;
+    // Grant full access to Super-Admin profile
+    $profileRight = new ProfileRight();
+    $superAdminProfileId = 4; // Default Super-Admin profile ID
+
+    // Check if rights already exist
+    $existingConfig = countElementsInTable('glpi_profilerights', [
+        'profiles_id' => $superAdminProfileId,
+        'name' => 'plugin_dashboardng_config'
+    ]);
+    if ($existingConfig === 0) {
+        $profileRight->add([
+            'profiles_id' => $superAdminProfileId,
+            'name' => 'plugin_dashboardng_config',
+            'rights' => UPDATE,
+        ]);
+    }
+
+    $existingAccess = countElementsInTable('glpi_profilerights', [
+        'profiles_id' => $superAdminProfileId,
+        'name' => 'plugin_dashboardng_access'
+    ]);
+    if ($existingAccess === 0) {
+        $profileRight->add([
+            'profiles_id' => $superAdminProfileId,
+            'name' => 'plugin_dashboardng_access',
+            'rights' => READ | UPDATE,
+        ]);
+    }
+
+    return true;
 }
 
-function plugin_skeleton_uninstall() {
-   echo "<center>";
-   echo "<table class='tab_cadre_fixe'>";
-   echo "<tr><th>".__("MySQL tables uninstallation", "fields")."<th></tr>";
+/**
+ * Plugin uninstallation
+ *
+ * @return boolean
+ */
+function plugin_dashboardng_uninstall()
+{
+    global $DB;
 
-   echo "<tr class='tab_bg_1'>";
-   echo "<td align='center'>";
+    if (!PluginDashboardngConfig::uninstall()) {
+        return false;
+    }
 
-   $classesToUninstall = [
-      'PluginSkeletonConfig',
-      'PluginSkeletonProfile',
-   ];
+    if (!PluginDashboardngProfile::uninstall()) {
+        return false;
+    }
 
-   foreach ($classesToUninstall as $class) {
-      if ($plug = isPluginItemType($class)) {
+    if (!PluginDashboardngDashboardWidget::uninstall()) {
+        return false;
+    }
 
-         $dir  = Plugin::getPhpDir('skeleton') . "/inc/";
-         $item = strtolower($plug['class']);
+    if (!PluginDashboardngWidgetDefinition::uninstall()) {
+        return false;
+    }
 
-         if (file_exists("$dir$item.class.php")) {
-            include_once ("$dir$item.class.php");
-            if (!call_user_func([$class,'uninstall'])) {
-               return false;
-            }
-         }
-      }
-   }
+    if (!PluginDashboardngDashboard::uninstall()) {
+        return false;
+    }
 
-   echo "</td>";
-   echo "</tr>";
-   echo "</table></center>";
+    // Remove profile rights
+    $DB->delete('glpi_profilerights', [
+        'name' => ['LIKE', 'plugin_dashboardng_%']
+    ]);
 
-   return true;
+    return true;
 }

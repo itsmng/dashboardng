@@ -1,0 +1,19 @@
+{#
+/**
+ * Dashboard NG - Base Layout Template
+ *
+ * This template provides the base structure for all dashboard pages.
+ * Note: The full HTML structure is already provided by GLPI's
+ * Html::header() and Html::footer() - this template handles the
+ * page content between them.
+ */
+#}
+
+{# Navigation Bar #}
+{{ navigation|raw }}
+
+{# Page-specific content block #}
+{% block content %}{% endblock %}
+
+{# Optional JavaScript block #}
+{% block javascripts %}{% endblock %}

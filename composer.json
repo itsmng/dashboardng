@@ -1,0 +1,19 @@
+{
+    "name": "itsmng/dashboardng",
+    "description": "Next-generation Dashboard Plugin for ITSM-NG",
+    "autoload": {
+        "psr-4": {
+            "GlpiPlugin\\Dashboardng\\": "src/"
+        }
+    },
+    "authors": [
+        {
+            "name": "ITSMNG Team",
+            "email": "contact@itsm-ng.org"
+        }
+    ],
+    "require": {
+        "nikic/fast-route": "^1.3",
+        "phpoffice/phpspreadsheet": "^1.29"
+    }
+}

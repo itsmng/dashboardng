@@ -1,0 +1,13 @@
+{% extends 'layouts/base.twig' %}
+
+{% block content %}
+<div id="dashboardng-app" class="container-fluid py-3">
+    {% include 'components/coming_soon.twig' with {
+        'title': translations.my_dashboard_coming_soon,
+        'message': translations.personal_dashboard_message,
+        'subtext': translations.for_now_use_dashboard,
+        'link_url': plugin_dir ~ '/front/dashboard.php',
+        'link_text': translations.go_to_main_dashboard
+    } %}
+</div>
+{% endblock %}

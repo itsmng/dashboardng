@@ -1,0 +1,755 @@
+/**
+ * Dashboard NG - Custom Styles
+ * 
+ * Bootstrap 5 compatible styling for the dashboard
+ */
+
+/* ============================================================================
+   Variables
+   ============================================================================ */
+:root {
+    --dashboardng-primary: #0d6efd;
+    --dashboardng-success: #198754;
+    --dashboardng-warning: #ffc107;
+    --dashboardng-danger: #dc3545;
+    --dashboardng-info: #0dcaf0;
+    --dashboardng-secondary: #6c757d;
+    --dashboardng-card-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+    --dashboardng-card-shadow-hover: 0 0.5rem 1rem rgba(0, 0, 0, 0.1);
+    --dashboardng-border-radius: 0.5rem;
+    --dashboardng-transition: all 0.2s ease-in-out;
+}
+
+/* ============================================================================
+   Dashboard Container
+   ============================================================================ */
+.dashboard-ng {
+    min-height: 400px;
+}
+
+/* ============================================================================
+   GridStack Integration
+   ============================================================================ */
+.dashboard-ng .grid-stack {
+    min-height: 600px;
+    background: #f8f9fa;
+    border-radius: 8px;
+}
+
+.dashboard-ng .grid-stack-item {
+    transition: none !important; /* GridStack handles animation */
+}
+
+.dashboard-ng .grid-stack-item-content {
+    height: 100%;
+    overflow: hidden;
+    padding: 0;
+}
+
+.dashboard-ng .grid-stack-item-content > .h-100 {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden; /* Constrain to container */
+}
+
+.dashboard-ng .grid-stack-item-content > .h-100 > .card {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+}
+
+.dashboard-ng .grid-stack-item-content > .h-100 > .card > .card-body {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    overflow: hidden;
+    min-height: 0;
+}
+
+.dashboard-ng .grid-stack-item-content > .h-100 > .kpi-card {
+    height: 100%;
+}
+
+/* Edit mode styles */
+.dashboard-ng.edit-mode .grid-stack-item {
+    box-shadow: 0 0 0 2px #0d6efd;
+    border-radius: 4px;
+}
+
+.dashboard-ng.edit-mode .grid-stack-item .ui-resizable-handle {
+    display: block;
+}
+
+/* Widget placeholder during drag */
+.dashboard-ng .grid-stack-placeholder {
+    background: rgba(13, 110, 253, 0.1);
+    border: 2px dashed #0d6efd;
+    border-radius: 8px;
+}
+
+/* Hide resize handles by default */
+.dashboard-ng .grid-stack-item .ui-resizable-handle {
+    display: none;
+}
+
+.dashboard-ng.edit-mode .grid-stack-item .ui-resizable-se,
+.dashboard-ng.edit-mode .grid-stack-item .ui-resizable-sw {
+    display: block;
+}
+
+/* ============================================================================
+   Card Styles
+   ============================================================================ */
+.dashboard-ng .card {
+    border-radius: var(--dashboardng-border-radius);
+    transition: var(--dashboardng-transition);
+}
+
+.dashboard-ng .card:hover {
+    box-shadow: var(--dashboardng-card-shadow-hover);
+}
+
+/* All cards within GridStack widgets */
+.dashboard-ng .grid-stack-item-content .card {
+    border: 1px solid rgba(0, 0, 0, 0.08);
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.04);
+    transition: all 0.2s ease-in-out;
+    overflow: hidden;
+}
+
+.dashboard-ng .grid-stack-item-content .card:hover {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    border-color: rgba(0, 0, 0, 0.12);
+}
+
+.dashboard-ng .card-header {
+    padding: 1rem 1.25rem 0.5rem;
+    font-size: 0.875rem;
+}
+
+.dashboard-ng .card-body {
+    padding: 1rem 1.25rem;
+}
+
+.dashboard-ng .table-scroll,
+.dashboardng-reports .table-scroll {
+    max-height: 320px;
+    overflow-y: auto;
+}
+
+/* ============================================================================
+   KPI Cards
+   ============================================================================ */
+.dashboard-ng .kpi-card {
+    transition: var(--dashboardng-transition);
+}
+
+.dashboard-ng .kpi-card:hover {
+    transform: translateY(-2px);
+}
+
+.dashboard-ng .kpi-card .card-body {
+    padding: 1.25rem;
+}
+
+.dashboard-ng .kpi-card h3 {
+    font-size: 1.75rem;
+    font-weight: 700;
+}
+
+.dashboard-ng .kpi-card .rounded-circle {
+    width: 48px;
+    height: 48px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* KPI color variants: soft background + subtle border */
+.dashboard-ng .kpi-card.kpi-primary {
+    background-color: rgba(13, 110, 253, 0.08);
+    border: 1px solid rgba(13, 110, 253, 0.20);
+}
+.dashboard-ng .kpi-card.kpi-success {
+    background-color: rgba(25, 135, 84, 0.08);
+    border: 1px solid rgba(25, 135, 84, 0.20);
+}
+.dashboard-ng .kpi-card.kpi-info {
+    background-color: rgba(13, 202, 240, 0.10);
+    border: 1px solid rgba(13, 202, 240, 0.25);
+}
+.dashboard-ng .kpi-card.kpi-secondary {
+    background-color: rgba(108, 117, 125, 0.08);
+    border: 1px solid rgba(108, 117, 125, 0.20);
+}
+.dashboard-ng .kpi-card.kpi-warning {
+    background-color: rgba(255, 193, 7, 0.12);
+    border: 1px solid rgba(255, 193, 7, 0.30);
+}
+.dashboard-ng .kpi-card.kpi-danger {
+    background-color: rgba(220, 53, 69, 0.10);
+    border: 1px solid rgba(220, 53, 69, 0.25);
+}
+
+/* KPI title/layout helpers */
+.dashboard-ng .kpi-title {
+    white-space: nowrap;
+    word-break: normal;
+    text-overflow: ellipsis;
+}
+.dashboard-ng .kpi-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: rgba(0,0,0,0.06);
+}
+
+/* ============================================================================
+   Chart Containers
+   ============================================================================ */
+.dashboard-ng .chartjs-container {
+    width: 100%;
+    min-height: 200px;
+}
+
+.dashboard-ng .chartjs-container canvas {
+    max-width: 100%;
+    max-height: 100%;
+}
+
+.dashboard-ng .bar-chart-container {
+    width: 100%;
+    overflow-x: auto;
+}
+
+.dashboard-ng .bar-chart {
+    display: block;
+    margin: 0 auto;
+}
+
+/* Chart wrapper for proper height control */
+.dashboard-ng .chart-wrapper {
+    width: 100%;
+    height: 100%;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+.dashboard-ng .chart-wrapper .chartjs-container {
+    flex: 1;
+    min-height: 0;
+    width: 100%;
+    position: relative;
+}
+
+.dashboard-ng .card-body .chart-wrapper {
+    flex: 1;
+    min-height: 0;
+    overflow: hidden;
+}
+
+/* ============================================================================
+   List Items
+   ============================================================================ */
+.dashboard-ng .list-group-item {
+    border: 0;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+    padding: 0.75rem 0;
+    transition: var(--dashboardng-transition);
+}
+
+.dashboard-ng .list-group-item:last-child {
+    border-bottom: 0;
+}
+
+.dashboard-ng .list-group-item:hover {
+    background-color: rgba(0, 0, 0, 0.02);
+}
+
+.dashboard-ng .list-group-item-action {
+    cursor: pointer;
+}
+
+/* ============================================================================
+   Badges
+   ============================================================================ */
+.dashboard-ng .badge {
+    font-weight: 500;
+    font-size: 0.7rem;
+    padding: 0.35em 0.65em;
+}
+
+/* ============================================================================
+   Progress Bars
+   ============================================================================ */
+.dashboard-ng .progress {
+    background-color: rgba(0, 0, 0, 0.05);
+    border-radius: 0.25rem;
+    overflow: hidden;
+}
+
+.dashboard-ng .progress-bar {
+    transition: width 0.4s ease;
+}
+
+/* ============================================================================
+   Form Controls
+   ============================================================================ */
+.dashboard-ng .form-select {
+    border-radius: var(--dashboardng-border-radius);
+    font-size: 0.875rem;
+}
+
+.dashboard-ng .form-select:focus {
+    border-color: var(--dashboardng-primary);
+    box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.15);
+}
+
+/* ============================================================================
+   Buttons
+   ============================================================================ */
+.dashboard-ng .btn {
+    border-radius: var(--dashboardng-border-radius);
+    font-size: 0.875rem;
+    transition: var(--dashboardng-transition);
+}
+
+.dashboard-ng .btn-sm {
+    padding: 0.375rem 0.75rem;
+}
+
+/* ============================================================================
+   Alerts
+   ============================================================================ */
+.dashboard-ng .alert {
+    border-radius: var(--dashboardng-border-radius);
+    border: 0;
+}
+
+/* ============================================================================
+   Spinner
+   ============================================================================ */
+.dashboard-ng .spinner-border-sm {
+    width: 1rem;
+    height: 1rem;
+    border-width: 0.15em;
+}
+
+/* ============================================================================
+   Placeholder/Skeleton Loading
+   ============================================================================ */
+.dashboard-ng .placeholder {
+    background-color: rgba(0, 0, 0, 0.08);
+    border-radius: 0.25rem;
+    min-height: 1rem;
+}
+
+.dashboard-ng .placeholder-glow .placeholder {
+    animation: placeholder-glow 2s ease-in-out infinite;
+}
+
+@keyframes placeholder-glow {
+    50% {
+        opacity: 0.2;
+    }
+}
+
+/* ============================================================================
+   Text Utilities
+   ============================================================================ */
+.dashboard-ng .text-truncate {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.dashboard-ng .min-width-0 {
+    min-width: 0;
+}
+
+/* ============================================================================
+   Responsive Adjustments
+   ============================================================================ */
+@media (max-width: 991.98px) {
+    .dashboard-ng .kpi-card h3 {
+        font-size: 1.5rem;
+    }
+
+    .dashboard-ng .card-header {
+        padding: 0.75rem 1rem 0.5rem;
+    }
+
+    .dashboard-ng .card-body {
+        padding: 0.75rem 1rem;
+    }
+}
+
+@media (max-width: 575.98px) {
+    .dashboard-ng .kpi-card h3 {
+        font-size: 1.25rem;
+    }
+
+    .dashboard-ng .kpi-card .rounded-circle {
+        width: 40px;
+        height: 40px;
+    }
+
+    .dashboard-ng .kpi-card .rounded-circle i {
+        font-size: 1rem;
+    }
+}
+
+/* ============================================================================
+   Print Styles
+   ============================================================================ */
+@media print {
+    .dashboard-ng .card {
+        box-shadow: none !important;
+        border: 1px solid #dee2e6;
+    }
+
+    .dashboard-ng .btn,
+    .dashboard-ng .form-select {
+        display: none !important;
+    }
+}
+
+/* ============================================================================
+   System Health Widget Layout Fixes
+   ============================================================================ */
+.dashboard-ng .system-health-label {
+    min-width: 60px;
+    flex-shrink: 0;
+}
+
+.dashboard-ng .system-health-value {
+    min-width: 0; /* Allow shrinking */
+    flex: 1; /* Allow growing within available space */
+    text-align: right;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-size: 0.875rem;
+}
+
+.dashboard-ng .system-health-row {
+    align-items: center;
+    gap: 0.5rem; /* Add some spacing between label and value */
+}
+
+/* ============================================================================
+   Widget Library Sidebar
+   ============================================================================ */
+.widget-library-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.3);
+    z-index: 1040;
+}
+
+.widget-library-panel {
+    position: fixed;
+    top: 0;
+    right: -400px;
+    width: 400px;
+    height: 100vh;
+    background: #fff;
+    box-shadow: -4px 0 20px rgba(0, 0, 0, 0.15);
+    z-index: 1050;
+    display: flex;
+    flex-direction: column;
+    transition: right 0.3s ease-in-out;
+}
+
+.widget-library-panel.open {
+    right: 0;
+}
+
+.widget-library-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem;
+    border-bottom: 1px solid #dee2e6;
+    background: #f8f9fa;
+}
+
+.widget-library-tabs {
+    border-bottom: 1px solid #dee2e6;
+}
+
+.widget-library-tabs .nav-tabs {
+    border-bottom: none;
+}
+
+.widget-library-content {
+    flex: 1;
+    overflow-y: auto;
+    padding: 1rem;
+}
+
+.preset-category-title {
+    color: #6c757d;
+    text-transform: uppercase;
+    font-size: 0.75rem;
+    letter-spacing: 0.5px;
+    margin-bottom: 0.75rem;
+}
+
+.preset-item {
+    cursor: pointer;
+    transition: var(--dashboardng-transition);
+    border: 1px solid #dee2e6;
+}
+
+.preset-item:hover {
+    border-color: var(--dashboardng-primary);
+    background: #f8f9fa;
+}
+
+.preset-item:hover .preset-add {
+    transform: scale(1.2);
+}
+
+.preset-add {
+    transition: transform 0.2s ease;
+}
+
+/* ============================================================================
+   Widget Configuration Modal
+   ============================================================================ */
+.widget-config-modal .modal-dialog {
+    max-width: 700px;
+}
+
+.widget-config-modal .modal-backdrop {
+    z-index: 1055;
+}
+
+.widget-config-modal.modal {
+    z-index: 1060;
+}
+
+/* Step indicator */
+.step-indicator {
+    display: flex;
+    justify-content: space-between;
+    position: relative;
+}
+
+.step-indicator::before {
+    content: '';
+    position: absolute;
+    top: 15px;
+    left: 10%;
+    right: 10%;
+    height: 2px;
+    background: #dee2e6;
+    z-index: 0;
+}
+
+.step-indicator .step {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    z-index: 1;
+    cursor: pointer;
+}
+
+.step-indicator .step-number {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: #dee2e6;
+    color: #6c757d;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    margin-bottom: 0.5rem;
+    transition: var(--dashboardng-transition);
+}
+
+.step-indicator .step.active .step-number {
+    background: var(--dashboardng-primary);
+    color: #fff;
+}
+
+.step-indicator .step.current .step-number {
+    box-shadow: 0 0 0 3px rgba(13, 110, 253, 0.25);
+}
+
+.step-indicator .step-label {
+    font-size: 0.75rem;
+    color: #6c757d;
+    text-align: center;
+}
+
+.step-indicator .step.active .step-label {
+    color: var(--dashboardng-primary);
+    font-weight: 500;
+}
+
+/* Visualization options */
+.visualization-option {
+    cursor: pointer;
+    transition: var(--dashboardng-transition);
+    border: 2px solid transparent;
+}
+
+.visualization-option:hover {
+    border-color: #dee2e6;
+}
+
+.visualization-option.selected {
+    border-color: var(--dashboardng-primary);
+    background: rgba(13, 110, 253, 0.05);
+}
+
+.chart-type-option {
+    cursor: pointer;
+    transition: var(--dashboardng-transition);
+    border: 2px solid transparent;
+}
+
+.chart-type-option:hover {
+    border-color: #dee2e6;
+}
+
+.chart-type-option.selected {
+    border-color: var(--dashboardng-primary);
+    background: rgba(13, 110, 253, 0.05);
+}
+
+/* Filter rows */
+.filter-row {
+    border: 1px solid #dee2e6;
+}
+
+.filter-row:hover {
+    border-color: #adb5bd;
+}
+
+/* ============================================================================
+   Widget Controls (Edit Mode)
+   ============================================================================ */
+.widget-wrapper {
+    position: relative;
+}
+
+.widget-wrapper.edit-mode .widget-controls {
+    display: flex;
+    gap: 0.25rem;
+}
+
+.widget-controls {
+    position: absolute;
+    top: 4px;
+    right: 4px;
+    z-index: 10;
+    display: none;
+}
+
+.widget-controls .btn {
+    padding: 0.25rem 0.5rem;
+    font-size: 0.75rem;
+    opacity: 0.8;
+}
+
+.widget-controls .btn:hover {
+    opacity: 1;
+}
+
+/* ============================================================================
+   Generic Widget Styles
+   ============================================================================ */
+.generic-card-widget {
+    position: relative;
+}
+
+.generic-card-widget .kpi-trend {
+    font-size: 1.25rem;
+}
+
+.generic-chart-widget .widget-title,
+.generic-table-widget .widget-title {
+    font-size: 0.9rem;
+    color: #495057;
+}
+
+.generic-table-widget .table {
+    font-size: 0.875rem;
+}
+
+.generic-table-widget th {
+    white-space: nowrap;
+    font-weight: 600;
+    background: #f8f9fa;
+}
+
+.generic-table-widget td {
+    vertical-align: middle;
+}
+
+.generic-table-widget .cursor-pointer {
+    cursor: pointer;
+}
+
+.generic-table-widget .cursor-pointer:hover {
+    color: var(--dashboardng-primary);
+}
+
+/* Preview styles in config modal */
+.preview-card {
+    max-width: 300px;
+    margin: 0 auto;
+}
+
+.preview-result .table-responsive {
+    max-height: 300px;
+}
+
+/* ============================================================================
+    Config Summary
+    ============================================================================ */
+.config-summary .list-group-item {
+    padding: 0.5rem 0;
+    background: transparent;
+    border: none;
+    border-bottom:1px solid #f0f0f0;
+}
+
+.config-summary .list-group-item:last-child {
+    border-bottom: none;
+}
+
+/* ============================================================================
+    Report Card Settings Button
+    ============================================================================ */
+.dashboardng-reports .card-header .btn-link {
+    opacity: 0.6;
+    transition: opacity 0.2s;
+}
+
+.dashboardng-reports .card-header .btn-link:hover {
+    opacity: 1;
+}
+
+.dashboardng-reports .card-header .gap-2 {
+    gap: 0.5rem;
+}
+
+.config-summary .list-group-item:last-child {
+    border-bottom: none;
+}

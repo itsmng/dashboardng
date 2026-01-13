@@ -1,0 +1,12 @@
+{#
+/**
+ * Dashboard NG - JavaScript Configuration Component
+ *
+ * Injects the DASHBOARDNG_CONFIG global object for JavaScript modules
+ *
+ * @var array config The configuration object to inject
+ */
+#}
+<script>
+    window.DASHBOARDNG_CONFIG = {{ config|json_encode|raw }};
+</script>

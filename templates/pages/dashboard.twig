@@ -1,0 +1,24 @@
+{% extends 'layouts/base.twig' %}
+
+{% block content %}
+<div id="dashboardng-app" class="container-fluid py-3">
+    {% include 'components/loading_spinner.twig' with {
+        'message': 'Loading...'
+    } %}
+</div>
+
+{% include 'components/javascript_config.twig' with {
+    'config': {
+        'apiUrl': plugin_dir ~ '/api.php',
+        'pluginDir': plugin_dir,
+        'refreshInterval': refresh_interval * 1000,
+        'defaultPeriod': default_period,
+        'entities': entities,
+        'csrfToken': csrf_token,
+        'ticketUrl': root_doc ~ '/front/ticket.form.php',
+        'locale': locale,
+        'userId': userId
+    }
+} %}
+<script type="module" src="{{ plugin_dir }}/js/dashboard.js"></script>
+{% endblock %}

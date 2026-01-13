@@ -1,0 +1,292 @@
+/**
+ * Dashboard NG - Navigation Bar Styles
+ * Bootstrap 5 compatible navbar styling
+ */
+
+/* ============================================================================
+   Navbar Base Styles
+   ============================================================================ */
+.dashboardng-navbar {
+    background-color: var(--bs-nav);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    margin-bottom: 1rem;
+    border-radius: 0;
+}
+
+.dashboardng-navbar .navbar-brand {
+    color: var(--bs-nav-text) !important;
+    font-weight: 600;
+    font-size: 1.1rem;
+}
+
+/* Navbar links */
+.dashboardng-navbar .nav-link {
+    color: var(--bs-nav-text) !important;
+    font-weight: 500;
+    padding: 0.75rem 1rem;
+    transition: all 0.2s ease-in-out;
+    border-radius: 0.375rem;
+}
+
+.dashboardng-navbar .nav-link:hover {
+    color: var(--bs-nav-text) !important;
+    background-color: var(--bs-nav-hover);
+}
+
+.dashboardng-navbar .nav-link:focus {
+    color: var(--bs-nav-text) !important;
+    outline: none;
+    box-shadow: 0 0 0 0.2rem var(--bs-nav-text);
+}
+
+/* Active state */
+.dashboardng-navbar .nav-link.active,
+.dashboardng-navbar .show > .nav-link {
+    color: var(--bs-nav-text) !important;
+    background-color: var(--bs-nav-hover);
+}
+
+/* Icons */
+.dashboardng-navbar .nav-link i {
+    margin-right: 0.25rem;
+}
+
+/* Spacing between nav items */
+.dashboardng-navbar .nav-item {
+    margin-left: 0.5rem;
+}
+
+/* ============================================================================
+   Dropdown Menus
+   ============================================================================ */
+.dashboardng-navbar .dropdown-menu {
+    background-color: var(--bs-nav-submenu);
+    border: 1px solid rgba(0, 0, 0, 0.15);
+    border-radius: 0.5rem;
+    box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+    padding: 0.5rem 0;
+    margin-top: 0.5rem;
+}
+
+.dashboardng-navbar .dropdown-item {
+    color: var(--bs-nav-text);
+    padding: 0.5rem 1rem;
+    font-size: 0.9rem;
+    transition: all 0.15s ease-in-out;
+}
+
+.dashboardng-navbar .dropdown-item:hover {
+    background-color: var(--bs-nav-hover);
+    color: var(--bs-nav-text);
+}
+
+.dashboardng-navbar .dropdown-item.active {
+    background-color: var(--bs-nav-hover);
+    color: var(--bs-nav-text);
+}
+
+.dashboardng-navbar .dropdown-item i {
+    color: inherit;
+}
+
+/* Dropdown headers */
+.dashboardng-navbar .dropdown-header {
+    color: var(--bs-nav-text);
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    padding: 0.5rem 1rem;
+    margin-top: 0.25rem;
+}
+
+/* Dropdown dividers */
+.dashboardng-navbar .dropdown-divider {
+    margin: 0.5rem 0;
+    border-color: rgba(0, 0, 0, 0.1);
+}
+
+/* ============================================================================
+   Mega Menus (Reports & Charts)
+   ============================================================================ */
+.dashboardng-navbar .mega-dropdown {
+    width: auto;
+    min-width: 600px;
+    max-width: 900px;
+    left: 0;
+    right: auto;
+}
+
+.dashboardng-navbar .mega-dropdown .container-fluid {
+    padding: 0.75rem;
+}
+
+.dashboardng-navbar .mega-dropdown .row > div {
+    padding: 0 0.5rem;
+}
+
+.dashboardng-navbar .mega-dropdown ul {
+    margin-bottom: 0;
+}
+
+/* Mega menu items */
+.dashboardng-navbar .mega-dropdown .dropdown-item {
+    border-radius: 0.375rem;
+    margin-bottom: 0.125rem;
+}
+
+/* ============================================================================
+   Submenus (nested dropdowns)
+   ============================================================================ */
+.dashboardng-navbar .dropdown-submenu {
+    position: relative;
+}
+
+.dashboardng-navbar .dropdown-submenu > .dropdown-menu {
+    top: 0;
+    left: 100%;
+    margin-top: -6px;
+    margin-left: -1px;
+    border-top-left-radius: 0;
+    border-top-right-radius: 0.5rem;
+    border-bottom-left-radius: 0.5rem;
+    border-bottom-right-radius: 0.5rem;
+}
+
+.dashboardng-navbar .dropdown-submenu > .dropdown-item.dropdown-toggle {
+    position: relative;
+}
+
+.dashboardng-navbar .dropdown-submenu > .dropdown-item.dropdown-toggle::after {
+    content: "\f054";
+    font-family: "Font Awesome 6 Free";
+    font-weight: 900;
+    float: right;
+    margin-left: 0.5rem;
+    font-size: 0.7em;
+}
+
+/* Show submenu on hover (desktop) */
+@media (min-width: 992px) {
+    .dashboardng-navbar .dropdown-submenu:hover > .dropdown-menu {
+        display: block;
+    }
+
+    .dashboardng-navbar .dropdown-submenu > .dropdown-item.dropdown-toggle::after {
+        content: "";
+    }
+
+    .dashboardng-navbar .dropdown-submenu > .dropdown-toggle::after {
+        display: inline-block;
+        margin-left: 0.255em;
+        vertical-align: 0.255em;
+        content: "";
+        border-top: 0.3em solid;
+        border-right: 0.3em solid transparent;
+        border-bottom: 0;
+        border-left: 0.3em solid transparent;
+        float: right;
+        margin-top: 0.4em;
+    }
+}
+
+/* ============================================================================
+   Mobile Responsive
+   ============================================================================ */
+@media (max-width: 991.98px) {
+    .dashboardng-navbar {
+        margin-bottom: 0;
+    }
+
+    .dashboardng-navbar .navbar-collapse {
+        background-color: var(--bs-nav);
+        padding: 0.5rem 0;
+        border-top: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .dashboardng-navbar .nav-link {
+        padding: 0.75rem 1.5rem;
+        border-radius: 0;
+    }
+
+    .dashboardng-navbar .dropdown-menu {
+        background-color: var(--bs-nav-submenu);
+        border: none;
+        border-radius: 0;
+        box-shadow: none;
+        padding: 0;
+    }
+
+    .dashboardng-navbar .dropdown-item {
+        color: var(--bs-nav-text);
+        padding: 0.5rem 1.5rem 0.5rem 2.5rem;
+    }
+
+    .dashboardng-navbar .dropdown-item:hover {
+        background-color: var(--bs-nav-hover);
+        color: var(--bs-nav-text);
+    }
+
+    .dashboardng-navbar .dropdown-item.active {
+        background-color: var(--bs-nav-hover);
+        color: var(--bs-nav-text);
+    }
+
+    .dashboardng-navbar .dropdown-header {
+        color: var(--bs-nav-text);
+        padding: 0.5rem 1.5rem;
+    }
+
+    .dashboardng-navbar .dropdown-divider {
+        border-color: rgba(255, 255, 255, 0.1);
+    }
+
+    .dashboardng-navbar .mega-dropdown {
+        min-width: 100%;
+        max-width: 100%;
+    }
+
+    .dashboardng-navbar .mega-dropdown .row > div {
+        padding: 0.25rem 0.5rem;
+    }
+
+    .dashboardng-navbar .dropdown-submenu > .dropdown-menu {
+        left: 0;
+        margin-left: 1.5rem;
+        border-radius: 0;
+    }
+}
+
+/* ============================================================================
+   Navbar Toggler
+   ============================================================================ */
+.dashboardng-navbar .navbar-toggler {
+    border-color: var(--bs-nav-text);
+    padding: 0.5rem 0.75rem;
+}
+
+.dashboardng-navbar .navbar-toggler:focus {
+    box-shadow: 0 0 0 0.2rem var(--bs-nav-text);
+}
+
+.dashboardng-navbar .navbar-toggler-icon {
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 30 30'%3e%3cpath stroke='white' stroke-linecap='round' stroke-miterlimit='10' stroke-width='2' d='M4 7h22M4 15h22M4 23h22'/%3e%3c/svg%3e");
+}
+
+/* ============================================================================
+   Adjust positioning for integration
+   ============================================================================ */
+/* Ensure navbar sits properly in the dashboard container */
+#dashboardng-app > .dashboardng-navbar:first-child,
+#dashboardng-reports > .dashboardng-navbar:first-child {
+    margin-left: calc(-1 * var(--bs-gutter-x, 0.75rem));
+    margin-right: calc(-1 * var(--bs-gutter-x, 0.75rem));
+    margin-top: calc(-1 * var(--bs-gutter-y, 1rem));
+}
+
+/* Fix for container-fluid py-3 */
+.dashboardng-navbar + .container-fluid,
+.dashboardng-navbar + * {
+    /* Content after navbar */
+}

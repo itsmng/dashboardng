@@ -1,0 +1,54 @@
+{% extends 'layouts/base.twig' %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="card">
+        <div class="card-header">
+            <h3 class="card-title">{{ 'Dashboard NG Configuration'|transd('dashboardng') }}</h3>
+        </div>
+        <div class="card-body">
+            <form method="post" action="{{ form_action }}">
+                {{ html.hidden('_glpi_csrf_token', {'value': csrf_token})|raw }}
+
+                {# Refresh Interval #}
+                <div class="mb-3 row">
+                    <label class="col-sm-3 col-form-label">
+                        {{ translations.refresh_interval }}
+                    </label>
+                    <div class="col-sm-9">
+                        <input type="number"
+                               class="form-control"
+                               name="refresh_interval"
+                               value="{{ current_refresh_interval }}"
+                               min="10"
+                               max="600">
+                    </div>
+                </div>
+
+                {# Default Period #}
+                <div class="mb-3 row">
+                    <label class="col-sm-3 col-form-label">
+                        {{ translations.default_period }}
+                    </label>
+                    <div class="col-sm-9">
+                        <select class="form-select" name="default_period">
+                            {% for key, label in period_options %}
+                                <option value="{{ key }}"
+                                        {{ current_default_period == key ? 'selected' : '' }}>
+                                    {{ label }}
+                                </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+
+                <div class="d-flex justify-content-end">
+                    <button type="submit" name="update" class="btn btn-primary">
+                        {{ translations.save }}
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
