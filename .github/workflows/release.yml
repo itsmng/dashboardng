@@ -37,7 +37,7 @@ jobs:
       - name: Build project
         run: |
           cd /home/runner/work/dashboardng/
-          rm -r dashboardng/.git* dashboardng/tools dashboardng/.yarnrc dashboardng/README.md dashboardng/composer.* dashboardng/package.*
+          rm -r dashboardng/.git* dashboardng/tools dashboardng/README.md dashboardng/composer.* dashboardng/package.*
           tar -zcvf dashboardng-${{ github.ref_name }}.tgz dashboardng
 
       - name: Upload release
