@@ -2,6 +2,7 @@ import { html, useState, useEffect } from '../../lib/preact.js';
 import { api, COLORS } from '../../lib/config.js';
 import { usePeriod } from '../../context/PeriodContext.js';
 import { useRefresh } from '../../lib/hooks/useRefresh.js';
+import { processFilters } from '../../lib/utils.js';
 
 /**
  * Generic Card Widget - Renders KPI/metric cards based on config JSON
@@ -60,43 +61,6 @@ export const GenericCardWidget = ({ config, widgetId }) => {
         }
         
         setLoading(false);
-    };
-
-    /**
-     * Process dynamic filter values by replacing placeholder strings
-     * @private
-     * @param {FilterConfig[]} filters - Array of filter configurations
-     * @param {number} period - Current period value
-     * @returns {FilterConfig[]} Processed filters with resolved values
-     */
-    const processFilters = (filters, period) => {
-        const now = new Date();
-        const today = now.toISOString().split('T')[0];
-        const thisMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-01`;
-        const thisYear = `${now.getFullYear()}-01-01`;
-        const yesterday = new Date(now.getTime() - 24 * 60 * 60 * 1000).toISOString().split('T')[0];
-        const thirtyDaysAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
-        const lastWeek = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
-
-        return filters.map(filter => {
-            let value = filter.value;
-
-            if (typeof value === 'string') {
-                value = value
-                    .replace('$$NOW$$', now.toISOString())
-                    .replace('$$TODAY$$', today)
-                    .replace('$$YESTERDAY$$', yesterday)
-                    .replace('$$TODAY-1DAY$$', yesterday)
-                    .replace('$$TODAY-7DAY$$', lastWeek)
-                    .replace('$$TODAY-30DAY$$', thirtyDaysAgo)
-                    .replace('$$LASTWEEK$$', lastWeek)
-                    .replace('$$THISMONTH$$', thisMonth)
-                    .replace('$$THISYEAR$$', thisYear)
-                    .replace('$$MYSELF$$', String(window.DASHBOARDNG_CONFIG?.userId || 0));
-            }
-
-            return { ...filter, value };
-        });
     };
 
     // Fetch data on mount and when dependencies change

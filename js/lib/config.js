@@ -13,15 +13,17 @@ export const CONFIG = window.DASHBOARDNG_CONFIG || {};
  */
 export const api = {
     /**
-     * Make an HTTP request to the API
+     * Internal helper to build fetch request with common configuration
+     * @private
      * @param {string} endpoint - API endpoint path
+     * @param {string} method - HTTP method
      * @param {Object} [params={}] - Query parameters or request body
-     * @param {string} [method='GET'] - HTTP method
      * @returns {Promise<ApiResponse>} Response data with success flag
      * @throws {Error} If HTTP response is not OK
      */
-    async fetch(endpoint, params = {}, method = 'GET') {
-        const url = new URL(CONFIG.apiUrl + endpoint, window.location.origin);
+    async _request(endpoint, method, params = {}) {
+        const baseUrl = CONFIG.apiUrl || '/plugins/dashboardng/api.php';
+        const url = new URL(baseUrl + endpoint, window.location.origin);
 
         if (method === 'GET') {
             Object.entries(params).forEach(([key, value]) => {
@@ -34,7 +36,9 @@ export const api = {
         const options = {
             method: method,
             headers: {
+                'Accept': 'application/json',
                 'Content-Type': 'application/json',
+                'X-Requested-With': 'XMLHttpRequest',
             },
             credentials: 'same-origin'
         };
@@ -53,6 +57,17 @@ export const api = {
     },
 
     /**
+     * Make an HTTP GET request to the API
+     * @param {string} endpoint - API endpoint path
+     * @param {Object} [params={}] - Query parameters
+     * @returns {Promise<ApiResponse>} Response data with success flag
+     * @throws {Error} If HTTP response is not OK
+     */
+    async fetch(endpoint, params = {}) {
+        return this._request(endpoint, 'GET', params);
+    },
+
+    /**
      * Make a POST request to the API
      * @param {string} endpoint - API endpoint path
      * @param {Object} [data={}] - Request body data
@@ -60,20 +75,7 @@ export const api = {
      * @throws {Error} If HTTP response is not OK
      */
     async post(endpoint, data = {}) {
-        const response = await fetch(CONFIG.apiUrl + endpoint, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            credentials: 'same-origin',
-            body: JSON.stringify(data)
-        });
-
-        if (!response.ok) {
-            throw new Error(`HTTP ${response.status}`);
-        }
-
-        return response.json();
+        return this._request(endpoint, 'POST', data);
     },
 
     /**
@@ -83,19 +85,7 @@ export const api = {
      * @throws {Error} If HTTP response is not OK
      */
     async delete(endpoint) {
-        const response = await fetch(CONFIG.apiUrl + endpoint, {
-            method: 'DELETE',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            credentials: 'same-origin'
-        });
-
-        if (!response.ok) {
-            throw new Error(`HTTP ${response.status}`);
-        }
-
-        return response.json();
+        return this._request(endpoint, 'DELETE', {});
     }
 };
 

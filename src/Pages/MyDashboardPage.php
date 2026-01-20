@@ -12,6 +12,8 @@ class MyDashboardPage extends AbstractPage
 {
     protected string $pageTitle = 'My Dashboard';
     protected string $menuPage = 'mydashboard';
+    protected string $requiredRight = 'plugin_dashboardng_mydashboard';
+    protected int $rightLevel = UPDATE;
 
     protected function getTemplate(): string
     {

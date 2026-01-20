@@ -15,7 +15,7 @@ class AddWidgetToDashboard
     {
         $dashboardId = $params['dashboard_id'] ?? null;
         $widgetDefinitionId = $params['widget_definition_id'] ?? null;
-        
+
         if (!$widgetDefinitionId) {
             return [
                 'success' => false,
@@ -26,9 +26,16 @@ class AddWidgetToDashboard
         // If no dashboard specified, use default or create personal
         if (!$dashboardId) {
             $dashboard = PluginDashboardngDashboard::getDefaultDashboard();
-            
+
             // If global dashboard, create personal copy first
             if ($dashboard && $dashboard['users_id'] == 0) {
+                if (!Session::haveRight('plugin_dashboardng_mydashboard', UPDATE)) {
+                    return [
+                        'success' => false,
+                        'error' => 'Unauthorized',
+                    ];
+                }
+
                 $newDashboardId = PluginDashboardngDashboard::createPersonalDashboard(
                     $dashboard['id'],
                     'My Dashboard'
@@ -44,6 +51,23 @@ class AddWidgetToDashboard
             } else {
                 $dashboardId = $dashboard['id'];
             }
+        }
+
+        // Get dashboard to check if it's global
+        $dashboard = PluginDashboardngDashboard::getDashboardById((int) $dashboardId);
+        if (!$dashboard) {
+            return [
+                'success' => false,
+                'error' => 'Dashboard not found',
+            ];
+        }
+
+        // Check global dashboard edit right
+        if ($dashboard['users_id'] == 0 && !Session::haveRight('plugin_dashboardng_globaldashboard', UPDATE)) {
+            return [
+                'success' => false,
+                'error' => 'Unauthorized',
+            ];
         }
 
         // Add widget to dashboard

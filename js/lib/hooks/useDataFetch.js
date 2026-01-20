@@ -21,7 +21,6 @@ const pendingRequests = new Map();
  * });
  */
 export const useDataFetch = (endpoint, params = {}, options = {}) => {
-export const useDataFetch = (endpoint, params = {}, options = {}) => {
     const {
         cacheKey = null,
         enabled = true,

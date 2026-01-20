@@ -5,6 +5,7 @@ namespace GlpiPlugin\Dashboardng\DataSources;
 use CommonDBTM;
 use Search;
 use Session;
+use GlpiPlugin\Dashboardng\Registry\ItemtypeRegistry;
 
 /**
  * Generic Data Source for querying any GLPI itemtype
@@ -12,45 +13,6 @@ use Session;
  */
 class GenericDataSource
 {
-    /** @var array Allowed itemtypes for security */
-    private static array $allowedItemtypes = [
-        'Ticket',
-        'Problem',
-        'Change',
-        'Computer',
-        'Monitor',
-        'Printer',
-        'Phone',
-        'Peripheral',
-        'Software',
-        'SoftwareLicense',
-        'SoftwareVersion',
-        'NetworkEquipment',
-        'Certificate',
-        'Domain',
-        'User',
-        'Group',
-        'Entity',
-        'Location',
-        'ITILCategory',
-        'ITILFollowup',
-        'TicketTask',
-        'Project',
-        'ProjectTask',
-        'Contract',
-        'Supplier',
-        'Contact',
-        'Document',
-        'KnowbaseItem',
-        'Cartridge',
-        'Consumable',
-        'Rack',
-        'Enclosure',
-        'PDU',
-        'PassiveDCEquipment',
-        'Cable',
-        'Socket',
-    ];
 
     /** @var int Default row limit */
     private int $defaultLimit = 1000;
@@ -60,6 +22,11 @@ class GenericDataSource
 
     /** @var int Query timeout in seconds */
     private int $timeout = 30;
+
+    private FilterBuilder $filterBuilder;
+    private JoinBuilder $joinBuilder;
+    private FieldResolver $fieldResolver;
+    private DateGapFiller $dateGapFiller;
 
     /**
      * Constructor with configurable limits
@@ -71,6 +38,11 @@ class GenericDataSource
             $this->maxLimit = $config['max_limit'] ?? $this->maxLimit;
             $this->timeout = $config['timeout'] ?? $this->timeout;
         }
+
+        $this->filterBuilder = new FilterBuilder();
+        $this->joinBuilder = new JoinBuilder();
+        $this->fieldResolver = new FieldResolver();
+        $this->dateGapFiller = new DateGapFiller();
     }
 
     /**
@@ -80,33 +52,7 @@ class GenericDataSource
      */
     public function getAvailableItemtypes(): array
     {
-        $result = [];
-
-        foreach (self::$allowedItemtypes as $itemtype) {
-            if (!class_exists($itemtype)) {
-                continue;
-            }
-
-            /** @var CommonDBTM $item */
-            $item = new $itemtype();
-
-            // Check read permission
-            if (!$item->canView()) {
-                continue;
-            }
-
-            $result[] = [
-                'itemtype' => $itemtype,
-                'name' => $item->getTypeName(2),
-                'icon' => $this->getItemtypeIcon($itemtype),
-                'category' => $this->getItemtypeCategory($itemtype),
-                'table' => $item->getTable(),
-            ];
-        }
-
-        usort($result, fn($a, $b) => strcmp($a['category'] . $a['name'], $b['category'] . $b['name']));
-
-        return $result;
+        return ItemtypeRegistry::getAvailableItemtypes();
     }
 
     /**
@@ -319,7 +265,7 @@ class GenericDataSource
             ) {
 
                 $interval = $dateIntervalConfig['interval'];
-                $truncatedField = $this->getDateTruncationSQL($fullField, $interval);
+                $truncatedField = SqlHelper::getDateTruncationSQL($fullField, $interval);
                 $groupByFields[] = $truncatedField;
                 $selectFields[] = "$truncatedField AS `$alias`";
             } else {
@@ -346,7 +292,7 @@ class GenericDataSource
         }
 
         // Build WHERE clause from filters
-        $where = $this->buildWhereClause($itemtype, $filters, $searchOptions, $table);
+        $where = $this->filterBuilder->buildWhereClause($itemtype, $filters, $searchOptions, $table);
 
         // Add entity restriction
         $entityWhere = $this->getEntityRestriction($itemtype, $table);
@@ -355,7 +301,7 @@ class GenericDataSource
         }
 
         // Build joins for related tables
-        $joins = $this->buildJoins($itemtype, array_merge($normalizedGroupBy, [$aggField]), $searchOptions, $table);
+        $joins = $this->joinBuilder->buildJoins($itemtype, array_merge($normalizedGroupBy, [$aggField]), $searchOptions, $table);
 
         // Build query
         $sql = "SELECT " . implode(", ", $selectFields) . " FROM `$table`";
@@ -391,11 +337,11 @@ class GenericDataSource
 
         // Fill date gaps if we have date interval config and a date range
         if ($dateIntervalConfig && $dateRange) {
-            $rows = $this->fillDateGaps($rows, $dateRange, $dateIntervalConfig);
+            $rows = $this->dateGapFiller->fillDateGaps($rows, $dateRange, $dateIntervalConfig);
         }
 
         // Resolve enum/dropdown values to display labels
-        $rows = $this->resolveDisplayLabels($rows, $normalizedGroupBy, $searchOptions, $itemtype);
+        $rows = $this->fieldResolver->resolveDisplayLabels($rows, $normalizedGroupBy, $searchOptions, $itemtype);
 
         return [
             'rows' => $rows,
@@ -494,243 +440,6 @@ class GenericDataSource
     }
 
     /**
-     * Resolve raw database values to human-readable display labels
-     * Handles status, priority, urgency, impact, dropdown fields, etc.
-     */
-    private function resolveDisplayLabels(array $rows, array $fieldIds, array $searchOptions, string $itemtype): array
-    {
-        if (empty($rows)) {
-            return $rows;
-        }
-
-        // Build resolution map for each field
-        $resolvers = [];
-        foreach ($fieldIds as $fieldId) {
-            $opt = $searchOptions[$fieldId] ?? null;
-            if (!$opt) {
-                continue;
-            }
-
-            $alias = 'group_' . $fieldId;
-            $datatype = $opt['datatype'] ?? 'text';
-            $fieldName = $opt['field'] ?? '';
-
-            // Determine resolver based on datatype and field name
-            $resolver = $this->getFieldResolver($itemtype, $fieldName, $datatype, $opt);
-            if ($resolver) {
-                $resolvers[$alias] = $resolver;
-            }
-        }
-
-        if (empty($resolvers)) {
-            return $rows;
-        }
-
-        // Apply resolvers to each row
-        foreach ($rows as &$row) {
-            foreach ($resolvers as $alias => $resolver) {
-                if (isset($row[$alias])) {
-                    $row[$alias] = $resolver($row[$alias]);
-                }
-            }
-        }
-
-        return $rows;
-    }
-
-    /**
-     * Get a resolver function for a specific field
-     * Returns null if no special resolution is needed
-     */
-    private function getFieldResolver(string $itemtype, string $fieldName, string $datatype, array $opt): ?callable
-    {
-        // Handle ITIL-specific fields (status, priority, urgency, impact)
-        if (is_a($itemtype, 'CommonITILObject', true)) {
-            switch ($fieldName) {
-                case 'status':
-                    return fn($value) => $itemtype::getStatus($value) ?: $value;
-                case 'priority':
-                    return fn($value) => $itemtype::getPriorityName($value) ?: $value;
-                case 'urgency':
-                    return fn($value) => $itemtype::getUrgencyName($value) ?: $value;
-                case 'impact':
-                    return fn($value) => $itemtype::getImpactName($value) ?: $value;
-            }
-        }
-
-        // Handle Ticket-specific type field
-        if ($itemtype === 'Ticket' && $fieldName === 'type') {
-            return fn($value) => \Ticket::getTicketTypeName($value) ?: $value;
-        }
-
-        // Handle dropdown fields (foreign keys to other tables)
-        if ($datatype === 'dropdown') {
-            $dropdownTable = $opt['table'] ?? null;
-            if ($dropdownTable && $dropdownTable !== \getTableForItemType($itemtype)) {
-                $dropdownItemtype = \getItemTypeForTable($dropdownTable);
-                if ($dropdownItemtype && class_exists($dropdownItemtype)) {
-                    return function ($value) use ($dropdownItemtype) {
-                        if (empty($value)) {
-                            return __('None');
-                        }
-                        $item = new $dropdownItemtype();
-                        if ($item->getFromDB($value)) {
-                            return $item->getName();
-                        }
-                        return $value;
-                    };
-                }
-            }
-        }
-
-        // Handle specific dropdown types
-        if ($datatype === 'specific') {
-            // These are typically handled by getSpecificValueToDisplay
-            $specificTypes = $opt['searchtype'] ?? [];
-            if (in_array('equals', (array) $specificTypes)) {
-                return function ($value) use ($itemtype, $fieldName, $opt) {
-                    if (method_exists($itemtype, 'getSpecificValueToDisplay')) {
-                        $display = $itemtype::getSpecificValueToDisplay($fieldName, [$fieldName => $value], []);
-                        return $display ?: $value;
-                    }
-                    return $value;
-                };
-            }
-        }
-
-        // Handle itemlink (references to same itemtype)
-        if ($datatype === 'itemlink') {
-            return function ($value) use ($itemtype) {
-                if (empty($value)) {
-                    return __('None');
-                }
-                $item = new $itemtype();
-                if ($item->getFromDB($value)) {
-                    return $item->getName();
-                }
-                return $value;
-            };
-        }
-
-        return null;
-    }
-
-    /**
-     * Get SQL expression for truncating a datetime field to the specified interval
-     */
-    private function getDateTruncationSQL(string $field, string $interval): string
-    {
-        return match ($interval) {
-            'day' => "DATE($field)",
-            'week' => "DATE(DATE_SUB($field, INTERVAL WEEKDAY($field) DAY))",
-            'month' => "DATE_FORMAT($field, '%Y-%m-01')",
-            'year' => "DATE_FORMAT($field, '%Y-01-01')",
-            default => "DATE($field)",
-        };
-    }
-
-    /**
-     * Fill gaps in date-grouped results with zero values
-     */
-    private function fillDateGaps(array $rows, array $dateRange, array $dateIntervalConfig): array
-    {
-        $start = $dateRange['start'] ?? null;
-        $end = $dateRange['end'] ?? null;
-        $interval = $dateRange['interval'] ?? $dateIntervalConfig['interval'];
-        $fieldId = $dateIntervalConfig['field'];
-        $alias = 'group_' . $fieldId;
-
-        if (!$start || !$end) {
-            return $rows;
-        }
-
-        // Generate all expected dates in the range
-        $allDates = $this->generateDateRange($start, $end, $interval);
-
-        // Build a map of existing data by date
-        $dataByDate = [];
-        foreach ($rows as $row) {
-            $dateKey = $row[$alias] ?? null;
-            if ($dateKey) {
-                // Normalize the date key format
-                $normalizedKey = $this->normalizeDateKey($dateKey, $interval);
-                $dataByDate[$normalizedKey] = $row;
-            }
-        }
-
-        // Build result with all dates, filling gaps with zeros
-        $filledRows = [];
-        foreach ($allDates as $date) {
-            $normalizedDate = $this->normalizeDateKey($date, $interval);
-            if (isset($dataByDate[$normalizedDate])) {
-                $filledRows[] = $dataByDate[$normalizedDate];
-            } else {
-                $filledRows[] = [
-                    $alias => $date,
-                    'value' => 0,
-                ];
-            }
-        }
-
-        return $filledRows;
-    }
-
-    /**
-     * Generate array of dates for a range at the specified interval
-     */
-    private function generateDateRange(string $start, string $end, string $interval): array
-    {
-        $dates = [];
-        $current = new \DateTime($start);
-        $endDate = new \DateTime($end);
-
-        // Adjust start date based on interval
-        switch ($interval) {
-            case 'week':
-                // Start from the beginning of the week
-                $dayOfWeek = (int) $current->format('N') - 1; // 0 = Monday
-                $current->modify("-$dayOfWeek days");
-                break;
-            case 'month':
-                // Start from the first of the month
-                $current->modify('first day of this month');
-                break;
-            case 'year':
-                // Start from the first of the year
-                $current->modify('first day of January');
-                break;
-        }
-
-        $dateInterval = match ($interval) {
-            'day' => new \DateInterval('P1D'),
-            'week' => new \DateInterval('P1W'),
-            'month' => new \DateInterval('P1M'),
-            'year' => new \DateInterval('P1Y'),
-            default => new \DateInterval('P1D'),
-        };
-
-        while ($current <= $endDate) {
-            $dates[] = $current->format('Y-m-d');
-            $current->add($dateInterval);
-        }
-
-        return $dates;
-    }
-
-    /**
-     * Normalize a date key to Y-m-d format for comparison
-     */
-    private function normalizeDateKey(string $dateKey, string $interval): string
-    {
-        try {
-            $date = new \DateTime($dateKey);
-            return $date->format('Y-m-d');
-        } catch (\Exception $e) {
-            return $dateKey;
-        }
-    }
-
-    /**
      * Execute list query (raw data)
      */
     private function executeListQuery(
@@ -798,136 +507,6 @@ class GenericDataSource
             'total' => $searchData['data']['totalcount'] ?? count($rows),
             'columns' => $columns,
         ];
-    }
-
-    /**
-     * Build WHERE clause from filters
-     */
-    private function buildWhereClause(string $itemtype, array $filters, array $searchOptions, string $table): array
-    {
-        global $DB;
-
-        $where = [];
-
-        foreach ($filters as $filter) {
-            $fieldId = $filter['field'] ?? null;
-            // Support both 'operator' and 'searchtype' keys (for backward compatibility)
-            $operator = $filter['operator'] ?? $this->mapSearchTypeToOperator($filter['searchtype'] ?? 'equals');
-            $value = $filter['value'] ?? null;
-
-            if ($fieldId === null) {
-                continue;
-            }
-
-            $opt = $searchOptions[$fieldId] ?? null;
-            if (!$opt || !isset($opt['field'])) {
-                continue;
-            }
-
-            $fieldTable = $opt['table'] ?? $table;
-            $fieldName = $opt['field'];
-            $fullField = "`$fieldTable`.`$fieldName`";
-
-            switch ($operator) {
-                case 'equals':
-                    $where[] = "$fullField = " . $DB->quote($value);
-                    break;
-                case 'not_equals':
-                    $where[] = "$fullField != " . $DB->quote($value);
-                    break;
-                case 'contains':
-                    $where[] = "$fullField LIKE " . $DB->quote("%$value%");
-                    break;
-                case 'not_contains':
-                    $where[] = "$fullField NOT LIKE " . $DB->quote("%$value%");
-                    break;
-                case 'greater_than':
-                    $where[] = "$fullField > " . $DB->quote($value);
-                    break;
-                case 'less_than':
-                    $where[] = "$fullField < " . $DB->quote($value);
-                    break;
-                case 'greater_or_equal':
-                    $where[] = "$fullField >= " . $DB->quote($value);
-                    break;
-                case 'less_or_equal':
-                    $where[] = "$fullField <= " . $DB->quote($value);
-                    break;
-                case 'is_null':
-                    $where[] = "$fullField IS NULL";
-                    break;
-                case 'is_not_null':
-                    $where[] = "$fullField IS NOT NULL";
-                    break;
-                case 'in':
-                    if (is_array($value)) {
-                        $values = array_map(fn($v) => $DB->quote($v), $value);
-                        $where[] = "$fullField IN (" . implode(',', $values) . ")";
-                    }
-                    break;
-                case 'between':
-                    if (is_array($value) && count($value) >= 2) {
-                        $where[] = "$fullField BETWEEN " . $DB->quote($value[0]) . " AND " . $DB->quote($value[1]);
-                    }
-                    break;
-            }
-        }
-
-        return $where;
-    }
-
-    /**
-     * Build JOINs for related tables
-     */
-    private function buildJoins(string $itemtype, array $fieldIds, array $searchOptions, string $table): array
-    {
-        $joins = [];
-        $addedTables = [$table => true];
-
-        foreach ($fieldIds as $fieldId) {
-            if (!$fieldId)
-                continue;
-
-            $opt = $searchOptions[$fieldId] ?? null;
-            if (!$opt)
-                continue;
-
-            $joinTable = $opt['table'] ?? null;
-            if (!$joinTable || isset($addedTables[$joinTable])) {
-                continue;
-            }
-
-            $linkfield = $opt['linkfield'] ?? 'id';
-
-            // Determine join condition based on relationship
-            if ($opt['joinparams'] ?? null) {
-                // Use explicit join params if defined
-                $jp = $opt['joinparams'];
-                $beforejoin = $jp['beforejoin'] ?? null;
-
-                if ($beforejoin) {
-                    foreach ((array) $beforejoin as $bj) {
-                        $bjTable = $bj['table'] ?? null;
-                        if ($bjTable && !isset($addedTables[$bjTable])) {
-                            $bjLink = $bj['linkfield'] ?? 'id';
-                            $bjJoinOn = $bj['joinparams']['joinon'] ?? "`$table`.`$bjLink` = `$bjTable`.`id`";
-                            $joins[] = "LEFT JOIN `$bjTable` ON $bjJoinOn";
-                            $addedTables[$bjTable] = true;
-                        }
-                    }
-                }
-
-                $joinOn = $jp['joinon'] ?? "`$table`.`$linkfield` = `$joinTable`.`id`";
-                $joins[] = "LEFT JOIN `$joinTable` ON $joinOn";
-            } else {
-                // Default join logic
-                $joins[] = "LEFT JOIN `$joinTable` ON `$table`.`$linkfield` = `$joinTable`.`id`";
-            }
-
-            $addedTables[$joinTable] = true;
-        }
-
-        return $joins;
     }
 
     /**
@@ -1011,71 +590,7 @@ class GenericDataSource
      */
     private function isItemtypeAllowed(string $itemtype): bool
     {
-        return in_array($itemtype, self::$allowedItemtypes, true);
-    }
-
-    /**
-     * Get icon for itemtype
-     */
-    private function getItemtypeIcon(string $itemtype): string
-    {
-        $icons = [
-            'Ticket' => 'fa-ticket-alt',
-            'Problem' => 'fa-exclamation-triangle',
-            'Change' => 'fa-exchange-alt',
-            'Computer' => 'fa-desktop',
-            'Monitor' => 'fa-tv',
-            'Printer' => 'fa-print',
-            'Phone' => 'fa-phone',
-            'Software' => 'fa-cube',
-            'User' => 'fa-user',
-            'Group' => 'fa-users',
-            'Entity' => 'fa-building',
-            'Location' => 'fa-map-marker-alt',
-            'Project' => 'fa-project-diagram',
-            'Contract' => 'fa-file-contract',
-            'Document' => 'fa-file-alt',
-            'KnowbaseItem' => 'fa-book',
-            'NetworkEquipment' => 'fa-network-wired',
-        ];
-
-        return $icons[$itemtype] ?? 'fa-cube';
-    }
-
-    /**
-     * Get category for itemtype
-     */
-    private function getItemtypeCategory(string $itemtype): string
-    {
-        $categories = [
-            'Ticket' => 'ITIL',
-            'Problem' => 'ITIL',
-            'Change' => 'ITIL',
-            'ITILCategory' => 'ITIL',
-            'ITILFollowup' => 'ITIL',
-            'TicketTask' => 'ITIL',
-            'Computer' => 'Assets',
-            'Monitor' => 'Assets',
-            'Printer' => 'Assets',
-            'Phone' => 'Assets',
-            'Peripheral' => 'Assets',
-            'NetworkEquipment' => 'Assets',
-            'Software' => 'Assets',
-            'SoftwareLicense' => 'Assets',
-            'Certificate' => 'Assets',
-            'User' => 'Organization',
-            'Group' => 'Organization',
-            'Entity' => 'Organization',
-            'Location' => 'Organization',
-            'Project' => 'Projects',
-            'ProjectTask' => 'Projects',
-            'Contract' => 'Management',
-            'Supplier' => 'Management',
-            'Document' => 'Management',
-            'KnowbaseItem' => 'Knowledge',
-        ];
-
-        return $categories[$itemtype] ?? 'Other';
+        return ItemtypeRegistry::isItemtypeAllowed($itemtype);
     }
 
     /**
@@ -1108,39 +623,17 @@ class GenericDataSource
      */
     private function isGroupable(array $option): bool
     {
-        // Most fields can be grouped, except very long text fields
         $datatype = $option['datatype'] ?? 'text';
         return !in_array($datatype, ['text', 'longtext']);
     }
 
     /**
      * Add custom itemtype to allowed list (for plugins)
+     * @deprecated Use ItemtypeRegistry::addItemtype() instead
      */
     public static function addAllowedItemtype(string $itemtype): void
     {
-        if (!in_array($itemtype, self::$allowedItemtypes, true)) {
-            self::$allowedItemtypes[] = $itemtype;
-        }
-    }
-
-    /**
-     * Map GLPI searchtype to internal operator
-     * GLPI uses searchtype names like 'morethan', 'lessthan', 'notequals'
-     * Internal operators use names like 'greater_or_equal', 'less_than', 'not_equals'
-     */
-    private function mapSearchTypeToOperator(string $searchType): string
-    {
-        return match ($searchType) {
-            'equals' => 'equals',
-            'notequals' => 'not_equals',
-            'contains' => 'contains',
-            'notcontains' => 'not_contains',
-            'morethan' => 'greater_or_equal',
-            'lessthan' => 'less_than',
-            'empty' => 'is_null',
-            'between' => 'between',
-            default => 'equals',
-        };
+        ItemtypeRegistry::addItemtype($itemtype);
     }
 
     /**

@@ -5,6 +5,7 @@ namespace GlpiPlugin\Dashboardng\Handlers;
 use GlpiPlugin\Dashboardng\PluginDashboardngWidgetDefinition;
 use GlpiPlugin\Dashboardng\PluginDashboardngDashboard;
 use GlpiPlugin\Dashboardng\PluginDashboardngDashboardWidget;
+use Session;
 
 /**
  * Handler for creating a new custom widget definition
@@ -17,11 +18,43 @@ class CreateWidget
         $config = $params['config'] ?? [];
         $dashboardId = $params['dashboard_id'] ?? null;
         $addToDashboard = $params['add_to_dashboard'] ?? true;
+        $updateOnly = (bool)($params['update_only'] ?? false);
 
         if (empty($config)) {
             return [
                 'success' => false,
                 'error' => 'Widget configuration required',
+            ];
+        }
+
+        if ($updateOnly) {
+            $widgetId = (int)($params['widget_id'] ?? 0);
+            if ($widgetId <= 0) {
+                return [
+                    'success' => false,
+                    'error' => 'Widget ID required',
+                ];
+            }
+
+            $updated = PluginDashboardngWidgetDefinition::updateWidget($widgetId, [
+                'name' => $config['title'] ?? null,
+                'config' => $config,
+                'width' => $params['width'] ?? null,
+                'height' => $params['height'] ?? null,
+            ]);
+
+            if (!$updated) {
+                return [
+                    'success' => false,
+                    'error' => 'Failed to update widget',
+                ];
+            }
+
+            return [
+                'success' => true,
+                'data' => [
+                    'widget_id' => $widgetId,
+                ],
             ];
         }
 
@@ -51,9 +84,16 @@ class CreateWidget
         if ($addToDashboard) {
             if (!$dashboardId) {
                 $dashboard = PluginDashboardngDashboard::getDefaultDashboard();
-                
+
                 // If global, create personal first
                 if ($dashboard && $dashboard['users_id'] == 0) {
+                    if (!Session::haveRight('plugin_dashboardng_mydashboard', UPDATE)) {
+                        return [
+                            'success' => false,
+                            'error' => 'Unauthorized',
+                        ];
+                    }
+
                     $dashboardId = PluginDashboardngDashboard::createPersonalDashboard(
                         $dashboard['id'],
                         'My Dashboard'
@@ -64,6 +104,15 @@ class CreateWidget
             }
 
             if ($dashboardId) {
+                // Get dashboard to check if it's global
+                $dashboard = PluginDashboardngDashboard::getDashboardById((int) $dashboardId);
+                if ($dashboard && $dashboard['users_id'] == 0 && !Session::haveRight('plugin_dashboardng_globaldashboard', UPDATE)) {
+                    return [
+                        'success' => false,
+                        'error' => 'Unauthorized',
+                    ];
+                }
+
                 $placementId = PluginDashboardngDashboardWidget::addWidgetToDashboard(
                     (int) $dashboardId,
                     $widgetId,

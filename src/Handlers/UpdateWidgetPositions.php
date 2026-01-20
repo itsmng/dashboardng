@@ -4,6 +4,7 @@ namespace GlpiPlugin\Dashboardng\Handlers;
 
 use GlpiPlugin\Dashboardng\PluginDashboardngDashboard;
 use GlpiPlugin\Dashboardng\PluginDashboardngDashboardWidget;
+use Session;
 
 /**
  * Handler for updating widget positions on a dashboard
@@ -32,6 +33,23 @@ class UpdateWidgetPositions
             return [
                 'success' => false,
                 'error' => 'Dashboard not found',
+            ];
+        }
+
+        // Get dashboard to check if it's global
+        $dashboard = PluginDashboardngDashboard::getDashboardById((int) $dashboardId);
+        if (!$dashboard) {
+            return [
+                'success' => false,
+                'error' => 'Dashboard not found',
+            ];
+        }
+
+        // Check global dashboard edit right
+        if ($dashboard['users_id'] == 0 && !Session::haveRight('plugin_dashboardng_globaldashboard', UPDATE)) {
+            return [
+                'success' => false,
+                'error' => 'Unauthorized',
             ];
         }
 

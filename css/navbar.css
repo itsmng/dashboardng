@@ -219,22 +219,22 @@
     }
 
     .dashboardng-navbar .dropdown-item {
-        color: var(--bs-nav-text);
+        color: var(--bs-nav-submenu-text);
         padding: 0.5rem 1.5rem 0.5rem 2.5rem;
     }
 
     .dashboardng-navbar .dropdown-item:hover {
         background-color: var(--bs-nav-hover);
-        color: var(--bs-nav-text);
+        color: var(--bs-nav-submenu-text);
     }
 
     .dashboardng-navbar .dropdown-item.active {
         background-color: var(--bs-nav-hover);
-        color: var(--bs-nav-text);
+        color: var(--bs-nav-submenu-text);
     }
 
     .dashboardng-navbar .dropdown-header {
-        color: var(--bs-nav-text);
+        color: var(--bs-nav-submenu-text);
         padding: 0.5rem 1.5rem;
     }
 

@@ -1,0 +1,139 @@
+<nav class="navbar navbar-expand-lg navbar-dark dashboardng-navbar">
+    <div class="container-fluid">
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#dashboardngNavbar" aria-controls="dashboardngNavbar" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+
+        <div class="collapse navbar-collapse" id="dashboardngNavbar">
+            <ul class="navbar-nav me-auto">
+                {% for item in navigation.items %}
+                    {% if item.kind == 'link' %}
+                        <li class="nav-item">
+                            <a class="nav-link {{ item.active ? 'active' : '' }}" href="{{ item.url }}"{{ item.active ? ' aria-current="page"' : '' }}>
+                                <i class="{{ item.icon }} me-1"></i>{{ item.label }}
+                            </a>
+                        </li>
+                    {% elseif item.kind == 'dropdown' %}
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle {{ item.active ? 'active' : '' }}" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                <i class="{{ item.icon }} me-1"></i>{{ item.label }}
+                            </a>
+                            <ul class="dropdown-menu">
+                                {% for subitem in item.items %}
+                                    <li>
+                                        <a class="dropdown-item {{ subitem.active ? 'active' : '' }}" href="{{ subitem.url }}">
+                                            {% if subitem.icon %}<i class="{{ subitem.icon }} me-1"></i>{% endif %}{{ subitem.label }}
+                                        </a>
+                                    </li>
+                                {% endfor %}
+                            </ul>
+                        </li>
+                    {% elseif item.kind == 'mega' %}
+                        <li class="nav-item dropdown mega-menu">
+                            <a class="nav-link dropdown-toggle {{ item.active ? 'active' : '' }}" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false"{{ item.active ? ' aria-current="page"' : '' }}>
+                                <i class="{{ item.icon }} me-1"></i>{{ item.label }}
+                            </a>
+                            <ul class="dropdown-menu mega-dropdown">
+                                <li>
+                                    <div class="container-fluid">
+                                        <div class="row">
+                                            {% set colCount = item.columns|length %}
+                                            {% for column in item.columns %}
+                                                <div class="{{ colCount == 1 ? 'col-md-12' : (colCount == 2 ? 'col-md-6' : 'col-md-4') }}">
+                                                    <ul class="list-unstyled">
+                                                        {% for colItem in column %}
+                                                            {% if colItem.submenu is defined %}
+                                                                <li class="dropdown-submenu dropend">
+                                                                    <a class="dropdown-item dropdown-toggle" href="#">
+                                                                        {% if colItem.icon %}<i class="{{ colItem.icon }} me-1"></i>{% endif %}{{ colItem.label }}
+                                                                    </a>
+                                                                    <ul class="dropdown-menu">
+                                                                        {% for submenuItem in colItem.submenu %}
+                                                                            <li>
+                                                                                <a class="dropdown-item {{ navigation.current_type == submenuItem.type ? 'active' : '' }}" href="{% if submenuItem.page %}{{ plugin_dir }}/front/{{ submenuItem.page }}.php{% endif %}{% if submenuItem.type %}?type={{ submenuItem.type }}{% endif %}">
+                                                                                    {% if submenuItem.icon %}<i class="{{ submenuItem.icon }} me-1"></i>{% endif %}{{ submenuItem.label }}
+                                                                                </a>
+                                                                            </li>
+                                                                        {% endfor %}
+                                                                    </ul>
+                                                                </li>
+                                                            {% elseif colItem.divider is defined and colItem.divider %}
+                                                                <li><hr class="dropdown-divider"></li>
+                                                            {% elseif colItem.header is defined %}
+                                                                <li class="dropdown-header">{{ colItem.header }}</li>
+                                                            {% else %}
+                                                                <li>
+                                                                    <a class="dropdown-item {{ navigation.current_type == colItem.type ? 'active' : '' }}" href="{{ plugin_dir }}/front/{{ colItem.page }}.php{% if colItem.type %}?type={{ colItem.type }}{% endif %}">
+                                                                        {% if colItem.icon %}<i class="{{ colItem.icon }} me-1"></i>{% endif %}{{ colItem.label }}
+                                                                    </a>
+                                                                </li>
+                                                            {% endif %}
+                                                        {% endfor %}
+                                                    </ul>
+                                                </div>
+                                            {% endfor %}
+                                        </div>
+                                    </div>
+                                </li>
+                            </ul>
+                        </li>
+                    {% endif %}
+                {% endfor %}
+            </ul>
+
+            {% if navigation.entity_selector.enabled %}
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <button class="btn btn-outline-light nav-link" type="button" data-bs-toggle="modal" data-bs-target="#entitySelectorModal">
+                            <i class="fa fa-sitemap me-1"></i>
+                            {{ navigation.entity_selector.current_shortname }}
+                        </button>
+                    </li>
+                </ul>
+            {% endif %}
+        </div>
+    </div>
+</nav>
+
+{% if navigation.entity_selector.enabled %}
+<div class="modal fade" id="entitySelectorModal" tabindex="-1" aria-labelledby="entitySelectorModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="entitySelectorModalLabel">{{ 'Select the desired entity'|trans }}</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="{{ 'Close'|trans }}"></button>
+            </div>
+            <div class="modal-body">
+                <div id="dashboardng-entity-selector-root" data-root-doc="{{ navigation.entity_selector.root_doc }}"></div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<script>
+document.querySelector("#page").style.setProperty("padding", "0px");
+document.querySelector("#subheader").style.setProperty("display", "none", "important");
+
+{% if navigation.entity_selector.enabled %}
+(function() {
+    var modal = document.getElementById('entitySelectorModal');
+    var componentMounted = false;
+
+    async function mountEntitySelector() {
+        if (componentMounted) return;
+        componentMounted = true;
+
+        const container = document.getElementById('dashboardng-entity-selector-root');
+        const rootDoc = container.dataset.rootDoc;
+
+        const { render, html } = await import(rootDoc + '/plugins/dashboardng/js/lib/preact.js');
+        const { EntitySelector } = await import(rootDoc + '/plugins/dashboardng/js/components/ui/EntitySelector.js');
+
+        render(html`<${EntitySelector} rootDoc="${rootDoc}" />`, container);
+    }
+
+    modal.addEventListener('shown.bs.modal', mountEntitySelector);
+})();
+{% endif %}
+</script>

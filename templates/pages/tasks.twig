@@ -9,7 +9,7 @@
 
 {% include 'components/javascript_config.twig' with {
     'config': {
-        'apiBaseUrl': plugin_dir ~ '/api.php',
+        'apiUrl': plugin_dir ~ '/api.php',
         'pollInterval': 60000,
         'entities': entities,
         'csrfToken': csrf_token,

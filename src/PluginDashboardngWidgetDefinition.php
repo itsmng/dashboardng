@@ -434,7 +434,7 @@ class PluginDashboardngWidgetDefinition extends CommonDBTM
                     'visualization' => 'table',
                     'filters' => [
                         ['field' => 5, 'searchtype' => 'equals', 'value' => '$$MYSELF$$'], // Assigned to me
-                        ['field' => 12, 'searchtype' => 'notequals', 'value' => '6'] // Not closed
+                        ['field' => 12, 'operator' => 'not_equals', 'value' => '6'] // Not closed
                     ],
                     'columns' => [
                         ['field' => 2, 'name' => 'ID'],

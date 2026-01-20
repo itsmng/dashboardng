@@ -65,149 +65,61 @@ class NavigationBar
         return $pluginDir . '/front/reports.php?report=' . htmlspecialchars($report);
     }
 
-    private static function renderItem(string $label, string $icon, string $page, bool $dropdown = false): string
+    public static function getModel(): array
     {
-        $active = self::isActive($page) ? 'active' : '';
-        $activeClass = self::isActive($page) ? ' aria-current="page"' : '';
-
-        if ($dropdown) {
-            $toggleClass = self::isActive($page) ? 'dropdown-toggle active' : 'dropdown-toggle';
-            return '<li class="nav-item dropdown">' .
-                '<a class="nav-link ' . $toggleClass . '" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false"' . $activeClass . '>' .
-                '<i class="' . $icon . ' me-1"></i>' . $label .
-                '</a>';
-        }
-
-        return '<li class="nav-item">' .
-            '<a class="nav-link ' . $active . '" href="' . self::getUrl($page) . '"' . $activeClass . '>' .
-            '<i class="' . $icon . ' me-1"></i>' . $label .
-            '</a>' .
-            '</li>';
-    }
-
-    private static function renderDropdownItem(string $label, string $page, string $type = '', bool $isSubmenu = false, string $icon = ''): string
-    {
-        $active = $type ? self::isTypeActive($type) : self::isActive($page);
-        $activeClass = $active ? 'active' : '';
-
-        $iconHtml = $icon ? '<i class="' . $icon . ' me-1"></i>' : '';
-
-        if ($isSubmenu) {
-            return '<li><a class="dropdown-item ' . $activeClass . '" href="' . self::getUrl($page, $type) . '">' . $iconHtml . $label . '</a></li>';
-        }
-
-        return '<li><a class="dropdown-item ' . $activeClass . '" href="' . self::getUrl($page, $type) . '">' . $iconHtml . $label . '</a></li>';
-    }
-
-    private static function renderSubmenu(string $label, array $items, string $icon = ''): string
-    {
-        $html = '<li class="dropdown-submenu dropend">';
-        $iconHtml = $icon ? '<i class="' . $icon . ' me-1"></i>' : '';
-        $html .= '<a class="dropdown-item dropdown-toggle" href="#">' . $iconHtml . $label . '</a>';
-        $html .= '<ul class="dropdown-menu">';
-
-        foreach ($items as $item) {
-            if (isset($item['report'])) {
-                $url = self::getReportUrl($item['report']);
-                $activeItem = self::isTypeActive($item['report']) ? 'active' : '';
-                $itemIcon = $item['icon'] ?? '';
-                $iconHtml = $itemIcon ? '<i class="' . $itemIcon . ' me-1"></i>' : '';
-                $html .= '<li><a class="dropdown-item ' . $activeItem . '" href="' . $url . '">' . $iconHtml . $item['label'] . '</a></li>';
-            } else {
-                $html .= self::renderDropdownItem($item['label'], $item['page'], $item['type'] ?? '', true, $item['icon'] ?? '');
-            }
-        }
-
-        $html .= '</ul></li>';
-        return $html;
-    }
-
-    private static function renderMegaMenu(string $label, string $icon, array $columns, string $page): string
-    {
-        $active = self::isActive($page) ? 'active' : '';
-        $activeClass = self::isActive($page) ? ' aria-current="page"' : '';
-
-        $html = '<li class="nav-item dropdown mega-menu">';
-        $html .= '<a class="nav-link dropdown-toggle ' . $active . '" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false"' . $activeClass . '>';
-        $html .= '<i class="' . $icon . ' me-1"></i>' . $label . '</a>';
-        $html .= '<ul class="dropdown-menu mega-dropdown">';
-        $html .= '<li><div class="container-fluid"><div class="row">';
-
-        $colClass = count($columns) === 2 ? 'col-md-6' : 'col-md-4';
-        if (count($columns) === 1) {
-            $colClass = 'col-md-12';
-        }
-
-        foreach ($columns as $column) {
-            $html .= '<div class="' . $colClass . '">';
-            $html .= '<ul class="list-unstyled">';
-            foreach ($column as $item) {
-                if (isset($item['submenu'])) {
-                    $label = $item['label'] ?? $item['header'] ?? '';
-                    $icon = $item['icon'] ?? '';
-                    $html .= self::renderSubmenu($label, $item['submenu'], $icon);
-                } elseif (isset($item['divider']) && $item['divider']) {
-                    $html .= '<li><hr class="dropdown-divider"></li>';
-                } elseif (isset($item['header'])) {
-                    $html .= '<li class="dropdown-header">' . $item['header'] . '</li>';
-                } else {
-                    $url = isset($item['report']) ? self::getReportUrl($item['report']) : self::getUrl($item['page'], $item['type'] ?? '');
-                    $activeItem = (isset($item['type']) && self::isTypeActive($item['type'])) ||
-                                  (isset($item['report']) && self::isTypeActive($item['report'])) ? 'active' : '';
-                    $itemIcon = $item['icon'] ?? '';
-                    $iconHtml = $itemIcon ? '<i class="' . $itemIcon . ' me-1"></i>' : '';
-                    $html .= '<li><a class="dropdown-item ' . $activeItem . '" href="' . $url . '">' . $iconHtml . $item['label'] . '</a></li>';
-                }
-            }
-            $html .= '</ul></div>';
-        }
-
-        $html .= '</div></div></li></ul></li>';
-        return $html;
-    }
-
-    public static function render(): void
-    {
+        global $CFG_GLPI;
+        
         $currentPage = self::getCurrentPage();
+        $currentType = self::getCurrentType();
 
-        echo '<nav class="navbar navbar-expand-lg navbar-dark dashboardng-navbar">';
-        echo '<div class="container-fluid">';
+        $items = [];
 
-        echo '<button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#dashboardngNavbar" aria-controls="dashboardngNavbar" aria-expanded="false" aria-label="Toggle navigation">';
-        echo '<span class="navbar-toggler-icon"></span>';
-        echo '</button>';
+        $items[] = [
+            'kind' => 'link',
+            'label' => __('Dashboard', 'dashboardng'),
+            'icon' => 'fa fa-home',
+            'url' => self::getUrl('dashboard'),
+            'active' => self::isActive('dashboard'),
+        ];
 
-        echo '<div class="collapse navbar-collapse" id="dashboardngNavbar">';
-        echo '<ul class="navbar-nav me-auto">';
+        if (Session::haveRight('plugin_dashboardng_mydashboard', UPDATE)) {
+            $items[] = [
+                'kind' => 'link',
+                'label' => __('My Dashboard', 'dashboardng'),
+                'icon' => 'fa fa-user-circle',
+                'url' => self::getUrl('mydashboard'),
+                'active' => self::isActive('mydashboard'),
+            ];
+        }
 
-        echo self::renderItem(
-            __('Dashboard', 'dashboardng'),
-            'fa fa-home',
-            'dashboard'
-        );
+        $items[] = [
+            'kind' => 'link',
+            'label' => __('Tickets', 'dashboardng'),
+            'icon' => 'fa fa-life-ring',
+            'url' => self::getUrl('tickets'),
+            'active' => self::isActive('tickets'),
+        ];
 
-        echo self::renderItem(
-            __('My Dashboard', 'dashboardng'),
-            'fa fa-user-circle',
-            'mydashboard'
-        );
-
-        echo self::renderItem(
-            __('Tickets', 'dashboardng'),
-            'fa fa-life-ring',
-            'tickets'
-        );
-
-        // Reports menu - direct links to dedicated pages
-        $reportsActive = self::isActive('assets') || self::isActive('tasks') ? 'active' : '';
-        echo '<li class="nav-item dropdown">';
-        echo '<a class="nav-link dropdown-toggle ' . $reportsActive . '" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">';
-        echo '<i class="fa fa-file me-1"></i>' . __('Reports', 'dashboardng');
-        echo '</a>';
-        echo '<ul class="dropdown-menu">';
-        echo self::renderDropdownItem(__('Asset Reports', 'dashboardng'), 'assets', '', false, 'fa fa-desktop');
-        echo self::renderDropdownItem(__('Task Reports', 'dashboardng'), 'tasks', '', false, 'fa fa-tasks');
-        echo '</ul></li>';
+        $items[] = [
+            'kind' => 'dropdown',
+            'label' => __('Reports', 'dashboardng'),
+            'icon' => 'fa fa-file',
+            'active' => self::isActive('assets') || self::isActive('tasks'),
+            'items' => [
+                [
+                    'label' => __('Asset Reports', 'dashboardng'),
+                    'icon' => 'fa fa-desktop',
+                    'url' => self::getUrl('assets'),
+                    'active' => self::isActive('assets'),
+                ],
+                [
+                    'label' => __('Task Reports', 'dashboardng'),
+                    'icon' => 'fa fa-tasks',
+                    'url' => self::getUrl('tasks'),
+                    'active' => self::isActive('tasks'),
+                ],
+            ],
+        ];
 
         $chartsColumns = [
             [
@@ -233,40 +145,82 @@ class NavigationBar
                 ['label' => __('by Technician', 'dashboardng'), 'page' => 'charts', 'type' => 'by-technician', 'icon' => 'fa fa-user'],
                 ['label' => __('by Type', 'dashboardng'), 'page' => 'charts', 'type' => 'by-type', 'icon' => 'fa fa-list'],
                 ['divider' => true],
-                ['header' => __('SLA', 'dashboardng'), 'icon' => 'fa fa-clock-o',
-                 'submenu' => [
-                     ['label' => __('Time to own'), 'page' => 'charts', 'type' => 'sla-tto', 'icon' => 'fa fa-hourglass-o'],
-                     ['label' => __('Time to resolve'), 'page' => 'charts', 'type' => 'sla-ttr', 'icon' => 'fa fa-hourglass-end'],
-                ]],
-                ['header' => __('OLA'), 'icon' => 'fa fa-clock-o',
-                 'submenu' => [
-                     ['label' => __('Time to own'), 'page' => 'charts', 'type' => 'ola-tto', 'icon' => 'fa fa-hourglass-o'],
-                     ['label' => __('Time to resolve'), 'page' => 'charts', 'type' => 'ola-ttr', 'icon' => 'fa fa-hourglass-end'],
-                ]],
+                [
+                    'header' => __('SLA', 'dashboardng'),
+                    'icon' => 'fa fa-clock-o',
+                    'submenu' => [
+                        ['label' => __('Time to own'), 'page' => 'charts', 'type' => 'sla-tto', 'icon' => 'fa fa-hourglass-o'],
+                        ['label' => __('Time to resolve'), 'page' => 'charts', 'type' => 'sla-ttr', 'icon' => 'fa fa-hourglass-end'],
+                    ]
+                ],
+                [
+                    'header' => __('OLA'),
+                    'icon' => 'fa fa-clock-o',
+                    'submenu' => [
+                        ['label' => __('Time to own'), 'page' => 'charts', 'type' => 'ola-tto', 'icon' => 'fa fa-hourglass-o'],
+                        ['label' => __('Time to resolve'), 'page' => 'charts', 'type' => 'ola-ttr', 'icon' => 'fa fa-hourglass-end'],
+                    ]
+                ],
             ],
         ];
 
-        echo self::renderMegaMenu(
-            __('Charts', 'dashboardng'),
-            'fa fa-chart-bar',
-            $chartsColumns,
-            'charts'
-        );
+        $items[] = [
+            'kind' => 'mega',
+            'label' => __('Charts', 'dashboardng'),
+            'icon' => 'fa fa-chart-bar',
+            'active' => self::isActive('charts'),
+            'columns' => $chartsColumns,
+        ];
 
-        $metricsActive = self::isActive('metrics') ? 'active' : '';
-        echo '<li class="nav-item dropdown">';
-        echo '<a class="nav-link dropdown-toggle ' . $metricsActive . '" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">';
-        echo '<i class="fa fa-chart-line me-1"></i>' . __('Metrics', 'dashboardng');
-        echo '</a>';
-        echo '<ul class="dropdown-menu">';
-        echo self::renderDropdownItem(__('Overall', 'dashboardng'), 'reports', 'metrics-overall', false, 'fa fa-line-chart');
-        echo self::renderDropdownItem(__('by Entity', 'dashboardng'), 'reports', 'metrics-entity', false, 'fa fa-sitemap');
-        echo self::renderDropdownItem(__('by Group', 'dashboardng'), 'reports', 'metrics-group', false, 'fa fa-users');
-        echo '</ul></li>';
+        $items[] = [
+            'kind' => 'dropdown',
+            'label' => __('Metrics', 'dashboardng'),
+            'icon' => 'fa fa-chart-line',
+            'active' => self::isActive('metrics'),
+            'items' => [
+                [
+                    'label' => __('Overall', 'dashboardng'),
+                    'icon' => 'fa fa-line-chart',
+                    'page' => 'reports',
+                    'type' => 'metrics-overall',
+                    'active' => self::isTypeActive('metrics-overall'),
+                ],
+                [
+                    'label' => __('by Entity', 'dashboardng'),
+                    'icon' => 'fa fa-sitemap',
+                    'page' => 'reports',
+                    'type' => 'metrics-entity',
+                    'active' => self::isTypeActive('metrics-entity'),
+                ],
+                [
+                    'label' => __('by Group', 'dashboardng'),
+                    'icon' => 'fa fa-users',
+                    'page' => 'reports',
+                    'type' => 'metrics-group',
+                    'active' => self::isTypeActive('metrics-group'),
+                ],
+            ],
+        ];
 
-        echo '</ul>';
-        echo '</div>';
-        echo '</div>';
-        echo '</nav>';
+        $entity_selector = [
+            'enabled' => Session::isMultiEntitiesMode(),
+            'current_name' => $_SESSION['glpiactive_entity_name'] ?? '',
+            'current_shortname' => $_SESSION['glpiactive_entity_shortname'] ?? '',
+            'root_doc' => $CFG_GLPI['root_doc'],
+        ];
+
+        return [
+            'current_page' => $currentPage,
+            'current_type' => $currentType,
+            'items' => $items,
+            'entity_selector' => $entity_selector,
+        ];
+    }
+
+    public static function render(): void
+    {
+        $root = Plugin::getPhpDir('dashboardng', false) . '/templates';
+        $vars = self::getModel();
+        renderTwigTemplate('components/navigation_bar.twig', $vars, $root);
     }
 }

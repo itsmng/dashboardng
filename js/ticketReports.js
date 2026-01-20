@@ -17,52 +17,18 @@ import {
 
 import { ReportCard } from "./components/ui/ReportCard.js";
 import { SettingsModal } from "./components/ui/SettingsModal.js";
+import { CONFIG } from "./lib/config.js";
+import { useReportData } from "./lib/hooks/useReportData.js";
 
-
-const CONFIG = window.DASHBOARDNG_CONFIG || {
-  apiBaseUrl: "/plugins/dashboardng/api.php",
-  pollInterval: 60000,
-};
-
-const API_BASE = window.CFG_GLPI.root_doc + CONFIG.apiBaseUrl;
-
-const api = {
-  async get(endpoint, params = {}) {
-    const url = new URL(API_BASE + endpoint, window.location.origin);
-    Object.entries(params).forEach(([key, val]) => {
-      if (val !== undefined && val !== null) {
-        url.searchParams.append(key, val);
-      }
-    });
-
-    const response = await fetch(url, {
-      headers: {
-        Accept: "application/json",
-        "X-Requested-With": "XMLHttpRequest",
-      },
-      credentials: "same-origin",
-    });
-
-    if (!response.ok) {
-      throw new Error(`API Error: ${response.status}`);
+const getExportUrl = (type, format, params = {}) => {
+  const url = new URL(`${CONFIG.apiUrl || "/plugins/dashboardng/api.php"}/reports/${type}/export`, window.location.origin);
+  url.searchParams.append("format", format);
+  Object.entries(params).forEach(([key, val]) => {
+    if (val !== undefined && val !== null) {
+      url.searchParams.append(key, val);
     }
-
-    return response.json();
-  },
-
-  getExportUrl(type, format, params = {}) {
-    const url = new URL(
-      API_BASE + `/reports/${type}/export`,
-      window.location.origin,
-    );
-    url.searchParams.append("format", format);
-    Object.entries(params).forEach(([key, val]) => {
-      if (val !== undefined && val !== null) {
-        url.searchParams.append(key, val);
-      }
-    });
-    return url.toString();
-  },
+  });
+  return url.toString();
 };
 
 
@@ -101,7 +67,7 @@ function EmptyState({ message }) {
 }
 
 
-function ExportDropdown({ reportType, period, entities }) {
+function ExportDropdown({ reportType, period, entities, customRange = {} }) {
   const [isOpen, setIsOpen] = useState(false);
   const [isExporting, setIsExporting] = useState(false);
   const dropdownRef = useRef(null);
@@ -125,8 +91,12 @@ function ExportDropdown({ reportType, period, entities }) {
       if (entities) {
         params.entities = entities;
       }
+      if (period === 8) {
+        params.start_date = customRange?.start || undefined;
+        params.end_date = customRange?.end || undefined;
+      }
 
-      const url = api.getExportUrl(reportType, format, params);
+      const url = getExportUrl(reportType, format, params);
 
       const link = document.createElement("a");
       link.href = url;
@@ -216,6 +186,7 @@ function PeriodSelector({ value, onChange }) {
     { value: 5, label: __("Last 30 days", "dashboardng") },
     { value: 6, label: __("Last 90 days", "dashboardng") },
     { value: 7, label: __("Last 180 days", "dashboardng") },
+    { value: 8, label: __("Custom range", "dashboardng") },
   ];
 
   return html`
@@ -229,6 +200,31 @@ function PeriodSelector({ value, onChange }) {
         (p) => html` <option value=${p.value}>${p.label}</option> `,
       )}
     </select>
+  `;
+}
+
+function CustomRangePicker({ value, onChange }) {
+  const handleChange = (key, dateValue) => {
+    onChange({ ...value, [key]: dateValue || '' });
+  };
+
+  return html`
+    <div class="d-flex align-items-center gap-2">
+      <label class="form-label mb-0 text-muted">${__("From", "dashboardng")}</label>
+      <input
+        type="date"
+        class="form-control form-control-sm"
+        value=${value.start || ''}
+        onChange=${(e) => handleChange('start', e.target.value)}
+      />
+      <label class="form-label mb-0 text-muted">${__("To", "dashboardng")}</label>
+      <input
+        type="date"
+        class="form-control form-control-sm"
+        value=${value.end || ''}
+        onChange=${(e) => handleChange('end', e.target.value)}
+      />
+    </div>
   `;
 }
 
@@ -382,50 +378,12 @@ function StatCard({ label, value, icon, color = "primary", trend }) {
   `;
 }
 
-function ReportCard({ title, children, loading, error, onRetry, toolbar }) {
-  return html`
-    <div class="card mb-4">
-      <div
-        class="card-header d-flex justify-content-between align-items-center"
-      >
-        <h5 class="card-title mb-0">${title}</h5>
-        ${toolbar && html`<div class="card-toolbar">${toolbar}</div>`}
-      </div>
-      <div class="card-body">
-        ${loading && html`<${LoadingSpinner} />`}
-        ${error && html`<${ErrorAlert} message=${error} onRetry=${onRetry} />`}
-        ${!loading && !error && children}
-      </div>
-    </div>
-  `;
-}
-
-
-function OverviewReport({ period }) {
-  const [data, setData] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-
-  const loadData = useCallback(async () => {
-    setLoading(true);
-    setError(null);
-    try {
-      const result = await api.get("/reports/overview", { period });
-      setData(result.data);
-    } catch (e) {
-      setError(e.message);
-    } finally {
-      setLoading(false);
-    }
-  }, [period]);
-
-  useEffect(() => {
-    loadData();
-  }, [loadData]);
+function OverviewReport({ period, rangeParams = {}, getCardSettings, handleSettingsClick }) {
+  const { data, loading, error } = useReportData("/reports/overview", { period, ...rangeParams });
 
   if (loading) return html`<${LoadingSpinner} />`;
   if (error)
-    return html`<${ErrorAlert} message=${error} onRetry=${loadData} />`;
+    return html`<${ErrorAlert} message=${error} onRetry=${() => location.reload()} />`;
   if (!data) return html`<${EmptyState} />`;
 
   return html`
@@ -526,27 +484,8 @@ function OverviewReport({ period }) {
 }
 
 
-function EntityReport({ period }) {
-  const [data, setData] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-
-  const loadData = useCallback(async () => {
-    setLoading(true);
-    setError(null);
-    try {
-      const result = await api.get("/reports/entity", { period });
-      setData(result.data);
-    } catch (e) {
-      setError(e.message);
-    } finally {
-      setLoading(false);
-    }
-  }, [period]);
-
-  useEffect(() => {
-    loadData();
-  }, [loadData]);
+function EntityReport({ period, rangeParams = {} }) {
+  const { data, loading, error } = useReportData("/reports/entity", { period, ...rangeParams });
 
   const columns = [
     { key: "completename", label: __("Entity", "dashboardng") },
@@ -584,7 +523,7 @@ function EntityReport({ period }) {
       title=${__("Entity Report", "dashboardng")}
       loading=${loading}
       error=${error}
-      onRetry=${loadData}
+      onRetry=${() => location.reload()}
     >
       <${DataTable}
         columns=${columns}
@@ -596,27 +535,8 @@ function EntityReport({ period }) {
 }
 
 
-function TechnicianReport({ period }) {
-  const [data, setData] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-
-  const loadData = useCallback(async () => {
-    setLoading(true);
-    setError(null);
-    try {
-      const result = await api.get("/reports/technician", { period });
-      setData(result.data);
-    } catch (e) {
-      setError(e.message);
-    } finally {
-      setLoading(false);
-    }
-  }, [period]);
-
-  useEffect(() => {
-    loadData();
-  }, [loadData]);
+function TechnicianReport({ period, rangeParams = {} }) {
+  const { data, loading, error } = useReportData("/reports/technician", { period, ...rangeParams });
 
   const columns = [
     { key: "name", label: __("Technician", "dashboardng") },
@@ -658,7 +578,7 @@ function TechnicianReport({ period }) {
       title=${__("Technician Performance", "dashboardng")}
       loading=${loading}
       error=${error}
-      onRetry=${loadData}
+      onRetry=${() => location.reload()}
     >
       <${DataTable}
         columns=${columns}
@@ -670,31 +590,12 @@ function TechnicianReport({ period }) {
 }
 
 
-function SlaReport({ period }) {
-  const [data, setData] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-
-  const loadData = useCallback(async () => {
-    setLoading(true);
-    setError(null);
-    try {
-      const result = await api.get("/reports/sla", { period });
-      setData(result.data);
-    } catch (e) {
-      setError(e.message);
-    } finally {
-      setLoading(false);
-    }
-  }, [period]);
-
-  useEffect(() => {
-    loadData();
-  }, [loadData]);
+function SlaReport({ period, rangeParams = {} }) {
+  const { data, loading, error } = useReportData("/reports/sla", { period, ...rangeParams });
 
   if (loading) return html`<${LoadingSpinner} />`;
   if (error)
-    return html`<${ErrorAlert} message=${error} onRetry=${loadData} />`;
+    return html`<${ErrorAlert} message=${error} onRetry=${() => location.reload()} />`;
   if (!data) return html`<${EmptyState} />`;
 
   const trendData = data.monthly_trend || [];
@@ -783,27 +684,8 @@ function SlaReport({ period }) {
 }
 
 
-function CategoryReport({ period }) {
-  const [data, setData] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-
-  const loadData = useCallback(async () => {
-    setLoading(true);
-    setError(null);
-    try {
-      const result = await api.get("/reports/category", { period });
-      setData(result.data);
-    } catch (e) {
-      setError(e.message);
-    } finally {
-      setLoading(false);
-    }
-  }, [period]);
-
-  useEffect(() => {
-    loadData();
-  }, [loadData]);
+function CategoryReport({ period, rangeParams = {} }) {
+  const { data, loading, error } = useReportData("/reports/category", { period, ...rangeParams });
 
   const columns = [
     { key: "completename", label: __("Category", "dashboardng") },
@@ -846,7 +728,7 @@ function CategoryReport({ period }) {
       title=${__("Category Report", "dashboardng")}
       loading=${loading}
       error=${error}
-      onRetry=${loadData}
+      onRetry=${() => location.reload()}
     >
       <${DataTable}
         columns=${columns}
@@ -858,27 +740,8 @@ function CategoryReport({ period }) {
 }
 
 
-function GroupReport({ period }) {
-  const [data, setData] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-
-  const loadData = useCallback(async () => {
-    setLoading(true);
-    setError(null);
-    try {
-      const result = await api.get("/reports/group", { period });
-      setData(result.data);
-    } catch (e) {
-      setError(e.message);
-    } finally {
-      setLoading(false);
-    }
-  }, [period]);
-
-  useEffect(() => {
-    loadData();
-  }, [loadData]);
+function GroupReport({ period, rangeParams = {} }) {
+  const { data, loading, error } = useReportData("/reports/group", { period, ...rangeParams });
 
   const columns = [
     { key: "completename", label: __("Group", "dashboardng") },
@@ -910,7 +773,7 @@ function GroupReport({ period }) {
       title=${__("Group Report", "dashboardng")}
       loading=${loading}
       error=${error}
-      onRetry=${loadData}
+      onRetry=${() => location.reload()}
     >
       <${DataTable}
         columns=${columns}
@@ -922,27 +785,8 @@ function GroupReport({ period }) {
 }
 
 
-function PriorityReport({ period }) {
-  const [data, setData] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-
-  const loadData = useCallback(async () => {
-    setLoading(true);
-    setError(null);
-    try {
-      const result = await api.get("/reports/priority", { period });
-      setData(result.data);
-    } catch (e) {
-      setError(e.message);
-    } finally {
-      setLoading(false);
-    }
-  }, [period]);
-
-  useEffect(() => {
-    loadData();
-  }, [loadData]);
+function PriorityReport({ period, rangeParams = {} }) {
+  const { data, loading, error } = useReportData("/reports/priority", { period, ...rangeParams });
 
   const columns = [
     { key: "label", label: __("Priority", "dashboardng") },
@@ -979,7 +823,7 @@ function PriorityReport({ period }) {
       title=${__("Priority Report", "dashboardng")}
       loading=${loading}
       error=${error}
-      onRetry=${loadData}
+      onRetry=${() => location.reload()}
     >
       <${DataTable}
         columns=${columns}
@@ -994,6 +838,7 @@ function PriorityReport({ period }) {
 function TicketReportsApp() {
   const [activeTab, setActiveTab] = useState("overview");
   const [period, setPeriod] = useState(0); // Default: all time
+  const [customRange, setCustomRange] = useState({ start: '', end: '' });
   const [showSettings, setShowSettings] = useState(false);
   const [settingsCard, setSettingsCard] = useState(null);
   const [chartSettings, setChartSettings] = useState({});
@@ -1055,21 +900,25 @@ function TicketReportsApp() {
   ];
 
   const renderContent = () => {
+    const rangeParams = period === 8
+      ? { start_date: customRange.start || undefined, end_date: customRange.end || undefined }
+      : {};
+
     switch (activeTab) {
       case "overview":
-        return html`<${OverviewReport} period=${period} />`;
+        return html`<${OverviewReport} period=${period} rangeParams=${rangeParams} getCardSettings=${getCardSettings} handleSettingsClick=${handleSettingsClick} />`;
       case "entity":
-        return html`<${EntityReport} period=${period} />`;
+        return html`<${EntityReport} period=${period} rangeParams=${rangeParams} />`;
       case "technician":
-        return html`<${TechnicianReport} period=${period} />`;
+        return html`<${TechnicianReport} period=${period} rangeParams=${rangeParams} />`;
       case "sla":
-        return html`<${SlaReport} period=${period} />`;
+        return html`<${SlaReport} period=${period} rangeParams=${rangeParams} />`;
       case "category":
-        return html`<${CategoryReport} period=${period} />`;
+        return html`<${CategoryReport} period=${period} rangeParams=${rangeParams} />`;
       case "group":
-        return html`<${GroupReport} period=${period} />`;
+        return html`<${GroupReport} period=${period} rangeParams=${rangeParams} />`;
       case "priority":
-        return html`<${PriorityReport} period=${period} />`;
+        return html`<${PriorityReport} period=${period} rangeParams=${rangeParams} />`;
       default:
         return html`<${EmptyState}
           message=${__("Select a report type", "dashboardng")}
@@ -1090,7 +939,14 @@ function TicketReportsApp() {
             >${__("Period", "dashboardng")}:</label
           >
           <${PeriodSelector} value=${period} onChange=${setPeriod} />
-          <${ExportDropdown} reportType=${activeTab} period=${period} />
+          ${period === 8 && html`
+            <${CustomRangePicker} value=${customRange} onChange=${setCustomRange} />
+          `}
+          <${ExportDropdown}
+            reportType=${activeTab}
+            period=${period}
+            customRange=${customRange}
+          />
         </div>
       </div>
 

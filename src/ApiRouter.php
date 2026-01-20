@@ -111,21 +111,6 @@ class ApiRouter
                 echo json_encode(($handler)($input));
             });
 
-            $r->addRoute('GET', '/widgets/positions', function () {
-                $handler = new GetDashboardWidgets();
-                $result = ($handler)($_GET);
-                echo json_encode([
-                    'success' => $result['success'],
-                    'data' => $result['data']['widgets'] ?? [],
-                ]);
-            });
-
-            $r->addRoute('POST', '/widgets/positions', function () {
-                $handler = new UpdateWidgetPositions();
-                $input = json_decode(file_get_contents('php://input'), true) ?? [];
-                echo json_encode(($handler)($input));
-            });
-
             $r->addRoute('GET', '/datasources', function () {
                 $handler = new GetDataSources();
                 echo json_encode($handler->handle($_GET));
@@ -193,22 +178,22 @@ class ApiRouter
         global $CFG_GLPI;
 
         if (!isset($_SESSION['glpiID']) || $_SESSION['glpiID'] <= 0) {
-            return ['error' => __('User not authenticated', 'dashboardng')];
+            return ['error' => 'User not authenticated'];
         }
 
         if (!isset($_SESSION['glpiactiveprofile']) || empty($_SESSION['glpiactiveprofile'])) {
-            return ['error' => __('No active profile found', 'dashboardng')];
+            return ['error' => 'No active profile found'];
         }
 
         if (!Session::haveRight('plugin_dashboardng_access', READ)) {
-            return ['error' => __('Access denied to Dashboard NG API', 'dashboardng')];
+            return ['error' => 'Unauthorized'];
         }
 
         ini_set('display_errors', 'Off');
         $_SESSION['MESSAGE_AFTER_REDIRECT'] = [];
 
         if (!($CFG_GLPI['enable_api'] ?? true)) {
-            return ['error' => __('API disabled', 'dashboardng')];
+            return ['error' => 'API disabled'];
         }
 
         $this->iptxt = \Toolbox::getRemoteIpAddress();
@@ -264,7 +249,7 @@ class ApiRouter
                         call_user_func_array($handler, $vars);
                     } catch (\Exception $e) {
                         http_response_code(500);
-                        echo json_encode(['error' => 'Internal Server Error', 'message' => $e->getMessage()]);
+                        echo json_encode(['error' => 'Internal Server Error']);
                     }
                 } else {
                     http_response_code(500);

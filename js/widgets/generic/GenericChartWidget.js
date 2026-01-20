@@ -2,6 +2,7 @@ import { html, useState, useEffect, useRef } from '../../lib/preact.js';
 import { api, COLORS } from '../../lib/config.js';
 import { usePeriod } from '../../context/PeriodContext.js';
 import { useRefresh } from '../../lib/hooks/useRefresh.js';
+import { extractDateRange, processFilters } from '../../lib/utils.js';
 
 /**
  * Generic Chart Widget - Renders charts based on config JSON
@@ -68,96 +69,8 @@ export const GenericChartWidget = ({ config, widgetId }) => {
 
         setLoading(false);
     };
-    
-    // Extract date range from filters when groupBy has an interval
-    /**
-     * Extract date range from filters for time-series gap filling
-     * @private
-     * @param {FilterConfig[]} filters - Array of filter configurations
-     * @param {Object} groupBy - Grouping configuration
-     * @returns {DateRange|null} Date range object or null if not applicable
-     */
-    const extractDateRange = (filters, groupBy) => {
-        // Only compute date range if groupBy specifies an interval
-        if (!groupBy || typeof groupBy !== 'object' || !groupBy.interval) {
-            return null;
-        }
-        
-        const groupField = groupBy.field;
-        let startDate = null;
-        let endDate = null;
-        
-        // Look through filters for date boundaries on the grouped field
-        for (const filter of filters) {
-            if (filter.field !== groupField) continue;
-            
-            const searchType = filter.searchtype || filter.operator;
-            const value = filter.value;
-            
-            if (!value) continue;
-            
-            // Parse the date value
-            const dateValue = value.split(' ')[0]; // Take just the date part if datetime
-            
-            if (searchType === 'morethan' || searchType === 'greater_or_equal' || searchType === 'greater_than') {
-                if (!startDate || dateValue > startDate) {
-                    startDate = dateValue;
-                }
-            } else if (searchType === 'lessthan' || searchType === 'less_or_equal' || searchType === 'less_than') {
-                if (!endDate || dateValue < endDate) {
-                    endDate = dateValue;
-                }
-            }
-        }
-        
-        // Default end date to today if not specified
-        if (startDate && !endDate) {
-            endDate = new Date().toISOString().split('T')[0];
-        }
-        
-        if (startDate && endDate) {
-            return {
-                start: startDate,
-                end: endDate,
-                interval: groupBy.interval,
-                field: groupField,
-            };
-        }
-        
-        return null;
-    };
 
-    // Process dynamic filter values
-    const processFilters = (filters, period) => {
-        const now = new Date();
-        const today = now.toISOString().split('T')[0];
-        const thisMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-01`;
-        const thisYear = `${now.getFullYear()}-01-01`;
-        const yesterday = new Date(now.getTime() - 24 * 60 * 60 * 1000).toISOString().split('T')[0];
-        const thirtyDaysAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
-        const lastWeek = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
 
-        return filters.map(filter => {
-            let value = filter.value;
-
-            // Replace dynamic placeholders
-            if (typeof value === 'string') {
-                value = value
-                    .replace('$$NOW$$', now.toISOString())
-                    .replace('$$TODAY$$', today)
-                    .replace('$$YESTERDAY$$', yesterday)
-                    .replace('$$TODAY-1DAY$$', yesterday)
-                    .replace('$$TODAY-7DAY$$', lastWeek)
-                    .replace('$$TODAY-30DAY$$', thirtyDaysAgo)
-                    .replace('$$LASTWEEK$$', lastWeek)
-                    .replace('$$THISMONTH$$', thisMonth)
-                    .replace('$$THISYEAR$$', thisYear)
-                    .replace('$$MYSELF$$', String(window.DASHBOARDNG_CONFIG?.userId || 0));
-            }
-
-            return { ...filter, value };
-        });
-    };
 
     // Fetch data on mount and when dependencies change
     useEffect(() => {

@@ -17,56 +17,19 @@ import {
 
 import { ReportCard } from "./components/ui/ReportCard.js";
 import { SettingsModal } from "./components/ui/SettingsModal.js";
+import { api, CONFIG } from "./lib/config.js";
 
 // Configuration & API
 
-const CONFIG = window.DASHBOARDNG_CONFIG || {
-  apiBaseUrl: "/plugins/dashboardng/api.php",
-  pollInterval: 60000,
-  i18n: {},
-};
-
-const API_BASE = window.CFG_GLPI.root_doc + CONFIG.apiBaseUrl;
-
-const i18n = (key, fallback) => CONFIG.i18n[key] || fallback || key;
-
-const api = {
-  async get(endpoint, params = {}) {
-    const url = new URL(API_BASE + endpoint, window.location.origin);
-    Object.entries(params).forEach(([key, val]) => {
-      if (val !== undefined && val !== null) {
-        url.searchParams.append(key, val);
-      }
-    });
-
-    const response = await fetch(url, {
-      headers: {
-        Accept: "application/json",
-        "X-Requested-With": "XMLHttpRequest",
-      },
-      credentials: "same-origin",
-    });
-
-    if (!response.ok) {
-      throw new Error(`API Error: ${response.status}`);
+const getExportUrl = (type, format, params = {}) => {
+  const url = new URL(`${CONFIG.apiUrl || "/plugins/dashboardng/api.php"}/reports/${type}/export`, window.location.origin);
+  url.searchParams.append("format", format);
+  Object.entries(params).forEach(([key, val]) => {
+    if (val !== undefined && val !== null) {
+      url.searchParams.append(key, val);
     }
-
-    return response.json();
-  },
-
-  getExportUrl(type, format, params = {}) {
-    const url = new URL(
-      API_BASE + `/reports/${type}/export`,
-      window.location.origin,
-    );
-    url.searchParams.append("format", format);
-    Object.entries(params).forEach(([key, val]) => {
-      if (val !== undefined && val !== null) {
-        url.searchParams.append(key, val);
-      }
-    });
-    return url.toString();
-  },
+  });
+  return url.toString();
 };
 
 // Asset type definitions
@@ -106,7 +69,7 @@ function LoadingSpinner() {
   return html`
     <div class="d-flex justify-content-center align-items-center p-5">
       <div class="spinner-border text-primary" role="status">
-        <span class="visually-hidden">${i18n("loading", "Loading...")}</span>
+        <span class="visually-hidden">${__("Loading...", "dashboardng")}</span>
       </div>
     </div>
   `;
@@ -120,7 +83,7 @@ function ErrorAlert({ message, onRetry }) {
       ${onRetry &&
       html`
         <button class="btn btn-sm btn-outline-danger ms-2" onClick=${onRetry}>
-          <i class="fas fa-refresh me-1"></i>${i18n("retry", "Retry")}
+          <i class="fas fa-refresh me-1"></i>${__("Retry", "dashboardng")}
         </button>
       `}
     </div>
@@ -131,14 +94,14 @@ function EmptyState({ message }) {
   return html`
     <div class="text-center text-muted p-5">
       <i class="fas fa-chart-bar" style="font-size: 3rem;"></i>
-      <p class="mt-3">${message || i18n("no_data", "No data available")}</p>
+      <p class="mt-3">${message || __("No data available", "dashboardng")}</p>
     </div>
   `;
 }
 
 // Export Dropdown Component
 
-function ExportDropdown({ reportType, itemtype }) {
+function ExportDropdown({ reportType, itemtype, period, customRange = {} }) {
   const [isOpen, setIsOpen] = useState(false);
   const [isExporting, setIsExporting] = useState(false);
   const dropdownRef = useRef(null);
@@ -158,8 +121,12 @@ function ExportDropdown({ reportType, itemtype }) {
     setIsOpen(false);
 
     try {
-      const params = { itemtype };
-      const url = api.getExportUrl(reportType, format, params);
+      const params = { itemtype, period };
+      if (period === 8) {
+        params.start_date = customRange?.start || undefined;
+        params.end_date = customRange?.end || undefined;
+      }
+      const url = getExportUrl(reportType, format, params);
       const link = document.createElement("a");
       link.href = url;
       link.style.display = "none";
@@ -168,7 +135,7 @@ function ExportDropdown({ reportType, itemtype }) {
       document.body.removeChild(link);
     } catch (error) {
       console.error("Export failed:", error);
-      alert(i18n("export_failed", "Export failed. Please try again."));
+      alert(__("Export failed. Please try again.", "dashboardng"));
     } finally {
       setIsExporting(false);
     }
@@ -179,19 +146,19 @@ function ExportDropdown({ reportType, itemtype }) {
       id: "csv",
       label: "CSV",
       icon: "file-alt",
-      description: i18n("csv_desc", "Comma-separated values"),
+      description: __("Comma-separated values", "dashboardng"),
     },
     {
       id: "xlsx",
       label: "Excel (XLSX)",
       icon: "file-excel",
-      description: i18n("xlsx_desc", "Microsoft Excel format"),
+      description: __("Microsoft Excel format", "dashboardng"),
     },
     {
       id: "pdf",
       label: "PDF",
       icon: "file-pdf",
-      description: i18n("pdf_desc", "Portable Document Format"),
+      description: __("Portable Document Format", "dashboardng"),
     },
   ];
 
@@ -209,9 +176,9 @@ function ExportDropdown({ reportType, itemtype }) {
                 class="spinner-border spinner-border-sm me-1"
                 role="status"
               ></span>
-            `
+             `
           : html` <i class="fas fa-download me-1"></i> `}
-        ${i18n("export", "Export")}
+        ${__("Export", "dashboardng")}
       </button>
       ${isOpen &&
       html`
@@ -245,7 +212,7 @@ function AssetTypeSelector({ value, onChange }) {
     <div class="d-flex align-items-center gap-2">
         <label class="form-label mb-0 text-muted fw-medium">
           <i class="fas fa-filter me-1"></i>
-          ${i18n("asset_type", "Asset Type")}:
+          ${__("Asset Type", "dashboardng")}:
         </label>
       <select
         class="form-select form-select-lg"
@@ -257,6 +224,58 @@ function AssetTypeSelector({ value, onChange }) {
           (type) => html` <option value=${type.id}>${type.label}</option> `,
         )}
       </select>
+    </div>
+  `;
+}
+
+function PeriodSelector({ value, onChange }) {
+  const periods = [
+    { value: 0, label: __("All time", "dashboardng") },
+    { value: 1, label: __("Current year", "dashboardng") },
+    { value: 2, label: __("Current month", "dashboardng") },
+    { value: 3, label: __("Last 7 days", "dashboardng") },
+    { value: 4, label: __("Last 15 days", "dashboardng") },
+    { value: 5, label: __("Last 30 days", "dashboardng") },
+    { value: 6, label: __("Last 90 days", "dashboardng") },
+    { value: 7, label: __("Last 180 days", "dashboardng") },
+    { value: 8, label: __("Custom range", "dashboardng") },
+  ];
+
+  return html`
+    <select
+      class="form-select form-select-lg"
+      value=${value}
+      onChange=${(e) => onChange(parseInt(e.target.value, 10))}
+      style="width: auto;"
+    >
+      ${periods.map(
+        (p) => html` <option value=${p.value}>${p.label}</option> `,
+      )}
+    </select>
+  `;
+}
+
+function CustomRangePicker({ value, onChange }) {
+  const handleChange = (key, dateValue) => {
+    onChange({ ...value, [key]: dateValue || '' });
+  };
+
+  return html`
+    <div class="d-flex align-items-center gap-2">
+      <label class="form-label mb-0 text-muted">${__("From", "dashboardng")}</label>
+      <input
+        type="date"
+        class="form-control form-control-lg"
+        value=${value.start || ''}
+        onChange=${(e) => handleChange('start', e.target.value)}
+      />
+      <label class="form-label mb-0 text-muted">${__("To", "dashboardng")}</label>
+      <input
+        type="date"
+        class="form-control form-control-lg"
+        value=${value.end || ''}
+        onChange=${(e) => handleChange('end', e.target.value)}
+      />
     </div>
   `;
 }
@@ -292,7 +311,7 @@ function PieChart({ data, title, topK = null }) {
           const others = sorted.slice(topK);
           const othersValue = others.reduce((sum, item) => sum + (item.count || item.value), 0);
 
-          labels = [...topKItems.map(item => item.label || item.name), i18n("others", "Others")];
+          labels = [...topKItems.map(item => item.label || item.name), __("Others", "dashboardng")];
           values = [...topKItems.map(item => item.count || item.value), othersValue];
         }
 
@@ -481,7 +500,7 @@ function StatCard({ label, value, icon, color = "primary" }) {
  // ========================================
 // Asset Type Report Component
 
-function AssetTypeReport({ itemtype, onSettingsClick, getCardSettings, cardIdPrefix }) {
+function AssetTypeReport({ itemtype, period, customRange = {}, onSettingsClick, getCardSettings, cardIdPrefix }) {
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -492,14 +511,19 @@ function AssetTypeReport({ itemtype, onSettingsClick, getCardSettings, cardIdPre
     setLoading(true);
     setError(null);
     try {
-      const result = await api.get("/reports/asset-by-itemtype", { itemtype });
+      const params = { itemtype, period };
+      if (period === 8) {
+        params.start_date = customRange?.start || undefined;
+        params.end_date = customRange?.end || undefined;
+      }
+      const result = await api.fetch("/reports/asset-by-itemtype", params);
       setData(result.data);
     } catch (e) {
       setError(e.message);
     } finally {
       setLoading(false);
     }
-  }, [itemtype]);
+  }, [itemtype, period, customRange?.start, customRange?.end]);
 
   useEffect(() => {
     loadData();
@@ -515,7 +539,7 @@ function AssetTypeReport({ itemtype, onSettingsClick, getCardSettings, cardIdPre
     <div class="row g-4 mb-4">
       <div class="col-md-3">
         <${StatCard}
-          label=${i18n("total", "Total") + " " + (assetType?.label || itemtype)}
+          label=${__("Total", "dashboardng") + " " + (assetType?.label || itemtype)}
           value=${data.total || 0}
           icon=${assetType?.icon || "device-unknown"}
           color="primary"
@@ -523,7 +547,7 @@ function AssetTypeReport({ itemtype, onSettingsClick, getCardSettings, cardIdPre
       </div>
       <div class="col-md-3">
         <${StatCard}
-          label=${i18n("in_use", "In Use")}
+          label=${__("In Use", "dashboardng")}
           value=${data.in_use || 0}
           icon="check"
           color="success"
@@ -531,7 +555,7 @@ function AssetTypeReport({ itemtype, onSettingsClick, getCardSettings, cardIdPre
       </div>
       <div class="col-md-3">
         <${StatCard}
-          label=${i18n("in_stock", "In Stock")}
+          label=${__("In Stock", "dashboardng")}
           value=${data.in_stock || 0}
           icon="archive"
           color="info"
@@ -539,7 +563,7 @@ function AssetTypeReport({ itemtype, onSettingsClick, getCardSettings, cardIdPre
       </div>
       <div class="col-md-3">
         <${StatCard}
-          label=${i18n("with_tickets", "With Open Tickets")}
+          label=${__("With Open Tickets", "dashboardng")}
           value=${data.with_tickets || 0}
           icon="ticket"
           color="warning"
@@ -551,7 +575,7 @@ function AssetTypeReport({ itemtype, onSettingsClick, getCardSettings, cardIdPre
      <div class="row g-4 mb-4">
        <div class="col-md-6">
          <${ReportCard}
-           title=${i18n("by_manufacturer", "By Manufacturer")}
+           title=${__("By Manufacturer", "dashboardng")}
            onSettingsClick=${() => onSettingsClick(`${cardIdPrefix}-manufacturer`)}
          >
            ${data.by_manufacturer && data.by_manufacturer.length > 0
@@ -568,28 +592,28 @@ function AssetTypeReport({ itemtype, onSettingsClick, getCardSettings, cardIdPre
                        columns=${[
                          {
                            key: "label",
-                           label: i18n("manufacturer", "Manufacturer"),
+                           label: __("Manufacturer", "dashboardng"),
                          },
                          {
                            key: "count",
-                           label: i18n("count", "Count"),
+                           label: __("Count", "dashboardng"),
                            align: "right",
                          },
                        ]}
                        rows=${data.by_manufacturer}
-                       emptyMessage=${i18n("no_data", "No data available")}
+                       emptyMessage=${__("No data available", "dashboardng")}
                      />
                    </div>
                  </div>
                `
              : html`<${EmptyState}
-                 message=${i18n("no_manufacturer_data", "No manufacturer data")}
+                 message=${__("No manufacturer data", "dashboardng")}
                />`}
          <//>
        </div>
        <div class="col-md-6">
          <${ReportCard}
-           title=${i18n("by_status", "By Status")}
+           title=${__("By Status", "dashboardng")}
            onSettingsClick=${() => onSettingsClick(`${cardIdPrefix}-status`)}
          >
            ${data.by_status && data.by_status.length > 0
@@ -604,131 +628,131 @@ function AssetTypeReport({ itemtype, onSettingsClick, getCardSettings, cardIdPre
                    <div class="col-md-6">
                      <${DataTable}
                        columns=${[
-                         { key: "label", label: i18n("status", "Status") },
+                         { key: "label", label: __("Status", "dashboardng") },
                          {
                            key: "count",
-                           label: i18n("count", "Count"),
+                           label: __("Count", "dashboardng"),
                            align: "right",
                          },
                        ]}
                        rows=${data.by_status}
-                       emptyMessage=${i18n("no_data", "No data available")}
+                       emptyMessage=${__("No data available", "dashboardng")}
                      />
                    </div>
                  </div>
                `
              : html`<${EmptyState}
-                 message=${i18n("no_status_data", "No status data")}
+                 message=${__("No status data", "dashboardng")}
                />`}
          <//>
        </div>
      </div>
 
-    <!-- Charts Row 2: Location & Entity -->
-    <div class="row g-4 mb-4">
-      <div class="col-md-6">
-        <${ReportCard} title=${i18n("by_location", "By Location")}>
-          ${data.by_location && data.by_location.length > 0
-            ? html`
-                <${BarChart}
-                  data=${data.by_location.slice(0, 10)}
-                  horizontal=${true}
-                />
-              `
-            : html`<${EmptyState}
-                message=${i18n("no_location_data", "No location data")}
-              />`}
-        <//>
-      </div>
-      <div class="col-md-6">
-        <${ReportCard} title=${i18n("by_entity", "By Entity")}>
-          ${data.by_entity && data.by_entity.length > 0
-            ? html`
-                <${BarChart}
-                  data=${data.by_entity.slice(0, 10)}
-                  horizontal=${true}
-                />
-              `
-            : html`<${EmptyState}
-                message=${i18n("no_entity_data", "No entity data")}
-              />`}
-        <//>
-      </div>
-    </div>
+     <!-- Charts Row 2: Location & Entity -->
+     <div class="row g-4 mb-4">
+       <div class="col-md-6">
+         <${ReportCard} title=${__("By Location", "dashboardng")}>
+           ${data.by_location && data.by_location.length > 0
+             ? html`
+                 <${BarChart}
+                   data=${data.by_location.slice(0, 10)}
+                   horizontal=${true}
+                 />
+               `
+             : html`<${EmptyState}
+                 message=${__("No location data", "dashboardng")}
+               />`}
+         <//>
+       </div>
+       <div class="col-md-6">
+         <${ReportCard} title=${__("By Entity", "dashboardng")}>
+           ${data.by_entity && data.by_entity.length > 0
+             ? html`
+                 <${BarChart}
+                   data=${data.by_entity.slice(0, 10)}
+                   horizontal=${true}
+                 />
+               `
+             : html`<${EmptyState}
+                 message=${__("No entity data", "dashboardng")}
+               />`}
+         <//>
+       </div>
+     </div>
 
      <!-- Itemtype-specific charts -->
      ${itemtype === "Computer" &&
      data.by_os &&
      data.by_os.length > 0 &&
      html`
-       <div class="row g-4 mb-4">
-         <div class="col-md-6">
-             <${ReportCard}
-              title=${i18n("by_operating_system", "By Operating System")}
-              onSettingsClick=${() => onSettingsClick(`${cardIdPrefix}-os`)}
-            >
-              <div class="row">
+        <div class="row g-4 mb-4">
+          <div class="col-md-6">
+              <${ReportCard}
+               title=${__("By Operating System", "dashboardng")}
+               onSettingsClick=${() => onSettingsClick(`${cardIdPrefix}-os`)}
+             >
+               <div class="row">
+                 <div class="col-md-6">
+                   <${PieChart}
+                     data=${data.by_os}
+                     topK=${getCardSettings(`${cardIdPrefix}-os`).topK || null}
+                   />
+                 </div>
+
                 <div class="col-md-6">
-                  <${PieChart}
-                    data=${data.by_os}
-                    topK=${getCardSettings(`${cardIdPrefix}-os`).topK || null}
+                  <${DataTable}
+                    columns=${[
+                      {
+                        key: "label",
+                        label: __("Operating System", "dashboardng"),
+                      },
+                      {
+                        key: "count",
+                        label: __("Count", "dashboardng"),
+                        align: "right",
+                      },
+                    ]}
+                    rows=${data.by_os}
                   />
                 </div>
+              </div>
+            <//>
+          </div>
+          <div class="col-md-6">
+             <${ReportCard}
+               title=${__("By Type", "dashboardng")}
+               onSettingsClick=${() => onSettingsClick(`${cardIdPrefix}-type`)}
+             >
+               ${data.by_type && data.by_type.length > 0
+                 ? html`
+                     <div class="row">
+                       <div class="col-md-6">
+                         <${PieChart}
+                           data=${data.by_type}
+                           topK=${getCardSettings(`${cardIdPrefix}-type`).topK || null}
+                         />
+                       </div>
 
-               <div class="col-md-6">
-                 <${DataTable}
-                   columns=${[
-                     {
-                       key: "label",
-                       label: i18n("operating_system", "Operating System"),
-                     },
-                     {
-                       key: "count",
-                       label: i18n("count", "Count"),
-                       align: "right",
-                     },
-                   ]}
-                   rows=${data.by_os}
-                 />
-               </div>
-             </div>
-           <//>
-         </div>
-         <div class="col-md-6">
-            <${ReportCard}
-              title=${i18n("by_type", "By Type")}
-              onSettingsClick=${() => onSettingsClick(`${cardIdPrefix}-type`)}
-            >
-              ${data.by_type && data.by_type.length > 0
-                ? html`
-                    <div class="row">
                       <div class="col-md-6">
-                        <${PieChart}
-                          data=${data.by_type}
-                          topK=${getCardSettings(`${cardIdPrefix}-type`).topK || null}
+                        <${DataTable}
+                          columns=${[
+                            { key: "label", label: __("Type", "dashboardng") },
+                            {
+                              key: "count",
+                              label: __("Count", "dashboardng"),
+                              align: "right",
+                            },
+                          ]}
+                          rows=${data.by_type}
                         />
                       </div>
-
-                     <div class="col-md-6">
-                       <${DataTable}
-                         columns=${[
-                           { key: "label", label: i18n("type", "Type") },
-                           {
-                             key: "count",
-                             label: i18n("count", "Count"),
-                             align: "right",
-                           },
-                         ]}
-                         rows=${data.by_type}
-                       />
-                     </div>
-                   </div>
-               `
-               : html`<${EmptyState}
-                   message=${i18n("no_type_data", "No type data")}
-                 />`}
-           <//>
-         </div>
+                    </div>
+                `
+                : html`<${EmptyState}
+                    message=${__("No type data", "dashboardng")}
+                  />`}
+            <//>
+          </div>
        </div>
      `}
     ${itemtype === "Software" &&
@@ -736,106 +760,106 @@ function AssetTypeReport({ itemtype, onSettingsClick, getCardSettings, cardIdPre
     data.by_category.length > 0 &&
     html`
        <div class="row g-4 mb-4">
-         <div class="col-12">
-           <${ReportCard}
-             title=${i18n("by_category", "By Category")}
-             onSettingsClick=${() => onSettingsClick(`${cardIdPrefix}-category`)}
-           >
-             <div class="row">
-               <div class="col-md-6">
-                 <${PieChart}
-                   data=${data.by_category}
-                   topK=${getCardSettings(`${cardIdPrefix}-category`).topK || null}
-                 />
-               </div>
-               <div class="col-md-6">
-                 <${DataTable}
-                   columns=${[
-                     {
-                       key: "label",
-                       label: i18n("category", "Category"),
-                     },
-                     {
-                       key: "count",
-                       label: i18n("count", "Count"),
-                       align: "right",
-                     },
-                   ]}
-                   rows=${data.by_category}
-                 />
-               </div>
-             </div>
-           <//>
-         </div>
-      </div>
+          <div class="col-12">
+            <${ReportCard}
+              title=${__("By Category", "dashboardng")}
+              onSettingsClick=${() => onSettingsClick(`${cardIdPrefix}-category`)}
+            >
+              <div class="row">
+                <div class="col-md-6">
+                  <${PieChart}
+                    data=${data.by_category}
+                    topK=${getCardSettings(`${cardIdPrefix}-category`).topK || null}
+                  />
+                </div>
+                <div class="col-md-6">
+                  <${DataTable}
+                    columns=${[
+                      {
+                        key: "label",
+                        label: __("Category", "dashboardng"),
+                      },
+                      {
+                        key: "count",
+                        label: __("Count", "dashboardng"),
+                        align: "right",
+                      },
+                    ]}
+                    rows=${data.by_category}
+                  />
+                </div>
+              </div>
+            <//>
+          </div>
+       </div>
     `}
 
     <!-- Model breakdown (for hardware types) -->
     ${data.by_model &&
     data.by_model.length > 0 &&
     html`
-      <div class="row g-4 mb-4">
-        <div class="col-12">
-          <${ReportCard} title=${i18n("by_model", "By Model")}>
-            <div class="row">
-              <div class="col-md-8">
-                <${BarChart}
-                  data=${data.by_model.slice(0, 15)}
-                  horizontal=${true}
-                />
-              </div>
-              <div class="col-md-4">
-                <${DataTable}
-                  columns=${[
-                    { key: "label", label: i18n("model", "Model") },
-                    {
-                      key: "count",
-                      label: i18n("count", "Count"),
-                      align: "right",
-                    },
-                  ]}
-                  rows=${data.by_model}
-                />
-              </div>
-            </div>
-          <//>
-        </div>
-      </div>
+       <div class="row g-4 mb-4">
+         <div class="col-12">
+           <${ReportCard} title=${__("By Model", "dashboardng")}>
+             <div class="row">
+               <div class="col-md-8">
+                 <${BarChart}
+                   data=${data.by_model.slice(0, 15)}
+                   horizontal=${true}
+                 />
+               </div>
+               <div class="col-md-4">
+                 <${DataTable}
+                   columns=${[
+                     { key: "label", label: __("Model", "dashboardng") },
+                     {
+                       key: "count",
+                       label: __("Count", "dashboardng"),
+                       align: "right",
+                     },
+                   ]}
+                   rows=${data.by_model}
+                 />
+               </div>
+             </div>
+           <//>
+         </div>
+       </div>
     `}
 
     <!-- Recent items list -->
     ${data.recent_items &&
     data.recent_items.length > 0 &&
     html`
-      <div class="row g-4">
-        <div class="col-12">
-          <${ReportCard} title=${i18n("recent_items", "Recently Added")}>
-            <${DataTable}
-              columns=${[
-                {
-                  key: "name",
-                  label: i18n("name", "Name"),
-                  render: (v, row) => html`
-                    <a
-                      href="${window.CFG_GLPI
-                        .root_doc}/front/${itemtype.toLowerCase()}.form.php?id=${row.id}"
-                      target="_blank"
-                    >
-                      ${v || i18n("unnamed", "(unnamed)")}
-                    </a>
-                  `,
-                },
-                { key: "serial", label: i18n("serial", "Serial") },
-                { key: "location", label: i18n("location", "Location") },
-                { key: "status", label: i18n("status", "Status") },
-                { key: "date_creation", label: i18n("created", "Created") },
-              ]}
-              rows=${data.recent_items}
-              emptyMessage=${i18n("no_recent_items", "No recent items")}
-            />
-          <//>
-        </div>
-      </div>
+       <div class="row g-4">
+         <div class="col-12">
+           <${ReportCard} title=${__("Recently Added", "dashboardng")}>
+             <${DataTable}
+               columns=${[
+                 {
+                   key: "name",
+                   label: __("Name", "dashboardng"),
+                   render: (v, row) => html`
+                     <a
+                       href="${window.CFG_GLPI
+                         .root_doc}/front/${itemtype.toLowerCase()}.form.php?id=${row.id}"
+                       target="_blank"
+                     >
+                       ${v || __("(unnamed)", "dashboardng")}
+                     </a>
+                   `,
+                 },
+                 { key: "serial", label: __("Serial", "dashboardng") },
+                 { key: "location", label: __("Location", "dashboardng") },
+                 { key: "status", label: __("Status", "dashboardng") },
+                 { key: "date_creation", label: __("Created", "dashboardng") },
+               ]}
+               rows=${data.recent_items}
+               emptyMessage=${__("No recent items", "dashboardng")}
+             />
+           <//>
+         </div>
+       </div>
     `}
   `;
 }
@@ -844,6 +868,8 @@ function AssetTypeReport({ itemtype, onSettingsClick, getCardSettings, cardIdPre
 
 function AssetReportsApp() {
   const [selectedType, setSelectedType] = useState("Computer");
+  const [period, setPeriod] = useState(0);
+  const [customRange, setCustomRange] = useState({ start: '', end: '' });
   const [showSettings, setShowSettings] = useState(false);
   const [settingsCard, setSettingsCard] = useState(null);
   const [chartSettings, setChartSettings] = useState({});
@@ -888,47 +914,57 @@ function AssetReportsApp() {
   return html`
     <div class="dashboardng-reports">
       <!-- Header -->
-      <div
-        class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3"
-      >
+       <div
+         class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3"
+       >
        <h2 class="mb-0">
            <i class="fas fa-desktop me-2"></i>
-           ${i18n("asset_reports", "Asset Reports")}
+           ${__("Asset Reports", "dashboardng")}
          </h2>
         <div class="d-flex align-items-center gap-3 flex-wrap">
           <${AssetTypeSelector}
             value=${selectedType}
             onChange=${setSelectedType}
           />
+          <label class="form-label mb-0 text-muted">${__("Period", "dashboardng")}:</label>
+          <${PeriodSelector} value=${period} onChange=${setPeriod} />
+          ${period === 8 && html`
+            <${CustomRangePicker} value=${customRange} onChange=${setCustomRange} />
+          `}
           <${ExportDropdown}
-            reportType="asset-itemtype"
+            reportType="asset-by-itemtype"
             itemtype=${selectedType}
+            period=${period}
+            customRange=${customRange}
           />
         </div>
       </div>
 
       <!-- Selected type indicator -->
-      <div class="alert alert-light d-flex align-items-center mb-4">
-        <i
-          class="ti ti-${assetType?.icon || "device-unknown"} me-2"
-          style="font-size: 1.5rem;"
-        ></i>
-        <div>
-          <strong
-            >${i18n("showing_reports_for", "Showing reports for")}:</strong
-          >
-          <span class="ms-1">${assetType?.label || selectedType}</span>
-        </div>
-      </div>
+       <div class="alert alert-light d-flex align-items-center mb-4">
+         <i
+           class="ti ti-${assetType?.icon || "device-unknown"} me-2"
+           style="font-size: 1.5rem;"
+         ></i>
+         <div>
+           <strong
+             >${__("Showing reports for", "dashboardng")}:</strong
+           >
+           <span class="ms-1">${assetType?.label || selectedType}</span>
+         </div>
+       </div>
 
        <!-- Content -->
-       <${AssetTypeReport}
-         itemtype=${selectedType}
-         onSettingsClick=${handleSettingsClick}
-         getCardSettings=${getCardSettings}
-         cardIdPrefix=${selectedType}
-         key=${selectedType}
-       />
+        <${AssetTypeReport}
+          itemtype=${selectedType}
+          period=${period}
+          customRange=${customRange}
+          onSettingsClick=${handleSettingsClick}
+          getCardSettings=${getCardSettings}
+          cardIdPrefix=${selectedType}
+          key=${selectedType}
+        />
+
 
        <!-- Settings Modal -->
        <${SettingsModal}

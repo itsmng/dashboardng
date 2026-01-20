@@ -52,13 +52,17 @@ class PluginDashboardngDashboard extends CommonDBTM
 
             $DB->queryOrDie($query, $DB->error());
 
-            // Insert default global dashboard directly with raw SQL
-            $config = $DB->escape(json_encode(['refreshInterval' => 60000, 'columnCount' => 12]));
-            $insertQuery = "INSERT INTO `$table` (`name`, `users_id`, `is_default`, `is_active`, `config`)
-                           VALUES ('Global Dashboard', 0, 1, 1, '$config')";
-            $DB->queryOrDie($insertQuery, $DB->error());
+            // Insert default global dashboard using ORM
+            $config = json_encode(['refreshInterval' => 60000, 'columnCount' => 12]);
+            $DB->insert($table, [
+                'name' => 'Global Dashboard',
+                'users_id' => 0,
+                'is_default' => 1,
+                'is_active' => 1,
+                'config' => $config,
+            ]);
 
-            // Return the newly created dashboard ID
+            // Return newly created dashboard ID
             return (int) $DB->insertId();
         } else {
             // Table exists, ensure default dashboard exists and return its ID

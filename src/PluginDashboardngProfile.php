@@ -9,6 +9,13 @@ use Profile;
 use ProfileRight;
 use Session;
 
+if (!defined('READ')) {
+    define('READ', 1);
+}
+if (!defined('UPDATE')) {
+    define('UPDATE', 2);
+}
+
 /**
  * Profile Rights Management
  */
@@ -23,7 +30,6 @@ class PluginDashboardngProfile extends CommonDBTM
      */
     public static function install(): bool
     {
-        // No dedicated table needed - we use glpi_profilerights
         return true;
     }
 
@@ -34,7 +40,6 @@ class PluginDashboardngProfile extends CommonDBTM
      */
     public static function uninstall(): bool
     {
-        // Rights are cleaned up in hook.php
         return true;
     }
 
@@ -66,6 +71,21 @@ class PluginDashboardngProfile extends CommonDBTM
                     UPDATE => __('Update'),
                 ],
             ],
+            [
+                'itemtype' => self::class,
+                'label'    => __('Global Dashboard Edit', 'dashboardng'),
+                'field'    => 'plugin_dashboardng_globaldashboard',
+                'rights'   => [UPDATE => __('Update')],
+            ],
+            [
+                'itemtype' => self::class,
+                'label'    => __('My Dashboard', 'dashboardng'),
+                'field'    => 'plugin_dashboardng_mydashboard',
+                'rights'   => [
+                    READ   => __('Read'),
+                    UPDATE => __('Update'),
+                ],
+            ],
         ];
     }
 
@@ -76,7 +96,6 @@ class PluginDashboardngProfile extends CommonDBTM
      */
     public static function changeProfile(): void
     {
-        // Nothing specific needed - rights are loaded automatically
     }
 
     /**
@@ -136,7 +155,6 @@ class PluginDashboardngProfile extends CommonDBTM
             $profileId = $item->getID();
             $profile = new self();
 
-            // Add default rights if they don't exist
             foreach (self::getRightsGeneral() as $right) {
                 self::addDefaultProfileInfos($profileId, [$right['field'] => 0]);
             }

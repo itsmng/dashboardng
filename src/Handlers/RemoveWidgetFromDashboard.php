@@ -15,7 +15,7 @@ class RemoveWidgetFromDashboard
     {
         $placementId = $params['placement_id'] ?? $params['id'] ?? null;
         $dashboardId = $params['dashboard_id'] ?? null;
-        
+
         if (!$placementId) {
             return [
                 'success' => false,
@@ -23,26 +23,50 @@ class RemoveWidgetFromDashboard
             ];
         }
 
-        // If no dashboard specified, try to get from the placement
+        // If no dashboard specified, try to get from placement
         if (!$dashboardId) {
-            // Get user's default dashboard
             $dashboard = PluginDashboardngDashboard::getDefaultDashboard();
-            if ($dashboard && $dashboard['users_id'] == Session::getLoginUserID()) {
+            if (!$dashboard) {
+                return [
+                    'success' => false,
+                    'error' => 'Dashboard not found',
+                ];
+            }
+
+            // If it's a global dashboard, check global edit right
+            if ($dashboard['users_id'] == 0) {
+                if (!Session::haveRight('plugin_dashboardng_globaldashboard', UPDATE)) {
+                    return [
+                        'success' => false,
+                        'error' => 'Unauthorized',
+                    ];
+                }
+                $dashboardId = $dashboard['id'];
+            } elseif ($dashboard['users_id'] == Session::getLoginUserID()) {
+                // It's user's personal dashboard, allow
                 $dashboardId = $dashboard['id'];
             } else {
                 return [
                     'success' => false,
-                    'error' => 'Cannot remove widgets from global dashboard directly. Create a personal dashboard first.',
+                    'error' => 'Cannot remove widgets from this dashboard.',
                 ];
             }
         }
 
-        // Verify this is a personal dashboard
+        // Get dashboard to check permissions
         $dashboard = PluginDashboardngDashboard::getDashboardById((int) $dashboardId);
-        if (!$dashboard || $dashboard['users_id'] == 0) {
+        if (!$dashboard) {
             return [
                 'success' => false,
-                'error' => 'Cannot modify global dashboards',
+                'error' => 'Dashboard not found',
+            ];
+        }
+
+        // Check global dashboard edit right
+        if ($dashboard['users_id'] == 0 && !Session::haveRight('plugin_dashboardng_globaldashboard', UPDATE)) {
+            return [
+                'success' => false,
+                'error' => 'Unauthorized',
             ];
         }
 

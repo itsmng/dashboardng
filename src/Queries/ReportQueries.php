@@ -18,13 +18,90 @@ use Peripheral;
 class ReportQueries
 {
     /**
-     * Get period filter based on period type
+     * Normalize a date string in Y-m-d format
+     */
+    private function normalizeDate(?string $date): ?string
+    {
+        if ($date === null || $date === '') {
+            return null;
+        }
+
+        $parsed = \DateTime::createFromFormat('Y-m-d', $date);
+        if ($parsed === false || $parsed->format('Y-m-d') !== $date) {
+            return null;
+        }
+
+        return $parsed->format('Y-m-d');
+    }
+
+    /**
+     * Normalize and order a date range
+     *
+     * @return array{0:?string,1:?string}
+     */
+    private function normalizeDateRange(?string $startDate, ?string $endDate): array
+    {
+        $start = $this->normalizeDate($startDate);
+        $end = $this->normalizeDate($endDate);
+
+        if ($start && !$end) {
+            $end = date('Y-m-d');
+        }
+
+        if (!$start && $end) {
+            $start = $end;
+        }
+
+        if ($start && $end && $start > $end) {
+            [$start, $end] = [$end, $start];
+        }
+
+        return [$start, $end];
+    }
+
+    /**
+     * Normalize a period payload for custom ranges
+     *
+     * @return array{0:?string,1:?string}
+     */
+    public function normalizeCustomPeriod(?string $startDate, ?string $endDate): array
+    {
+        return $this->normalizeDateRange($startDate, $endDate);
+    }
+
+    /**
+     * Get a normalized date range for a period selection
+     *
+     * @return array{0:?string,1:?string}
+     */
+    public function getPeriodRange(int $period, ?string $startDate = null, ?string $endDate = null): array
+    {
+        [$rangeStart, $rangeEnd] = $this->getPeriodDates($period, $startDate, $endDate);
+
+        return [
+            $rangeStart ? substr($rangeStart, 0, 10) : null,
+            $rangeEnd ? substr($rangeEnd, 0, 10) : null,
+        ];
+    }
+
+    /**
+     * Get period filter based on period type or explicit range
      *
      * @param int $period Period type (0-7)
+     * @param string|null $startDate Custom start date (Y-m-d)
+     * @param string|null $endDate Custom end date (Y-m-d)
      * @return array [start date, end date]
      */
-    private function getPeriodDates(int $period): array
+    private function getPeriodDates(int $period, ?string $startDate = null, ?string $endDate = null): array
     {
+        [$customStart, $customEnd] = $this->normalizeDateRange($startDate, $endDate);
+        if ($customStart !== null || $customEnd !== null) {
+            return [
+                $customStart ? "$customStart 00:00:00" : null,
+                $customEnd ? "$customEnd 23:59:59" : null,
+            ];
+        }
+
         $today = date('Y-m-d');
         $thisMonth = date('Y-m-01');
         $thisYear = date('Y-01-01');
@@ -54,7 +131,7 @@ class ReportQueries
      * @param string $tableAlias Table alias (e.g., 'glpi_tickets' or just empty for unqualified)
      * @return array WHERE clause array
      */
-    private function buildBaseWhere(array $entities, int $period, string $tableAlias = ''): array
+    private function buildBaseWhere(array $entities, int $period, string $tableAlias = '', ?string $startDate = null, ?string $endDate = null): array
     {
         $prefix = $tableAlias ? "$tableAlias." : '';
         
@@ -65,7 +142,7 @@ class ReportQueries
             $where["{$prefix}entities_id"] = $entities;
         }
         
-        [$dateStart, $dateEnd] = $this->getPeriodDates($period);
+        [$dateStart, $dateEnd] = $this->getPeriodDates($period, $startDate, $endDate);
         if ($dateStart !== null) {
             $dateField = $tableAlias ? "{$tableAlias}.date" : 'glpi_tickets.date';
             $where[] = new QueryExpression("$dateField BETWEEN '$dateStart' AND '$dateEnd'");
@@ -103,11 +180,12 @@ class ReportQueries
      * @param int $period Period type
      * @return array
      */
-    public function getOverviewReport(array $entities, int $period = 0): array
+    public function getOverviewReport(array $entities, int $period = 0, ?string $startDate = null, ?string $endDate = null): array
     {
         global $DB;
+ 
+        $where = $this->buildBaseWhere($entities, $period, '', $startDate, $endDate);
 
-        $where = $this->buildBaseWhere($entities, $period);
 
         // Total tickets
         $result = $DB->request([
@@ -203,11 +281,12 @@ class ReportQueries
      * @param int $period Period type
      * @return array
      */
-    public function getEntityReport(array $entities, int $period = 0): array
+    public function getEntityReport(array $entities, int $period = 0, ?string $startDate = null, ?string $endDate = null): array
     {
         global $DB;
+ 
+        $where = $this->buildBaseWhere($entities, $period, 'glpi_tickets', $startDate, $endDate);
 
-        $where = $this->buildBaseWhere($entities, $period, 'glpi_tickets');
 
         $solvedStatus = Ticket::SOLVED . ',' . Ticket::CLOSED;
         
@@ -263,11 +342,12 @@ class ReportQueries
      * @param int $limit Max results
      * @return array
      */
-    public function getTechnicianReport(array $entities, int $period = 0, int $limit = 50): array
+    public function getTechnicianReport(array $entities, int $period = 0, int $limit = 50, ?string $startDate = null, ?string $endDate = null): array
     {
         global $DB;
+ 
+        $where = $this->buildBaseWhere($entities, $period, 'glpi_tickets', $startDate, $endDate);
 
-        $where = $this->buildBaseWhere($entities, $period, 'glpi_tickets');
         $where['glpi_tickets_users.type'] = 2; // Technician
 
         $solvedStatus = Ticket::SOLVED . ',' . Ticket::CLOSED;
@@ -336,11 +416,12 @@ class ReportQueries
      * @param int $period Period type
      * @return array
      */
-    public function getSlaReport(array $entities, int $period = 0): array
+    public function getSlaReport(array $entities, int $period = 0, ?string $startDate = null, ?string $endDate = null): array
     {
         global $DB;
+ 
+        $where = $this->buildBaseWhere($entities, $period, '', $startDate, $endDate);
 
-        $where = $this->buildBaseWhere($entities, $period);
         $where[] = new QueryExpression('time_to_resolve IS NOT NULL');
 
         // Total with SLA
@@ -440,11 +521,12 @@ class ReportQueries
      * @param int $limit Max results
      * @return array
      */
-    public function getCategoryReport(array $entities, int $period = 0, int $limit = 50): array
+    public function getCategoryReport(array $entities, int $period = 0, int $limit = 50, ?string $startDate = null, ?string $endDate = null): array
     {
         global $DB;
+ 
+        $where = $this->buildBaseWhere($entities, $period, 'glpi_tickets', $startDate, $endDate);
 
-        $where = $this->buildBaseWhere($entities, $period, 'glpi_tickets');
 
         // Get total for percentage calculation
         $result = $DB->request([
@@ -509,11 +591,12 @@ class ReportQueries
      * @param int $limit Max results
      * @return array
      */
-    public function getGroupReport(array $entities, int $period = 0, int $limit = 50): array
+    public function getGroupReport(array $entities, int $period = 0, int $limit = 50, ?string $startDate = null, ?string $endDate = null): array
     {
         global $DB;
+ 
+        $where = $this->buildBaseWhere($entities, $period, 'glpi_tickets', $startDate, $endDate);
 
-        $where = $this->buildBaseWhere($entities, $period, 'glpi_tickets');
         $where['glpi_groups_tickets.type'] = 2; // Assigned group
 
         $solvedStatus = Ticket::SOLVED . ',' . Ticket::CLOSED;
@@ -574,11 +657,12 @@ class ReportQueries
      * @param int $period Period type
      * @return array
      */
-    public function getPriorityReport(array $entities, int $period = 0): array
+    public function getPriorityReport(array $entities, int $period = 0, ?string $startDate = null, ?string $endDate = null): array
     {
         global $DB;
+ 
+        $where = $this->buildBaseWhere($entities, $period, '', $startDate, $endDate);
 
-        $where = $this->buildBaseWhere($entities, $period);
 
         $solvedStatus = Ticket::SOLVED . ',' . Ticket::CLOSED;
         
@@ -620,11 +704,12 @@ class ReportQueries
      * @param int $period Period type
      * @return array
      */
-    public function getSourceReport(array $entities, int $period = 0): array
+    public function getSourceReport(array $entities, int $period = 0, ?string $startDate = null, ?string $endDate = null): array
     {
         global $DB;
+ 
+        $where = $this->buildBaseWhere($entities, $period, 'glpi_tickets', $startDate, $endDate);
 
-        $where = $this->buildBaseWhere($entities, $period, 'glpi_tickets');
 
         $result = $DB->request([
             'SELECT' => [
@@ -665,11 +750,12 @@ class ReportQueries
      * @param int $period Period type
      * @return array
      */
-    public function getMonthlyReport(array $entities, int $period = 0): array
+    public function getMonthlyReport(array $entities, int $period = 0, ?string $startDate = null, ?string $endDate = null): array
     {
         global $DB;
+ 
+        $where = $this->buildBaseWhere($entities, $period, '', $startDate, $endDate);
 
-        $where = $this->buildBaseWhere($entities, $period);
 
         $solvedStatus = Ticket::SOLVED . ',' . Ticket::CLOSED;
         
@@ -716,8 +802,13 @@ class ReportQueries
      * @param string $tableAlias Table alias
      * @return array WHERE clause array
      */
-    private function buildAssetBaseWhere(array $entities, string $tableAlias = ''): array
-    {
+    private function buildAssetBaseWhere(
+        array $entities,
+        string $tableAlias = '',
+        int $period = 0,
+        ?string $startDate = null,
+        ?string $endDate = null
+    ): array {
         $prefix = $tableAlias ? "$tableAlias." : '';
         
         $where = [
@@ -727,6 +818,12 @@ class ReportQueries
         
         if (!empty($entities)) {
             $where["{$prefix}entities_id"] = $entities;
+        }
+
+        [$dateStart, $dateEnd] = $this->getPeriodDates($period, $startDate, $endDate);
+        if ($dateStart !== null) {
+            $dateField = $tableAlias ? "{$tableAlias}.date_creation" : 'glpi_assets.date_creation';
+            $where[] = new QueryExpression("$dateField BETWEEN '$dateStart' AND '$dateEnd'");
         }
         
         return $where;
@@ -738,7 +835,7 @@ class ReportQueries
      * @param array $entities Entity IDs
      * @return array
      */
-    public function getAssetOverviewReport(array $entities): array
+    public function getAssetOverviewReport(array $entities, int $period = 0, ?string $startDate = null, ?string $endDate = null): array
     {
         global $DB;
 
@@ -755,7 +852,7 @@ class ReportQueries
         $totalAssets = 0;
 
         foreach ($assetTypes as $key => $config) {
-            $where = $this->buildAssetBaseWhere($entities);
+            $where = $this->buildAssetBaseWhere($entities, $config['table'], $period, $startDate, $endDate);
             
             $result = $DB->request([
                 'COUNT' => 'total',
@@ -790,11 +887,11 @@ class ReportQueries
      * @param int $limit Max results
      * @return array
      */
-    public function getComputersByOsReport(array $entities, int $limit = 20): array
+    public function getComputersByOsReport(array $entities, int $limit = 20, int $period = 0, ?string $startDate = null, ?string $endDate = null): array
     {
         global $DB;
 
-        $where = $this->buildAssetBaseWhere($entities, 'glpi_computers');
+        $where = $this->buildAssetBaseWhere($entities, 'glpi_computers', $period, $startDate, $endDate);
 
         $result = $DB->request([
             'SELECT' => [
@@ -848,11 +945,11 @@ class ReportQueries
      * @param int $limit Max results
      * @return array
      */
-    public function getComputersByTypeReport(array $entities, int $limit = 20): array
+    public function getComputersByTypeReport(array $entities, int $limit = 20, int $period = 0, ?string $startDate = null, ?string $endDate = null): array
     {
         global $DB;
 
-        $where = $this->buildAssetBaseWhere($entities, 'glpi_computers');
+        $where = $this->buildAssetBaseWhere($entities, 'glpi_computers', $period, $startDate, $endDate);
 
         $result = $DB->request([
             'SELECT' => [
@@ -892,11 +989,11 @@ class ReportQueries
      * @param int $limit Max results
      * @return array
      */
-    public function getComputersByManufacturerReport(array $entities, int $limit = 20): array
+    public function getComputersByManufacturerReport(array $entities, int $limit = 20, int $period = 0, ?string $startDate = null, ?string $endDate = null): array
     {
         global $DB;
 
-        $where = $this->buildAssetBaseWhere($entities, 'glpi_computers');
+        $where = $this->buildAssetBaseWhere($entities, 'glpi_computers', $period, $startDate, $endDate);
 
         $result = $DB->request([
             'SELECT' => [
@@ -951,13 +1048,16 @@ class ReportQueries
 
         $unions = [];
         foreach ($assetTables as $table) {
-            $where = $this->buildAssetBaseWhere($entities);
+            $where = $this->buildAssetBaseWhere($entities, $table);
+
             $whereClause = [];
             foreach ($where as $key => $value) {
-                if (is_array($value)) {
+                if ($value instanceof QueryExpression) {
+                    $whereClause[] = (string) $value;
+                } elseif (is_array($value)) {
                     $whereClause[] = "$key IN (" . implode(',', array_map('intval', $value)) . ")";
                 } else {
-                    $whereClause[] = "$key = " . (int)$value;
+                    $whereClause[] = "$key = '" . $DB->escape($value) . "'";
                 }
             }
             $whereStr = implode(' AND ', $whereClause);
@@ -1016,7 +1116,7 @@ class ReportQueries
         $entityCounts = [];
         
         foreach ($assetTables as $type => $table) {
-            $where = $this->buildAssetBaseWhere($entities);
+            $where = $this->buildAssetBaseWhere($entities, $table);
             
             $result = $DB->request([
                 'SELECT' => [
@@ -1084,7 +1184,7 @@ class ReportQueries
         $statusCounts = [];
         
         foreach ($assetTables as $table) {
-            $where = $this->buildAssetBaseWhere($entities);
+            $where = $this->buildAssetBaseWhere($entities, $table);
             
             $result = $DB->request([
                 'SELECT' => [
@@ -1152,11 +1252,12 @@ class ReportQueries
      * @param int $limit Max results
      * @return array
      */
-    public function getAssetsWithTicketsReport(array $entities, int $period = 0, int $limit = 20): array
+    public function getAssetsWithTicketsReport(array $entities, int $period = 0, int $limit = 20, ?string $startDate = null, ?string $endDate = null): array
     {
         global $DB;
+ 
+        $where = $this->buildBaseWhere($entities, $period, 'glpi_tickets', $startDate, $endDate);
 
-        $where = $this->buildBaseWhere($entities, $period, 'glpi_tickets');
 
         $result = $DB->request([
             'SELECT' => [
@@ -1214,11 +1315,11 @@ class ReportQueries
      * @param int $limit Max results
      * @return array
      */
-    public function getMonitorsByManufacturerReport(array $entities, int $limit = 20): array
+    public function getMonitorsByManufacturerReport(array $entities, int $limit = 20, int $period = 0, ?string $startDate = null, ?string $endDate = null): array
     {
         global $DB;
 
-        $where = $this->buildAssetBaseWhere($entities, 'glpi_monitors');
+        $where = $this->buildAssetBaseWhere($entities, 'glpi_monitors', $period, $startDate, $endDate);
 
         $result = $DB->request([
             'SELECT' => [
@@ -1258,11 +1359,11 @@ class ReportQueries
      * @param int $limit Max results
      * @return array
      */
-    public function getPrintersByManufacturerReport(array $entities, int $limit = 20): array
+    public function getPrintersByManufacturerReport(array $entities, int $limit = 20, int $period = 0, ?string $startDate = null, ?string $endDate = null): array
     {
         global $DB;
 
-        $where = $this->buildAssetBaseWhere($entities, 'glpi_printers');
+        $where = $this->buildAssetBaseWhere($entities, 'glpi_printers', $period, $startDate, $endDate);
 
         $result = $DB->request([
             'SELECT' => [
@@ -1302,11 +1403,11 @@ class ReportQueries
      * @param int $limit Max results
      * @return array
      */
-    public function getNetworkEquipmentByManufacturerReport(array $entities, int $limit = 20): array
+    public function getNetworkEquipmentByManufacturerReport(array $entities, int $limit = 20, int $period = 0, ?string $startDate = null, ?string $endDate = null): array
     {
         global $DB;
 
-        $where = $this->buildAssetBaseWhere($entities, 'glpi_networkequipments');
+        $where = $this->buildAssetBaseWhere($entities, 'glpi_networkequipments', $period, $startDate, $endDate);
 
         $result = $DB->request([
             'SELECT' => [
@@ -1350,11 +1451,12 @@ class ReportQueries
      * @param int $period Period type
      * @return array
      */
-    public function getTaskOverviewReport(array $entities, int $period = 0): array
+    public function getTaskOverviewReport(array $entities, int $period = 0, ?string $startDate = null, ?string $endDate = null): array
     {
         global $DB;
+ 
+        [$dateStart, $dateEnd] = $this->getPeriodDates($period, $startDate, $endDate);
 
-        [$dateStart, $dateEnd] = $this->getPeriodDates($period);
 
         $where = ['glpi_tickets.is_deleted' => 0];
         if (!empty($entities)) {
@@ -1455,11 +1557,12 @@ class ReportQueries
      * @param int $limit Max results
      * @return array
      */
-    public function getTasksByTechnicianReport(array $entities, int $period = 0, int $limit = 50): array
+    public function getTasksByTechnicianReport(array $entities, int $period = 0, int $limit = 50, ?string $startDate = null, ?string $endDate = null): array
     {
         global $DB;
+ 
+        [$dateStart, $dateEnd] = $this->getPeriodDates($period, $startDate, $endDate);
 
-        [$dateStart, $dateEnd] = $this->getPeriodDates($period);
 
         $where = ['glpi_tickets.is_deleted' => 0];
         if (!empty($entities)) {
@@ -1527,11 +1630,12 @@ class ReportQueries
      * @param int $limit Max results
      * @return array
      */
-    public function getTasksByEntityReport(array $entities, int $period = 0, int $limit = 50): array
+    public function getTasksByEntityReport(array $entities, int $period = 0, int $limit = 50, ?string $startDate = null, ?string $endDate = null): array
     {
         global $DB;
+ 
+        [$dateStart, $dateEnd] = $this->getPeriodDates($period, $startDate, $endDate);
 
-        [$dateStart, $dateEnd] = $this->getPeriodDates($period);
 
         $where = ['glpi_tickets.is_deleted' => 0];
         if (!empty($entities)) {
@@ -1595,11 +1699,11 @@ class ReportQueries
      * @param int $limit Max results
      * @return array
      */
-    public function getTasksByTicketReport(array $entities, int $period = 0, int $limit = 30): array
+    public function getTasksByTicketReport(array $entities, int $period = 0, int $limit = 30, ?string $startDate = null, ?string $endDate = null): array
     {
         global $DB;
 
-        [$dateStart, $dateEnd] = $this->getPeriodDates($period);
+        [$dateStart, $dateEnd] = $this->getPeriodDates($period, $startDate, $endDate);
 
         $where = ['glpi_tickets.is_deleted' => 0];
         if (!empty($entities)) {
@@ -1654,8 +1758,14 @@ class ReportQueries
      * @param int $limit Max results for lists
      * @return array
      */
-    public function getAssetReportByItemtype(string $itemtype, array $entities, int $limit = 20): array
-    {
+    public function getAssetReportByItemtype(
+        string $itemtype,
+        array $entities,
+        int $limit = 20,
+        int $period = 0,
+        ?string $startDate = null,
+        ?string $endDate = null
+    ): array {
         global $DB;
 
         // Validate and sanitize itemtype
@@ -1678,10 +1788,7 @@ class ReportQueries
         $modelTable = $table . 'models';
 
         // Qualify column names to avoid ambiguity across joins
-        $where = ["$table.is_deleted" => 0];
-        if (!empty($entities)) {
-            $where["$table.entities_id"] = $entities;
-        }
+        $where = $this->buildAssetBaseWhere($entities, $table, $period, $startDate, $endDate);
 
         $data = [
             'total' => 0,

@@ -14,49 +14,58 @@ class GetReports
         $period = (int)($params['period'] ?? 0);
         $limit = (int)($params['limit'] ?? 50);
         $itemtype = $params['itemtype'] ?? 'Computer';
+        $startDate = $params['start_date'] ?? null;
+        $endDate = $params['end_date'] ?? null;
 
         // Debug info for troubleshooting
         $debug = [
             'requested_entities' => $params['entities'] ?? null,
             'resolved_entities' => $entities,
             'period' => $period,
+            'start_date' => $startDate,
+            'end_date' => $endDate,
             'session_entities' => $_SESSION['glpiactiveentities'] ?? [],
         ];
 
         try {
+            [$startDate, $endDate] = $queries->normalizeCustomPeriod(
+                $startDate ? (string) $startDate : null,
+                $endDate ? (string) $endDate : null
+            );
+
             $data = match ($type) {
                 // Ticket reports
-                'overview'   => $queries->getOverviewReport($entities, $period),
-                'entity'     => $queries->getEntityReport($entities, $period),
-                'technician' => $queries->getTechnicianReport($entities, $period, $limit),
-                'sla'        => $queries->getSlaReport($entities, $period),
-                'category'   => $queries->getCategoryReport($entities, $period, $limit),
-                'group'      => $queries->getGroupReport($entities, $period, $limit),
-                'priority'   => $queries->getPriorityReport($entities, $period),
-                'source'     => $queries->getSourceReport($entities, $period),
-                'monthly'    => $queries->getMonthlyReport($entities, $period),
+                'overview'   => $queries->getOverviewReport($entities, $period, $startDate, $endDate),
+                'entity'     => $queries->getEntityReport($entities, $period, $startDate, $endDate),
+                'technician' => $queries->getTechnicianReport($entities, $period, $limit, $startDate, $endDate),
+                'sla'        => $queries->getSlaReport($entities, $period, $startDate, $endDate),
+                'category'   => $queries->getCategoryReport($entities, $period, $limit, $startDate, $endDate),
+                'group'      => $queries->getGroupReport($entities, $period, $limit, $startDate, $endDate),
+                'priority'   => $queries->getPriorityReport($entities, $period, $startDate, $endDate),
+                'source'     => $queries->getSourceReport($entities, $period, $startDate, $endDate),
+                'monthly'    => $queries->getMonthlyReport($entities, $period, $startDate, $endDate),
                 
                 // Asset reports - dynamic itemtype
-                'asset-by-itemtype'   => $queries->getAssetReportByItemtype($itemtype, $entities, $limit),
+                'asset-by-itemtype'   => $queries->getAssetReportByItemtype($itemtype, $entities, $limit, $period, $startDate, $endDate),
                 
                 // Asset reports - legacy (kept for compatibility)
-                'asset-overview'      => $queries->getAssetOverviewReport($entities),
+                'asset-overview'      => $queries->getAssetOverviewReport($entities, $period, $startDate, $endDate),
                 'asset-by-location'   => $queries->getAssetsByLocationReport($entities, $limit),
                 'asset-by-entity'     => $queries->getAssetsByEntityReport($entities, $limit),
                 'asset-by-status'     => $queries->getAssetsByStatusReport($entities),
-                'asset-with-tickets'  => $queries->getAssetsWithTicketsReport($entities, $period, $limit),
-                'computer-by-os'      => $queries->getComputersByOsReport($entities, $limit),
-                'computer-by-type'    => $queries->getComputersByTypeReport($entities, $limit),
-                'computer-by-manufacturer' => $queries->getComputersByManufacturerReport($entities, $limit),
-                'monitor-by-manufacturer'  => $queries->getMonitorsByManufacturerReport($entities, $limit),
-                'printer-by-manufacturer'  => $queries->getPrintersByManufacturerReport($entities, $limit),
-                'network-by-manufacturer'  => $queries->getNetworkEquipmentByManufacturerReport($entities, $limit),
+                'asset-with-tickets'  => $queries->getAssetsWithTicketsReport($entities, $period, $limit, $startDate, $endDate),
+                'computer-by-os'      => $queries->getComputersByOsReport($entities, $limit, $period, $startDate, $endDate),
+                'computer-by-type'    => $queries->getComputersByTypeReport($entities, $limit, $period, $startDate, $endDate),
+                'computer-by-manufacturer' => $queries->getComputersByManufacturerReport($entities, $limit, $period, $startDate, $endDate),
+                'monitor-by-manufacturer'  => $queries->getMonitorsByManufacturerReport($entities, $limit, $period, $startDate, $endDate),
+                'printer-by-manufacturer'  => $queries->getPrintersByManufacturerReport($entities, $limit, $period, $startDate, $endDate),
+                'network-by-manufacturer'  => $queries->getNetworkEquipmentByManufacturerReport($entities, $limit, $period, $startDate, $endDate),
                 
                 // Task reports
-                'task-overview'       => $queries->getTaskOverviewReport($entities, $period),
-                'task-by-technician'  => $queries->getTasksByTechnicianReport($entities, $period, $limit),
-                'task-by-entity'      => $queries->getTasksByEntityReport($entities, $period, $limit),
-                'task-by-ticket'      => $queries->getTasksByTicketReport($entities, $period, $limit),
+                'task-overview'       => $queries->getTaskOverviewReport($entities, $period, $startDate, $endDate),
+                'task-by-technician'  => $queries->getTasksByTechnicianReport($entities, $period, $limit, $startDate, $endDate),
+                'task-by-entity'      => $queries->getTasksByEntityReport($entities, $period, $limit, $startDate, $endDate),
+                'task-by-ticket'      => $queries->getTasksByTicketReport($entities, $period, $limit, $startDate, $endDate),
                 
                 default      => ['error' => 'Unknown report type'],
             };
@@ -70,11 +79,17 @@ class GetReports
             ];
         }
 
+        $periodRange = $queries->getPeriodRange($period, $startDate, $endDate);
+
         return [
             'success'   => !isset($data['error']),
             'type'      => $type,
             'data'      => $data,
             'timestamp' => time(),
+            'meta'      => [
+                'period_start' => $periodRange[0],
+                'period_end' => $periodRange[1],
+            ],
         ];
     }
 

@@ -12,6 +12,13 @@ class CreatePersonalDashboard
 {
     public function __invoke(array $params = []): array
     {
+        if (!Session::haveRight('plugin_dashboardng_mydashboard', UPDATE)) {
+            return [
+                'success' => false,
+                'error' => 'Unauthorized',
+            ];
+        }
+
         $name = $params['name'] ?? 'My Dashboard';
         $sourceDashboardId = $params['source_dashboard_id'] ?? 0;
 

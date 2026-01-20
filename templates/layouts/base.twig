@@ -10,7 +10,7 @@
 #}
 
 {# Navigation Bar #}
-{{ navigation|raw }}
+{% include 'components/navigation_bar.twig' with { navigation: navigation } %}
 
 {# Page-specific content block #}
 {% block content %}{% endblock %}

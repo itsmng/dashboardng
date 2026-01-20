@@ -72,7 +72,7 @@ abstract class AbstractPage
     {
         return [
             'page_title' => $this->pageTitle,
-            'navigation' => $this->getNavigationHtml(),
+            'navigation' => NavigationBar::getModel(),
             'translations' => $this->getTranslations(),
             'is_debug' => $_SESSION['glpi_use_mode'] === Session::DEBUG_MODE,
             'plugin_dir' => Plugin::getWebDir('dashboardng'),
@@ -86,13 +86,6 @@ abstract class AbstractPage
             'error' => __('Error', 'dashboardng'),
             'refresh' => __('Refresh', 'dashboardng'),
         ];
-    }
-
-    protected function getNavigationHtml(): string
-    {
-        ob_start();
-        NavigationBar::render();
-        return ob_get_clean();
     }
 
     protected function renderHeader(): void

@@ -5,6 +5,8 @@ use GlpiPlugin\Dashboardng\PluginDashboardngProfile;
 use GlpiPlugin\Dashboardng\PluginDashboardngDashboard;
 use GlpiPlugin\Dashboardng\PluginDashboardngWidgetDefinition;
 use GlpiPlugin\Dashboardng\PluginDashboardngDashboardWidget;
+use GlpiPlugin\Dashboardng\Migration\DashboardngMigrationRunner;
+use Plugin;
 
 /**
  * Plugin installation
@@ -14,6 +16,12 @@ use GlpiPlugin\Dashboardng\PluginDashboardngDashboardWidget;
 function plugin_dashboardng_install()
 {
     global $DB;
+
+    $alreadyInstalled = (new Plugin())->isInstalled('dashboardng');
+
+    if ($alreadyInstalled) {
+        return true;
+    }
 
     if (!PluginDashboardngConfig::install()) {
         return false;
@@ -32,15 +40,15 @@ function plugin_dashboardng_install()
         return false;
     }
 
-    if (!PluginDashboardngDashboardWidget::install($dashboardId)) {
+    if (!PluginDashboardngDashboardWidget::install($dashboardId, ['migrate_only' => false])) {
         return false;
     }
 
-    // Grant full access to Super-Admin profile
-    $profileRight = new ProfileRight();
-    $superAdminProfileId = 4; // Default Super-Admin profile ID
+    DashboardngMigrationRunner::markInstalledAsLatest();
 
-    // Check if rights already exist
+    $profileRight = new ProfileRight();
+    $superAdminProfileId = 4;
+
     $existingConfig = countElementsInTable('glpi_profilerights', [
         'profiles_id' => $superAdminProfileId,
         'name' => 'plugin_dashboardng_config'
@@ -101,6 +109,20 @@ function plugin_dashboardng_uninstall()
     $DB->delete('glpi_profilerights', [
         'name' => ['LIKE', 'plugin_dashboardng_%']
     ]);
+
+    return true;
+}
+
+/**
+ * Plugin update migration
+ *
+ * @param string $current_version Current version
+ * @return boolean
+ */
+function plugin_dashboardng_update($current_version, $migrationname = null)
+{
+    $migration = new Migration($current_version);
+    DashboardngMigrationRunner::runPendingMigrations($migration);
 
     return true;
 }

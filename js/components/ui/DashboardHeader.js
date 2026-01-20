@@ -1,0 +1,53 @@
+import { html } from '../../lib/preact.js';
+import { useRefresh } from '../../lib/hooks/useRefresh.js';
+import { PeriodSelector } from './PeriodSelector.js';
+import { useDashboard } from '../../context/DashboardContext.js';
+import { CONFIG } from '../../lib/config.js';
+
+export const DashboardHeader = ({ onOpenWidgetLibrary, onToggleEditMode }) => {
+    const { dashboard, editMode, lastUpdate } = useDashboard();
+    const { triggerRefresh } = useRefresh();
+
+    const formatTimeAgo = (date) => {
+        if (!date) return '';
+        const seconds = Math.floor((new Date() - date) / 1000);
+        if (seconds < 60) return `${seconds}s ago`;
+        const minutes = Math.floor(seconds / 60);
+        if (minutes < 60) return `${minutes}m ago`;
+        return date.toLocaleTimeString();
+    };
+
+    return html`
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <div class="d-flex align-items-center gap-3">
+                <${PeriodSelector} />
+                ${lastUpdate && html`
+                    <small class="text-muted">
+                        <i class="fas fa-sync-alt me-1"></i>
+                        ${__('Last updated', 'dashboardng')}: ${formatTimeAgo(lastUpdate)}
+                    </small>
+                `}
+            </div>
+            <div class="d-flex align-items-center gap-2">
+                ${(!dashboard?.is_global || CONFIG.canEditGlobalDashboard) && html`
+                    <button
+                        class="btn btn-outline-success btn-sm"
+                        onClick=${onOpenWidgetLibrary}
+                    >
+                        <i class="fas fa-plus me-1"></i>
+                        ${__('Add Widget', 'dashboardng')}
+                    </button>
+                    <button
+                        class="btn btn-outline-secondary btn-sm"
+                        onClick=${onToggleEditMode}
+                    >
+                        <i class="fas fa-${editMode ? 'check' : 'edit'} me-1"></i>
+                        ${editMode ? __('Done', 'dashboardng') : __('Edit Layout', 'dashboardng')}
+                    </button>
+                `}
+            </div>
+        </div>
+    `;
+};
+
+export default DashboardHeader;
