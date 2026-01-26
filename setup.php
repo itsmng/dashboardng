@@ -22,7 +22,7 @@ function plugin_version_dashboardng()
     return [
         'name'           => 'Dashboard NG',
         'version'        => DASHBOARDNG_VERSION,
-        'author'         => 'ITSMNG Team',
+        'author'         => 'ITSMNG Team, Théodore Clément',
         'homepage'       => 'https://github.com/itsmng/dashboardng',
         'license'        => '<a href="../plugins/dashboardng/LICENSE" target="_blank">GPLv3</a>',
     ];
