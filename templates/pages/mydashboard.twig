@@ -2,12 +2,25 @@
 
 {% block content %}
 <div id="dashboardng-app" class="container-fluid py-3">
-    {% include 'components/coming_soon.twig' with {
-        'title': translations.my_dashboard_coming_soon,
-        'message': translations.personal_dashboard_message,
-        'subtext': translations.for_now_use_dashboard,
-        'link_url': plugin_dir ~ '/front/dashboard.php',
-        'link_text': translations.go_to_main_dashboard
+    {% include 'components/loading_spinner.twig' with {
+        'message': 'Loading...'
     } %}
 </div>
+
+{% include 'components/javascript_config.twig' with {
+    'config': {
+        'apiUrl': plugin_dir ~ '/api.php',
+        'pluginDir': plugin_dir,
+        'refreshInterval': refresh_interval * 1000,
+        'defaultPeriod': default_period,
+        'entities': entities,
+        'csrfToken': csrf_token,
+        'ticketUrl': root_doc ~ '/front/ticket.form.php',
+        'locale': locale,
+        'userId': userId,
+        'canEditGlobalDashboard': can_edit_global_dashboard,
+        'pageMode': page_mode
+    }
+} %}
+<script type="module" src="{{ script_paths.mydashboard }}"></script>
 {% endblock %}

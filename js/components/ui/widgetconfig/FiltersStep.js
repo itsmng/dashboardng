@@ -1,7 +1,8 @@
 import { html } from '../../../lib/preact.js';
+import { __ } from '../../../lib/i18n.js';
 
 const decodeHTMLEntities = (text) => {
-    if (typeof text !== 'string') return text;
+    if (typeof text !== 'string') {return text;}
     const textarea = document.createElement('textarea');
     textarea.innerHTML = text;
     return textarea.value;
@@ -25,7 +26,7 @@ const operatorMap = {
 };
 
 const normalizeOperator = (operator) => {
-    if (!operator) return 'equals';
+    if (!operator) {return 'equals';}
     return operatorMap[operator.toLowerCase().replace('_', '')] || operator;
 };
 

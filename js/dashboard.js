@@ -46,7 +46,7 @@ const DashboardAppInner = () => {
         try {
             const grid = GridStack.init({
                 column: 12,
-                cellHeight: '70px',
+                cellHeight: '80px',
                 float: false,
                 animate: true,
                 disableOneColumnMode: false,
@@ -73,8 +73,8 @@ const DashboardAppInner = () => {
             gridRef.current.grid = grid;
 
             grid.disable();
-        } catch (err) {
-            console.error('GridStack initialization error:', err);
+        } catch (error) {
+            console.error('GridStack initialization error:', error);
         }
     }, [widgets, saveWidgetPositions]);
 

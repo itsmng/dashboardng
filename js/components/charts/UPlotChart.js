@@ -35,7 +35,7 @@ export const UPlotChart = ({ data, type = 'line', title, height = 300 }) => {
 
         if (chartRef.current) {
             chartRef.current.destroy();
-            chartRef.current = null;
+            chartRef.current = undefined;
         }
 
         const ctx = canvasRef.current.getContext('2d');
@@ -65,14 +65,14 @@ export const UPlotChart = ({ data, type = 'line', title, height = 300 }) => {
         } else {
             if (data.timestamps && data.timestamps.length > 0) {
                 labels = data.timestamps.map(ts => {
-                    if (typeof ts === 'number' && ts > 10000) {
+                    if (typeof ts === 'number' && ts > 10_000) {
                         const d = new Date(ts * 1000);
                         return d.toLocaleDateString();
                     }
                     return ts;
                 });
             } else if (data.labels && data.labels.length > 0) {
-                labels = data.labels;
+                ({ labels } = data);
             } else {
                 labels = data.values.map((_, i) => i);
             }
@@ -125,10 +125,10 @@ export const UPlotChart = ({ data, type = 'line', title, height = 300 }) => {
                         cornerRadius: 4,
                         displayColors: isYoYMode, // Show colors in tooltip for YoY
                         callbacks: {
-                            title: function(context) {
+                            title: function title(context) {
                                 return context[0].label;
                             },
-                            label: function(context) {
+                            label: function label(context) {
                                 if (isYoYMode) {
                                     return `${context.dataset.label}: ${context.parsed.y} tickets`;
                                 }

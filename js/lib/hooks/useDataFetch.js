@@ -22,34 +22,34 @@ const pendingRequests = new Map();
  */
 export const useDataFetch = (endpoint, params = {}, options = {}) => {
     const {
-        cacheKey = null,
+        cacheKey = undefined,
         enabled = true,
-        refetchInterval = null,
-        staleTime = 30000,
-        onSuccess = null,
-        onError = null,
+        refetchInterval = undefined,
+        staleTime = 30_000,
+        onSuccess = undefined,
+        onError = undefined,
         dependencies = []
     } = options;
 
     const effectiveCacheKey = cacheKey || generateCacheKey(endpoint, params);
 
-    const [data, setData] = useState(null);
+    const [data, setData] = useState(undefined);
     const [loading, setLoading] = useState(false);
-    const [error, setError] = useState(null);
+    const [error, setError] = useState(undefined);
     const lastFetchTime = useRef(null);
     const isMounted = useRef(true);
 
     const fetchData = useCallback(async (forceRefresh = false) => {
-        if (!enabled) return;
+        if (!enabled) {return;}
 
         const cached = dataCache.get(effectiveCacheKey);
         if (!forceRefresh && cached && (Date.now() - cached.timestamp < staleTime)) {
             if (isMounted.current) {
                 setData(cached.data);
                 setLoading(false);
-                setError(null);
+                setError(undefined);
             }
-            if (onSuccess) onSuccess(cached.data);
+            if (onSuccess) {onSuccess(cached.data);}
             return cached.data;
         }
 
@@ -58,7 +58,7 @@ export const useDataFetch = (endpoint, params = {}, options = {}) => {
         }
 
         setLoading(true);
-        setError(null);
+        setError(undefined);
 
         const promise = api.fetch(endpoint, params)
             .then(response => {
@@ -75,17 +75,17 @@ export const useDataFetch = (endpoint, params = {}, options = {}) => {
                 }
 
                 pendingRequests.delete(effectiveCacheKey);
-                if (onSuccess) onSuccess(result);
+                if (onSuccess) {onSuccess(result);}
                 return result;
             })
-            .catch(err => {
+            .catch(error => {
                 if (isMounted.current) {
-                    setError(err.message);
+                    setError(error.message);
                     setLoading(false);
                 }
                 pendingRequests.delete(effectiveCacheKey);
-                if (onError) onError(err);
-                throw err;
+                if (onError) onError(error);
+                throw error;
             });
 
         pendingRequests.set(effectiveCacheKey, promise);
@@ -105,7 +105,7 @@ export const useDataFetch = (endpoint, params = {}, options = {}) => {
     }, [fetchData, ...dependencies]);
 
     useEffect(() => {
-        if (!refetchInterval) return;
+        if (!refetchInterval) {return;}
         const interval = setInterval(() => fetchData(true), refetchInterval);
         return () => clearInterval(interval);
     }, [refetchInterval, fetchData]);
@@ -135,7 +135,7 @@ export const useDataFetch = (endpoint, params = {}, options = {}) => {
  */
 const generateCacheKey = (endpoint, params) => {
     const sortedParams = Object.keys(params ?? {})
-        .sort()
+        .toSorted()
         .map(k => `${k}=${params[k]}`)
         .join('&');
     return `${endpoint}:${sortedParams}`;

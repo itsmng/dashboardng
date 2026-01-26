@@ -24,97 +24,6 @@ class PluginDashboardngDashboardWidget extends CommonDBTM
     }
 
     /**
-     * Install database table and populate with default widgets (only on fresh install)
-     *
-     * @param int|null $defaultDashboardId Optional dashboard ID to populate with widgets
-     * @param array $params Optional params; if migrate_only=true, skip widget population
-     * @return boolean
-     */
-    public static function install(?int $defaultDashboardId = null, array $params = []): bool
-    {
-        global $DB;
-
-        // On upgrade (migrate_only flag), only ensure table exists without populating widgets
-        if (isset($params['migrate_only']) && $params['migrate_only']) {
-            $table = self::getTable();
-            if (!$DB->tableExists($table)) {
-                $query = <<<SQL
-                    CREATE TABLE `$table` (
-                        `id` INT(11) NOT NULL AUTO_INCREMENT,
-                        `dashboards_id` INT(11) NOT NULL,
-                        `widget_definitions_id` INT(11) NOT NULL,
-                        `x` INT(11) NOT NULL DEFAULT 0,
-                        `y` INT(11) NOT NULL DEFAULT 0,
-                        `width` INT(11) NOT NULL DEFAULT 4,
-                        `height` INT(11) NOT NULL DEFAULT 4,
-                        `config_override` JSON DEFAULT NULL COMMENT 'Per-instance config overrides',
-                        `is_visible` TINYINT(1) NOT NULL DEFAULT 1,
-                        `position` INT(11) NOT NULL DEFAULT 0,
-                        `date_creation` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-                        `date_mod` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-                        PRIMARY KEY (`id`),
-                        KEY `dashboards_id` (`dashboards_id`),
-                        KEY `widget_definitions_id` (`widget_definitions_id`),
-                        KEY `is_visible` (`is_visible`),
-                        UNIQUE KEY `unique_dashboard_widget` (`dashboards_id`, `widget_definitions_id`)
-                    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-                SQL;
-                $DB->queryOrDie($query, $DB->error());
-            }
-            return true;
-        }
-
-        $table = self::getTable();
-
-        if (!$DB->tableExists($table)) {
-            $query = <<<SQL
-                CREATE TABLE `$table` (
-                    `id` INT(11) NOT NULL AUTO_INCREMENT,
-                    `dashboards_id` INT(11) NOT NULL,
-                    `widget_definitions_id` INT(11) NOT NULL,
-                    `x` INT(11) NOT NULL DEFAULT 0,
-                    `y` INT(11) NOT NULL DEFAULT 0,
-                    `width` INT(11) NOT NULL DEFAULT 4,
-                    `height` INT(11) NOT NULL DEFAULT 4,
-                    `config_override` JSON DEFAULT NULL COMMENT 'Per-instance config overrides',
-                    `is_visible` TINYINT(1) NOT NULL DEFAULT 1,
-                    `position` INT(11) NOT NULL DEFAULT 0,
-                    `date_creation` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-                    `date_mod` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-                    PRIMARY KEY (`id`),
-                    KEY `dashboards_id` (`dashboards_id`),
-                    KEY `widget_definitions_id` (`widget_definitions_id`),
-                    KEY `is_visible` (`is_visible`),
-                    UNIQUE KEY `unique_dashboard_widget` (`dashboards_id`, `widget_definitions_id`)
-                ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-            SQL;
-
-            $DB->queryOrDie($query, $DB->error());
-
-            // Populate with default widgets if dashboard ID provided
-            if ($defaultDashboardId !== null) {
-                return self::populateDefaultWidgets($defaultDashboardId) > 0;
-            }
-        } else {
-            // Table exists, check if we need to populate widgets (ONLY on fresh install)
-            if ($defaultDashboardId !== null) {
-                $existingCount = $DB->request([
-                    'COUNT' => 'cpt',
-                    'FROM' => $table,
-                    'WHERE' => ['dashboards_id' => $defaultDashboardId]
-                ]);
-
-                // Only populate if no widgets exist for this dashboard
-                if ($existingCount->current()['cpt'] == 0) {
-                    return self::populateDefaultWidgets($defaultDashboardId) > 0;
-                }
-            }
-        }
-
-        return true;
-    }
-
-    /**
      * Uninstall database table
      *
      * @return boolean
@@ -451,6 +360,25 @@ class PluginDashboardngDashboardWidget extends CommonDBTM
         }
 
         return $copied;
+    }
+
+    /**
+     * Delete all widgets for a dashboard
+     *
+     * @param int $dashboardId
+     * @return int Number of widgets deleted
+     */
+    public static function deleteWidgetsForDashboard(int $dashboardId): int
+    {
+        global $DB;
+
+        $table = self::getTable();
+
+        $DB->delete($table, [
+            'dashboards_id' => $dashboardId
+        ]);
+
+        return $DB->affectedRows();
     }
 
     /**

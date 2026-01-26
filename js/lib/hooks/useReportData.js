@@ -1,5 +1,5 @@
 /**
- * useReportData - Custom hook for fetching and managing report data
+ * UseReportData - Custom hook for fetching and managing report data
  * Provides standardized loading/error states and data fetching logic for all report components
  *
  * @module useReportData
@@ -16,20 +16,20 @@ import { api } from '../config.js';
  * @returns {UseReportDataResult} Object containing data, loading, error, and loadData function
  */
 export function useReportData(endpoint, params = {}) {
-  const [data, setData] = useState(null);
+  const [data, setData] = useState(undefined);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+  const [error, setError] = useState(undefined);
 
   const paramsKey = JSON.stringify(params);
 
   const loadData = useCallback(async () => {
     setLoading(true);
-    setError(null);
+    setError(undefined);
     try {
       const result = await api.fetch(endpoint, params);
       setData(result.data ?? result);
-    } catch (e) {
-      setError(e.message);
+    } catch (error) {
+      setError(error.message);
     } finally {
       setLoading(false);
     }

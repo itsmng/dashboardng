@@ -4,6 +4,9 @@
     "description": "Dashboard Plugin for ITSM-NG",
     "private": true,
     "scripts": {
+        "build": "esbuild js/dashboard.js js/mydashboard.js js/assetReports.js js/taskReports.js js/ticketReports.js js/entitySelector.js --bundle --minify --format=esm --sourcemap --outdir=js/dist --target=es2020",
+        "lint": "oxlint js/",
+        "lint:fix": "oxlint js/ --fix",
         "typecheck": "tsc --noEmit --allowJs --checkJs js/**/*.js"
     },
     "dependencies": {
@@ -21,6 +24,8 @@
     "author": "ITSMNG Team",
     "license": "GPL-3.0",
     "devDependencies": {
+        "esbuild": "^0.21.5",
+        "oxlint": "^1.0.0",
         "typescript": "^5.9.3"
     }
 }

@@ -13,7 +13,7 @@ export const WidgetWrapper = ({ widget, onDeleteWidget, onEditWidget, editMode }
         if (!WidgetComponent) {
             return html`<div class="alert alert-warning">
                 Unknown visualization: ${visualization}
-                <pre style="font-size: 10px; margin-top: 10px;">${JSON.stringify(config, null, 2)}</pre>
+                <pre style="font-size: 10px; margin-top: 10px;">${JSON.stringify(config, undefined, 2)}</pre>
             </div>`;
         }
 

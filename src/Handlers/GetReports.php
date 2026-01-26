@@ -45,21 +45,8 @@ class GetReports
                 'source'     => $queries->getSourceReport($entities, $period, $startDate, $endDate),
                 'monthly'    => $queries->getMonthlyReport($entities, $period, $startDate, $endDate),
                 
-                // Asset reports - dynamic itemtype
+                // Asset reports
                 'asset-by-itemtype'   => $queries->getAssetReportByItemtype($itemtype, $entities, $limit, $period, $startDate, $endDate),
-                
-                // Asset reports - legacy (kept for compatibility)
-                'asset-overview'      => $queries->getAssetOverviewReport($entities, $period, $startDate, $endDate),
-                'asset-by-location'   => $queries->getAssetsByLocationReport($entities, $limit),
-                'asset-by-entity'     => $queries->getAssetsByEntityReport($entities, $limit),
-                'asset-by-status'     => $queries->getAssetsByStatusReport($entities),
-                'asset-with-tickets'  => $queries->getAssetsWithTicketsReport($entities, $period, $limit, $startDate, $endDate),
-                'computer-by-os'      => $queries->getComputersByOsReport($entities, $limit, $period, $startDate, $endDate),
-                'computer-by-type'    => $queries->getComputersByTypeReport($entities, $limit, $period, $startDate, $endDate),
-                'computer-by-manufacturer' => $queries->getComputersByManufacturerReport($entities, $limit, $period, $startDate, $endDate),
-                'monitor-by-manufacturer'  => $queries->getMonitorsByManufacturerReport($entities, $limit, $period, $startDate, $endDate),
-                'printer-by-manufacturer'  => $queries->getPrintersByManufacturerReport($entities, $limit, $period, $startDate, $endDate),
-                'network-by-manufacturer'  => $queries->getNetworkEquipmentByManufacturerReport($entities, $limit, $period, $startDate, $endDate),
                 
                 // Task reports
                 'task-overview'       => $queries->getTaskOverviewReport($entities, $period, $startDate, $endDate),

@@ -3,6 +3,7 @@ import { api, COLORS } from '../../lib/config.js';
 import { usePeriod } from '../../context/PeriodContext.js';
 import { useRefresh } from '../../lib/hooks/useRefresh.js';
 import { processFilters } from '../../lib/utils.js';
+import { __ } from '../../lib/i18n.js';
 
 /**
  * Generic Card Widget - Renders KPI/metric cards based on config JSON
@@ -18,10 +19,10 @@ export const GenericCardWidget = ({ config, widgetId }) => {
     const { period } = usePeriod();
     const { refreshSignal } = useRefresh();
 
-    const [data, setData] = useState(null);
+    const [data, setData] = useState(undefined);
     const [loading, setLoading] = useState(true);
-    const [error, setError] = useState(null);
-    const [previousValue, setPreviousValue] = useState(null);
+    const [error, setError] = useState(undefined);
+    const [previousValue, setPreviousValue] = useState(undefined);
 
     // Fetch data based on config
     const fetchData = async () => {
@@ -32,13 +33,13 @@ export const GenericCardWidget = ({ config, widgetId }) => {
         }
 
         setLoading(true);
-        setError(null);
+        setError(undefined);
 
         try {
             const queryConfig = {
                 itemtype: config.itemtype,
                 filters: processFilters(config.filters || [], period),
-                aggregation: config.aggregation || { function: 'COUNT', field: null },
+                aggregation: config.aggregation || { function: 'COUNT', field: undefined },
                 limit: 1,
             };
 
@@ -56,8 +57,8 @@ export const GenericCardWidget = ({ config, widgetId }) => {
             } else {
                 setError(result.error || 'Query failed');
             }
-        } catch (err) {
-            setError(err.message);
+        } catch (error) {
+            setError(error.message);
         }
         
         setLoading(false);
@@ -70,7 +71,7 @@ export const GenericCardWidget = ({ config, widgetId }) => {
 
     // Auto-refresh
     useEffect(() => {
-        if (!config?.refreshInterval || config.refreshInterval <= 0) return;
+        if (!config?.refreshInterval || config.refreshInterval <= 0) {return;}
 
         const interval = setInterval(fetchData, config.refreshInterval);
         return () => clearInterval(interval);
@@ -83,13 +84,13 @@ export const GenericCardWidget = ({ config, widgetId }) => {
      * @returns {string} Formatted value
      */
     const formatValue = (value) => {
-        if (value === null || value === undefined) return '-';
+        if (value === null || value === undefined) {return '-';}
         
         const num = parseFloat(value);
-        if (isNaN(num)) return value;
+        if (isNaN(num)) {return value;}
 
-        if (num >= 1000000) {
-            return (num / 1000000).toFixed(1) + 'M';
+        if (num >= 1_000_000) {
+            return (num / 1_000_000).toFixed(1) + 'M';
         } else if (num >= 1000) {
             return (num / 1000).toFixed(1) + 'K';
         } else if (Number.isInteger(num)) {
@@ -106,9 +107,9 @@ export const GenericCardWidget = ({ config, widgetId }) => {
      * @returns {'up'|'down'|'stable'|null} Trend direction
      */
     const getTrend = () => {
-        if (previousValue === null || data === null) return null;
-        if (data > previousValue) return 'up';
-        if (data < previousValue) return 'down';
+        if (previousValue === null || data === null) {return null;}
+        if (data > previousValue) {return 'up';}
+        if (data < previousValue) {return 'down';}
         return 'stable';
     };
 
@@ -123,11 +124,11 @@ export const GenericCardWidget = ({ config, widgetId }) => {
             r: parseInt(result[1], 16),
             g: parseInt(result[2], 16),
             b: parseInt(result[3], 16)
-        } : null;
+        } : undefined;
     };
 
     const useHex = isHexColor(color);
-    const bgColor = useHex ? hexToRgb(color) : null;
+    const bgColor = useHex ? hexToRgb(color) : undefined;
     const bgStyle = useHex ? `background-color: rgba(${bgColor.r}, ${bgColor.g}, ${bgColor.b}, 0.1)` : '';
     const colorStyle = useHex ? `color: ${color}` : '';
     const textColor = useHex ? '' : `text-${color}`;
@@ -159,8 +160,8 @@ export const GenericCardWidget = ({ config, widgetId }) => {
                     <i class="fas ${icon} ${textColor}" style="${colorStyle}"></i>
                 </div>
                 ${trend && html`
-                    <div class="kpi-trend text-${trend === 'up' ? 'success' : trend === 'down' ? 'danger' : 'muted'}">
-                        <i class="fas fa-arrow-${trend === 'up' ? 'up' : trend === 'down' ? 'down' : 'right'}"></i>
+                    <div class="kpi-trend text-${trend === 'up' ? 'success' : (trend === 'down' ? 'danger' : 'muted')}">
+                        <i class="fas fa-arrow-${trend === 'up' ? 'up' : (trend === 'down' ? 'down' : 'right')}"></i>
                     </div>
                 `}
             </div>

@@ -10,7 +10,7 @@
 #}
 
 {# Navigation Bar #}
-{% include 'components/navigation_bar.twig' with { navigation: navigation } %}
+{% include 'components/navigation_bar.twig' with { navigation: navigation, script_paths: script_paths } %}
 
 {# Page-specific content block #}
 {% block content %}{% endblock %}

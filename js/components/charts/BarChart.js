@@ -24,7 +24,7 @@ export const BarChart = ({ data, title, height = 200, horizontal = false }) => {
 
         if (chartRef.current) {
             chartRef.current.destroy();
-            chartRef.current = null;
+            chartRef.current = undefined;
         }
 
         const ctx = canvasRef.current.getContext('2d');
@@ -60,10 +60,10 @@ export const BarChart = ({ data, title, height = 200, horizontal = false }) => {
                         padding: 12,
                         cornerRadius: 4,
                         callbacks: {
-                            label: function(context) {
+                            label: function label(context) {
                                 return `${context.parsed.x || context.parsed.y}`;
                             },
-                            title: function(context) {
+                            title: function title(context) {
                                 return context[0].label;
                             }
                         }

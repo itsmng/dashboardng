@@ -2,7 +2,7 @@ import { h, createContext, useState, useContext } from '../lib/preact.js';
 import { PERIODS } from '../lib/config.js';
 
 /** @type {import('preact').Context<PeriodContextValue|null>} */
-const PeriodContext = createContext(null);
+const PeriodContext = createContext(undefined);
 
 /**
  * Provider component for period context

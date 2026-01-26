@@ -1,3 +1,4 @@
+/* global Chart */
 /**
  * DashboardNG Ticket Reports Module
  *
@@ -12,248 +13,104 @@ import {
   useState,
   useEffect,
   useCallback,
-  useRef,
 } from "./lib/preact.js";
 
 import { ReportCard } from "./components/ui/ReportCard.js";
 import { SettingsModal } from "./components/ui/SettingsModal.js";
-import { CONFIG } from "./lib/config.js";
+import { ExportDropdown } from "./components/ui/ExportDropdown.js";
+import { PeriodSelector } from "./components/ui/PeriodSelector.js";
+import { LoadingSpinner } from "./components/ui/common/LoadingSpinner.js";
+import { ErrorAlert } from "./components/ui/common/ErrorAlert.js";
+import { EmptyState } from "./components/ui/common/EmptyState.js";
+import { DataTable } from "./components/ui/common/DataTable.js";
+import { StatCard } from "./components/ui/common/StatCard.js";
 import { useReportData } from "./lib/hooks/useReportData.js";
+import { __ } from "./lib/i18n.js";
 
-const getExportUrl = (type, format, params = {}) => {
-  const url = new URL(`${CONFIG.apiUrl || "/plugins/dashboardng/api.php"}/reports/${type}/export`, window.location.origin);
-  url.searchParams.append("format", format);
-  Object.entries(params).forEach(([key, val]) => {
-    if (val !== undefined && val !== null) {
-      url.searchParams.append(key, val);
-    }
-  });
-  return url.toString();
+const BAR_TOP_K_DEFAULT = 8;
+
+const CHART_COLORS = {
+  primary: "#0d6efd",
+  success: "#198754",
+  warning: "#ffc107",
+  danger: "#dc3545",
+  info: "#0dcaf0",
+  secondary: "#6c757d",
+  teal: "#20c997",
+  orange: "#fd7e14",
 };
 
+const roundValue = (value, precision = 1) => {
+  const factor = 10 ** precision;
+  return Math.round((value || 0) * factor) / factor;
+};
 
-function LoadingSpinner() {
-  return html`
-    <div class="d-flex justify-content-center align-items-center p-5">
-      <div class="spinner-border text-primary" role="status">
-        <span class="visually-hidden">${__("Loading...", "dashboardng")}</span>
-      </div>
-    </div>
-  `;
-}
-
-function ErrorAlert({ message, onRetry }) {
-  return html`
-    <div class="alert alert-danger d-flex align-items-center" role="alert">
-      <i class="fas fa-exclamation-triangle me-2"></i>
-      <div class="flex-grow-1">${message}</div>
-      ${onRetry &&
-      html`
-        <button class="btn btn-sm btn-outline-danger ms-2" onClick=${onRetry}>
-          <i class="fas fa-refresh me-1"></i>${__("Retry", "dashboardng")}
-        </button>
-      `}
-    </div>
-  `;
-}
-
-function EmptyState({ message }) {
-  return html`
-    <div class="text-center text-muted p-5">
-      <i class="fas fa-chart-bar" style="font-size: 3rem;"></i>
-      <p class="mt-3">${message || __("No data available", "dashboardng")}</p>
-    </div>
-  `;
-}
-
-
-function ExportDropdown({ reportType, period, entities, customRange = {} }) {
-  const [isOpen, setIsOpen] = useState(false);
-  const [isExporting, setIsExporting] = useState(false);
-  const dropdownRef = useRef(null);
-
-  useEffect(() => {
-    const handleClickOutside = (event) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
-        setIsOpen(false);
-      }
-    };
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, []);
-
-  const handleExport = async (format) => {
-    setIsExporting(true);
-    setIsOpen(false);
-
-    try {
-      const params = { period };
-      if (entities) {
-        params.entities = entities;
-      }
-      if (period === 8) {
-        params.start_date = customRange?.start || undefined;
-        params.end_date = customRange?.end || undefined;
-      }
-
-      const url = getExportUrl(reportType, format, params);
-
-      const link = document.createElement("a");
-      link.href = url;
-      link.style.display = "none";
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-    } catch (error) {
-      console.error("Export failed:", error);
-      alert(__("Export failed. Please try again.", "dashboardng"));
-    } finally {
-      setIsExporting(false);
-    }
+const addShareMetrics = (rows, valueKey = "total_tickets") => {
+  const total = rows.reduce((sum, row) => sum + (row[valueKey] || 0), 0);
+  return {
+    total,
+    rows: rows.map((row) => ({
+      ...row,
+      share: total > 0 ? roundValue(((row[valueKey] || 0) / total) * 100, 1) : 0,
+    })),
   };
+};
 
-  const formats = [
-    {
-      id: "csv",
-      label: "CSV",
-      icon: "file-alt",
-      description: __("Comma-separated values", "dashboardng"),
-    },
-    {
-      id: "xlsx",
-      label: "Excel (XLSX)",
-      icon: "file-excel",
-      description: __("Microsoft Excel format", "dashboardng"),
-    },
-    {
-      id: "pdf",
-      label: "PDF",
-      icon: "file-pdf",
-      description: __("Portable Document Format", "dashboardng"),
-    },
-  ];
+const buildTopKRows = (rows, valueKey, labelKey, limit = 10, extraKeys = []) => {
+  if (!limit || rows.length <= limit) {
+    return rows;
+  }
+  const sorted = [...rows].toSorted((a, b) => (b[valueKey] || 0) - (a[valueKey] || 0));
+  const topRows = sorted.slice(0, limit);
+  const rest = sorted.slice(limit);
+  const restValue = rest.reduce((sum, row) => sum + (row[valueKey] || 0), 0);
+  if (restValue <= 0) {
+    return topRows;
+  }
+  const summary = { [labelKey]: __("Others", "dashboardng") };
+  [valueKey, ...extraKeys].forEach((key) => {
+    summary[key] = rest.reduce((sum, row) => sum + (row[key] || 0), 0);
+  });
+  return [...topRows, summary];
+};
 
-  return html`
-    <div class="dropdown" ref=${dropdownRef}>
-      <button
-        class="btn btn-outline-primary btn-sm dropdown-toggle"
-        type="button"
-        onClick=${() => setIsOpen(!isOpen)}
-        disabled=${isExporting}
-      >
-        ${isExporting
-          ? html`
-              <span
-                class="spinner-border spinner-border-sm me-1"
-                role="status"
-              ></span>
-            `
-          : html` <i class="fas fa-download me-1"></i> `}
-        ${__("Export", "dashboardng")}
-      </button>
-      ${isOpen &&
-      html`
-        <ul class="dropdown-menu show" style="position: absolute; right: 0;">
-          ${formats.map(
-            (format) => html`
-              <li>
-                <button
-                  class="dropdown-item d-flex align-items-center"
-                  onClick=${() => handleExport(format.id)}
-                >
-                  <i class="fas fa-${format.icon} me-2"></i>
-                  <div>
-                    <div>${format.label}</div>
-                    <small class="text-muted">${format.description}</small>
-                  </div>
-                </button>
-              </li>
-            `,
-          )}
-        </ul>
-      `}
+const renderShare = (value, color = "primary") => html`
+  <div class="d-flex align-items-center justify-content-end gap-2">
+    <div class="progress" style="height: 6px; width: 80px;">
+      <div class="progress-bar bg-${color}" style="width: ${value}%;"></div>
     </div>
-  `;
-}
-
-function PeriodSelector({ value, onChange }) {
-  const periods = [
-    { value: 0, label: __("All time", "dashboardng") },
-    { value: 1, label: __("Current year", "dashboardng") },
-    { value: 2, label: __("Current month", "dashboardng") },
-    { value: 3, label: __("Last 7 days", "dashboardng") },
-    { value: 4, label: __("Last 15 days", "dashboardng") },
-    { value: 5, label: __("Last 30 days", "dashboardng") },
-    { value: 6, label: __("Last 90 days", "dashboardng") },
-    { value: 7, label: __("Last 180 days", "dashboardng") },
-    { value: 8, label: __("Custom range", "dashboardng") },
-  ];
-
-  return html`
-    <select
-      class="form-select form-select-sm"
-      value=${value}
-      onChange=${(e) => onChange(parseInt(e.target.value, 10))}
-      style="width: auto;"
-    >
-      ${periods.map(
-        (p) => html` <option value=${p.value}>${p.label}</option> `,
-      )}
-    </select>
-  `;
-}
-
-function CustomRangePicker({ value, onChange }) {
-  const handleChange = (key, dateValue) => {
-    onChange({ ...value, [key]: dateValue || '' });
-  };
-
-  return html`
-    <div class="d-flex align-items-center gap-2">
-      <label class="form-label mb-0 text-muted">${__("From", "dashboardng")}</label>
-      <input
-        type="date"
-        class="form-control form-control-sm"
-        value=${value.start || ''}
-        onChange=${(e) => handleChange('start', e.target.value)}
-      />
-      <label class="form-label mb-0 text-muted">${__("To", "dashboardng")}</label>
-      <input
-        type="date"
-        class="form-control form-control-sm"
-        value=${value.end || ''}
-        onChange=${(e) => handleChange('end', e.target.value)}
-      />
-    </div>
-  `;
-}
+    <span class="text-muted" style="width: 48px; text-align: right;">
+      ${value}%
+    </span>
+  </div>
+ `;
 
 
-function PieChart({ data, title, topK = null }) {
+function PieChart({ data, title, topK = undefined }) {
   const canvasRef = useCallback(
     (node) => {
       if (node && data && data.length > 0) {
         const ctx = node.getContext("2d");
 
-        const colors = [
-          "#0d6efd",
-          "#198754",
-          "#dc3545",
-          "#ffc107",
-          "#0dcaf0",
-          "#6f42c1",
-          "#fd7e14",
-          "#20c997",
-          "#6c757d",
-          "#d63384",
-        ];
+         const colors = [
+           CHART_COLORS.primary,
+           CHART_COLORS.success,
+           CHART_COLORS.danger,
+           CHART_COLORS.warning,
+           CHART_COLORS.info,
+           "#6f42c1",
+           CHART_COLORS.orange,
+           CHART_COLORS.teal,
+           CHART_COLORS.secondary,
+           "#d63384",
+         ];
 
         // Process data with Top K grouping
         let labels = data.map((item) => item.label);
         let values = data.map((item) => item.count || item.value);
 
         if (topK && topK > 0 && data.length > topK) {
-          const sorted = [...data].sort((a, b) => (b.count || b.value) - (a.count || a.value));
+          const sorted = [...data].toSorted((a, b) => (b.count || b.value) - (a.count || a.value));
           const topKItems = sorted.slice(0, topK);
           const others = sorted.slice(topK);
           const othersValue = others.reduce((sum, item) => sum + (item.count || item.value), 0);
@@ -279,7 +136,7 @@ function PieChart({ data, title, topK = null }) {
             maintainAspectRatio: false,
             plugins: {
               title: {
-                display: !!title,
+                display: Boolean(title),
                 text: title,
                 color: "#212529",
                 font: { size: 14 },
@@ -292,7 +149,7 @@ function PieChart({ data, title, topK = null }) {
           },
         };
 
-        const chart = new Chart(ctx, config);
+        const chart = new window.Chart(ctx, config);
         return () => chart.destroy();
       }
     },
@@ -306,73 +163,281 @@ function PieChart({ data, title, topK = null }) {
   ></canvas>`;
 }
 
-function DataTable({ columns, rows, emptyMessage }) {
-  if (!rows || rows.length === 0) {
-    return html`<${EmptyState} message=${emptyMessage} />`;
-  }
+function BarChart({ labels, datasets, stacked = false, title }) {
+  const canvasRef = useCallback(
+    (node) => {
+      if (node && labels && labels.length > 0) {
+        const ctx = node.getContext("2d");
+        const config = {
+          type: "bar",
+          data: {
+            labels,
+            datasets,
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+              x: { stacked },
+              y: { stacked, beginAtZero: true },
+            },
+            plugins: {
+              title: {
+                display: Boolean(title),
+                text: title,
+                color: "#212529",
+                font: { size: 14 },
+              },
+              legend: {
+                position: "bottom",
+                labels: { color: "#6c757d" },
+              },
+              tooltip: {
+                callbacks: {
+                  label: (context) => {
+                    const label = context.dataset.label ? `${context.dataset.label}: ` : "";
+                    return `${label}${context.parsed.y}`;
+                  },
+                },
+              },
+            },
+          },
+        };
+
+        const chart = new window.Chart(ctx, config);
+        return () => chart.destroy();
+      }
+    },
+    [labels, datasets, stacked, title],
+  );
+
+  return html`<canvas
+    ref=${canvasRef}
+    class="chartjs-canvas"
+    style="height: 260px;"
+  ></canvas>`;
+}
+
+function LineChart({ labels, datasets, title }) {
+  const canvasRef = useCallback(
+    (node) => {
+      if (node && labels && labels.length > 0) {
+        const ctx = node.getContext("2d");
+        const config = {
+          type: "line",
+          data: {
+            labels,
+            datasets,
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+              y: { beginAtZero: true },
+            },
+            plugins: {
+              title: {
+                display: Boolean(title),
+                text: title,
+                color: "#212529",
+                font: { size: 14 },
+              },
+              legend: {
+                position: "bottom",
+                labels: { color: "#6c757d" },
+              },
+            },
+          },
+        };
+
+        const chart = new window.Chart(ctx, config);
+        return () => chart.destroy();
+      }
+    },
+    [labels, datasets, title],
+  );
+
+  return html`<canvas
+    ref=${canvasRef}
+    class="chartjs-canvas"
+    style="height: 260px;"
+  ></canvas>`;
+}
+
+function MonthlyReport({ period, rangeParams = {} }) {
+  const { data, loading, error } = useReportData("/reports/monthly", { period, ...rangeParams });
+  const rows = data || [];
+  const labels = rows.map((row) => row.label);
 
   return html`
-    <div class="table-responsive table-scroll">
-      <table class="table table-striped table-hover mb-0" style="min-width: 0;">
-        <thead class="table-light">
-          <tr>
-            ${columns.map(
-              (col) => html`
-                <th class=${col.align === "right" ? "text-end" : ""}>
-                  ${col.label}
-                </th>
-              `,
-            )}
-          </tr>
-        </thead>
-        <tbody>
-          ${rows.map(
-            (row) => html`
-              <tr>
-                ${columns.map(
-                  (col) => html`
-                    <td class=${col.align === "right" ? "text-end" : ""}>
-                      ${col.render
-                        ? col.render(row[col.key], row)
-                        : row[col.key]}
-                    </td>
-                  `,
-                )}
-              </tr>
-            `,
-          )}
-        </tbody>
-      </table>
+    <div class="row g-4">
+      <div class="col-lg-6">
+        <${ReportCard}
+          title=${__("Monthly Ticket Volume", "dashboardng")}
+          loading=${loading}
+          error=${error}
+          onRetry=${() => location.reload()}
+        >
+          ${rows.length === 0
+            ? html`<${EmptyState} message=${__("No monthly data available", "dashboardng")} />`
+            : html`
+                <${LineChart}
+                  labels=${labels}
+                  datasets=${[
+                    {
+                      label: __("Total", "dashboardng"),
+                      data: rows.map((row) => row.total_tickets || 0),
+                      borderColor: CHART_COLORS.primary,
+                      backgroundColor: "rgba(13, 110, 253, 0.2)",
+                      tension: 0.3,
+                      fill: true,
+                    },
+                    {
+                      label: __("Resolved", "dashboardng"),
+                      data: rows.map((row) => row.resolved_tickets || 0),
+                      borderColor: CHART_COLORS.success,
+                      backgroundColor: "rgba(25, 135, 84, 0.15)",
+                      tension: 0.3,
+                      fill: true,
+                    },
+                  ]}
+                />
+              `}
+        <//>
+      </div>
+      <div class="col-lg-6">
+        <${ReportCard}
+          title=${__("Resolution Rate Trend", "dashboardng")}
+          loading=${loading}
+          error=${error}
+          onRetry=${() => location.reload()}
+        >
+          ${rows.length === 0
+            ? html`<${EmptyState} message=${__("No monthly data available", "dashboardng")} />`
+            : html`
+                <${BarChart}
+                  labels=${labels}
+                  datasets=${[
+                    {
+                      label: __("Resolution Rate", "dashboardng"),
+                      data: rows.map((row) => row.resolution_rate || 0),
+                      backgroundColor: CHART_COLORS.info,
+                    },
+                  ]}
+                />
+              `}
+        <//>
+      </div>
+      <div class="col-12">
+        <${ReportCard}
+          title=${__("Monthly Trend", "dashboardng")}
+          loading=${loading}
+          error=${error}
+          onRetry=${() => location.reload()}
+        >
+          <${DataTable}
+            columns=${[
+              { key: "label", label: __("Month", "dashboardng") },
+              { key: "total_tickets", label: __("Total", "dashboardng"), align: "right" },
+              { key: "resolved_tickets", label: __("Resolved", "dashboardng"), align: "right" },
+              {
+                key: "resolution_rate",
+                label: __("Rate", "dashboardng"),
+                align: "right",
+                render: (v) => html`<span class="badge bg-info">${v}%</span>`,
+              },
+              {
+                key: "avg_resolution_hours",
+                label: __("Avg Time", "dashboardng"),
+                align: "right",
+                render: (v) => `${v}h`,
+              },
+            ]}
+            rows=${rows}
+            emptyMessage=${__("No monthly data available", "dashboardng")}
+          />
+        <//>
+      </div>
     </div>
   `;
 }
 
+function SourceReport({ period, rangeParams = {}, getCardSettings, handleSettingsClick }) {
+  const { data, loading, error } = useReportData("/reports/source", { period, ...rangeParams });
+  const safeRows = data || [];
+  const { total, rows } = addShareMetrics(safeRows, "total_tickets");
+  const topK = getCardSettings("source-share").topK || BAR_TOP_K_DEFAULT;
+  const topRows = buildTopKRows(rows, "total_tickets", "name", topK);
 
-function StatCard({ label, value, icon, color = "primary", trend }) {
   return html`
-    <div class="card h-100 border-${color} border-start border-4">
-      <div class="card-body">
-        <div class="d-flex justify-content-between align-items-center">
-          <div>
-            <h6 class="text-muted mb-1">${label}</h6>
-            <h3 class="mb-0">${value}</h3>
-            ${trend !== undefined &&
-            html`
-              <small class="text-${trend >= 0 ? "success" : "danger"}">
-                <i
-                  class="fas fa-arrow-${trend >= 0 ? "up" : "down"} me-1"
-                ></i>
-                ${Math.abs(trend)}%
-              </small>
-            `}
-          </div>
-          ${icon &&
-          html`
-            <div class="text-${color} opacity-50">
-              <i class="fas fa-${icon}" style="font-size: 2.5rem;"></i>
-            </div>
-          `}
-        </div>
+    <div class="row g-4">
+      <div class="col-lg-6">
+        <${ReportCard}
+          title=${__("Ticket Sources", "dashboardng")}
+          loading=${loading}
+          error=${error}
+          onRetry=${() => location.reload()}
+          onSettingsClick=${() => handleSettingsClick("source-share", "pie")}
+        >
+          ${total === 0
+            ? html`<${EmptyState} message=${__("No source data available", "dashboardng")} />`
+            : html`
+                <${PieChart}
+                  data=${topRows.map((row) => ({
+                    label: row.name,
+                    count: row.total_tickets || 0,
+                  }))}
+                  topK=${getCardSettings("source-share").topK || undefined}
+                />
+              `}
+        <//>
+      </div>
+      <div class="col-lg-6">
+        <${ReportCard}
+          title=${__("Source Volume", "dashboardng")}
+          loading=${loading}
+          error=${error}
+          onRetry=${() => location.reload()}
+          onSettingsClick=${() => handleSettingsClick("source-volume", "bar")}
+        >
+          ${total === 0
+            ? html`<${EmptyState} message=${__("No source data available", "dashboardng")} />`
+            : html`
+                <${BarChart}
+                  labels=${topRows.map((row) => row.name)}
+                  datasets=${[
+                    {
+                      label: __("Tickets", "dashboardng"),
+                      data: topRows.map((row) => row.total_tickets || 0),
+                      backgroundColor: CHART_COLORS.secondary,
+                    },
+                  ]}
+                />
+              `}
+        <//>
+      </div>
+      <div class="col-12">
+        <${ReportCard}
+          title=${__("Source Report", "dashboardng")}
+          loading=${loading}
+          error=${error}
+          onRetry=${() => location.reload()}
+        >
+          <${DataTable}
+            columns=${[
+              { key: "name", label: __("Source", "dashboardng") },
+              { key: "total_tickets", label: __("Total", "dashboardng"), align: "right" },
+              {
+                key: "share",
+                label: __("Share", "dashboardng"),
+                align: "right",
+                render: (v) => renderShare(v, "secondary"),
+              },
+            ]}
+            rows=${rows}
+            emptyMessage=${__("No source data available", "dashboardng")}
+          />
+        <//>
       </div>
     </div>
   `;
@@ -381,10 +446,10 @@ function StatCard({ label, value, icon, color = "primary", trend }) {
 function OverviewReport({ period, rangeParams = {}, getCardSettings, handleSettingsClick }) {
   const { data, loading, error } = useReportData("/reports/overview", { period, ...rangeParams });
 
-  if (loading) return html`<${LoadingSpinner} />`;
+  if (loading) {return html`<${LoadingSpinner} />`;}
   if (error)
-    return html`<${ErrorAlert} message=${error} onRetry=${() => location.reload()} />`;
-  if (!data) return html`<${EmptyState} />`;
+    {return html`<${ErrorAlert} message=${error} onRetry=${() => location.reload()} />`;}
+  if (!data) {return html`<${EmptyState} />`;}
 
   return html`
     <div class="row g-4 mb-4">
@@ -426,13 +491,13 @@ function OverviewReport({ period, rangeParams = {}, getCardSettings, handleSetti
        <div class="col-md-6">
          <${ReportCard}
            title=${__("By Type", "dashboardng")}
-           onSettingsClick=${() => handleSettingsClick('overview-by-type')}
+          onSettingsClick=${() => handleSettingsClick('overview-by-type', 'pie')}
          >
            <div class="row">
              <div class="col-md-6">
                <${PieChart}
                  data=${data.by_type}
-                 topK=${getCardSettings('overview-by-type').topK || null}
+                 topK=${getCardSettings('overview-by-type').topK || undefined}
                />
              </div>
              <div class="col-md-6">
@@ -454,13 +519,13 @@ function OverviewReport({ period, rangeParams = {}, getCardSettings, handleSetti
        <div class="col-md-6">
          <${ReportCard}
            title=${__("By Status", "dashboardng")}
-           onSettingsClick=${() => handleSettingsClick('overview-by-status')}
+          onSettingsClick=${() => handleSettingsClick('overview-by-status', 'pie')}
          >
            <div class="row">
              <div class="col-md-6">
                <${PieChart}
                  data=${data.by_status}
-                 topK=${getCardSettings('overview-by-status').topK || null}
+                 topK=${getCardSettings('overview-by-status').topK || undefined}
                />
              </div>
              <div class="col-md-6">
@@ -484,12 +549,23 @@ function OverviewReport({ period, rangeParams = {}, getCardSettings, handleSetti
 }
 
 
-function EntityReport({ period, rangeParams = {} }) {
+function EntityReport({ period, rangeParams = {}, getCardSettings, handleSettingsClick }) {
   const { data, loading, error } = useReportData("/reports/entity", { period, ...rangeParams });
+  const safeRows = data || [];
+  const { total, rows } = addShareMetrics(safeRows, "total_tickets");
+  const topK = getCardSettings("entity-volume").topK || BAR_TOP_K_DEFAULT;
+  const topRows = buildTopKRows(rows, "total_tickets", "completename", topK, ["resolved_tickets", "open_tickets"]);
+  const chartLabels = topRows.map((row) => row.completename || row.name);
 
   const columns = [
     { key: "completename", label: __("Entity", "dashboardng") },
     { key: "total_tickets", label: __("Total", "dashboardng"), align: "right" },
+    {
+      key: "share",
+      label: __("Share", "dashboardng"),
+      align: "right",
+      render: (v) => renderShare(v, "primary"),
+    },
     {
       key: "resolved_tickets",
       label: __("Resolved", "dashboardng"),
@@ -504,9 +580,9 @@ function EntityReport({ period, rangeParams = {} }) {
         html`<span
           class="badge bg-${v >= 80
             ? "success"
-            : v >= 50
+            : (v >= 50
               ? "warning"
-              : "danger"}"
+              : "danger")}"
           >${v}%</span
         >`,
     },
@@ -519,24 +595,87 @@ function EntityReport({ period, rangeParams = {} }) {
   ];
 
   return html`
-    <${ReportCard}
-      title=${__("Entity Report", "dashboardng")}
-      loading=${loading}
-      error=${error}
-      onRetry=${() => location.reload()}
-    >
-      <${DataTable}
-        columns=${columns}
-        rows=${data}
-        emptyMessage=${__("No entity data available", "dashboardng")}
-      />
-    <//>
+    <div class="row g-4">
+      <div class="col-lg-6">
+        <${ReportCard}
+          title=${__("Ticket Volume by Entity", "dashboardng")}
+          loading=${loading}
+          error=${error}
+          onRetry=${() => location.reload()}
+          onSettingsClick=${() => handleSettingsClick("entity-volume", "bar")}
+        >
+          ${total === 0
+            ? html`<${EmptyState} message=${__("No entity data available", "dashboardng")} />`
+            : html`
+                <${BarChart}
+                  labels=${chartLabels}
+                  datasets=${[
+                    {
+                      label: __("Total", "dashboardng"),
+                      data: topRows.map((row) => row.total_tickets || 0),
+                      backgroundColor: CHART_COLORS.primary,
+                    },
+                  ]}
+                />
+              `}
+        <//>
+      </div>
+      <div class="col-lg-6">
+        <${ReportCard}
+          title=${__("Entity Resolution Mix", "dashboardng")}
+          loading=${loading}
+          error=${error}
+          onRetry=${() => location.reload()}
+          onSettingsClick=${() => handleSettingsClick("entity-resolution-mix", "bar")}
+        >
+          ${total === 0
+            ? html`<${EmptyState} message=${__("No entity data available", "dashboardng")} />`
+            : html`
+                <${BarChart}
+                  labels=${chartLabels}
+                  datasets=${[
+                    {
+                      label: __("Resolved", "dashboardng"),
+                      data: topRows.map((row) => row.resolved_tickets || 0),
+                      backgroundColor: CHART_COLORS.success,
+                    },
+                    {
+                      label: __("Open", "dashboardng"),
+                      data: topRows.map((row) => row.open_tickets || 0),
+                      backgroundColor: CHART_COLORS.warning,
+                    },
+                  ]}
+                  stacked=${true}
+                />
+              `}
+        <//>
+      </div>
+      <div class="col-12">
+        <${ReportCard}
+          title=${__("Entity Report", "dashboardng")}
+          loading=${loading}
+          error=${error}
+          onRetry=${() => location.reload()}
+        >
+          <${DataTable}
+            columns=${columns}
+            rows=${rows}
+            emptyMessage=${__("No entity data available", "dashboardng")}
+          />
+        <//>
+      </div>
+    </div>
   `;
 }
 
 
-function TechnicianReport({ period, rangeParams = {} }) {
+function TechnicianReport({ period, rangeParams = {}, getCardSettings, handleSettingsClick }) {
   const { data, loading, error } = useReportData("/reports/technician", { period, ...rangeParams });
+  const safeRows = data || [];
+  const { total, rows } = addShareMetrics(safeRows, "total_tickets");
+  const topK = getCardSettings("technician-volume").topK || BAR_TOP_K_DEFAULT;
+  const topRows = buildTopKRows(rows, "total_tickets", "name", topK, ["resolved_tickets", "open_tickets"]);
+  const chartLabels = topRows.map((row) => row.name);
 
   const columns = [
     { key: "name", label: __("Technician", "dashboardng") },
@@ -546,6 +685,12 @@ function TechnicianReport({ period, rangeParams = {} }) {
       align: "right",
     },
     {
+      key: "share",
+      label: __("Share", "dashboardng"),
+      align: "right",
+      render: (v) => renderShare(v, "info"),
+    },
+    {
       key: "resolved_tickets",
       label: __("Resolved", "dashboardng"),
       align: "right",
@@ -559,9 +704,9 @@ function TechnicianReport({ period, rangeParams = {} }) {
         html`<span
           class="badge bg-${v >= 80
             ? "success"
-            : v >= 50
+            : (v >= 50
               ? "warning"
-              : "danger"}"
+              : "danger")}"
           >${v}%</span
         >`,
     },
@@ -574,18 +719,76 @@ function TechnicianReport({ period, rangeParams = {} }) {
   ];
 
   return html`
-    <${ReportCard}
-      title=${__("Technician Performance", "dashboardng")}
-      loading=${loading}
-      error=${error}
-      onRetry=${() => location.reload()}
-    >
-      <${DataTable}
-        columns=${columns}
-        rows=${data}
-        emptyMessage=${__("No technician data available", "dashboardng")}
-      />
-    <//>
+    <div class="row g-4">
+      <div class="col-lg-6">
+        <${ReportCard}
+          title=${__("Tickets by Technician", "dashboardng")}
+          loading=${loading}
+          error=${error}
+          onRetry=${() => location.reload()}
+          onSettingsClick=${() => handleSettingsClick("technician-volume", "bar")}
+        >
+          ${total === 0
+            ? html`<${EmptyState} message=${__("No technician data available", "dashboardng")} />`
+            : html`
+                <${BarChart}
+                  labels=${chartLabels}
+                  datasets=${[
+                    {
+                      label: __("Assigned", "dashboardng"),
+                      data: topRows.map((row) => row.total_tickets || 0),
+                      backgroundColor: CHART_COLORS.primary,
+                    },
+                  ]}
+                />
+              `}
+        <//>
+      </div>
+      <div class="col-lg-6">
+        <${ReportCard}
+          title=${__("Resolution Mix", "dashboardng")}
+          loading=${loading}
+          error=${error}
+          onRetry=${() => location.reload()}
+          onSettingsClick=${() => handleSettingsClick("technician-resolution", "bar")}
+        >
+          ${total === 0
+            ? html`<${EmptyState} message=${__("No technician data available", "dashboardng")} />`
+            : html`
+                <${BarChart}
+                  labels=${chartLabels}
+                  datasets=${[
+                    {
+                      label: __("Resolved", "dashboardng"),
+                      data: topRows.map((row) => row.resolved_tickets || 0),
+                      backgroundColor: CHART_COLORS.success,
+                    },
+                    {
+                      label: __("Open", "dashboardng"),
+                      data: topRows.map((row) => row.open_tickets || 0),
+                      backgroundColor: CHART_COLORS.warning,
+                    },
+                  ]}
+                  stacked=${true}
+                />
+              `}
+        <//>
+      </div>
+      <div class="col-12">
+        <${ReportCard}
+          title=${__("Technician Performance", "dashboardng")}
+          loading=${loading}
+          error=${error}
+          onRetry=${() => location.reload()}
+        >
+          <${DataTable}
+            columns=${columns}
+            rows=${rows}
+            emptyMessage=${__("No technician data available", "dashboardng")}
+          />
+        <//>
+      </div>
+    </div>
   `;
 }
 
@@ -593,10 +796,10 @@ function TechnicianReport({ period, rangeParams = {} }) {
 function SlaReport({ period, rangeParams = {} }) {
   const { data, loading, error } = useReportData("/reports/sla", { period, ...rangeParams });
 
-  if (loading) return html`<${LoadingSpinner} />`;
+  if (loading) {return html`<${LoadingSpinner} />`;}
   if (error)
-    return html`<${ErrorAlert} message=${error} onRetry=${() => location.reload()} />`;
-  if (!data) return html`<${EmptyState} />`;
+    {return html`<${ErrorAlert} message=${error} onRetry=${() => location.reload()} />`;}
+  if (!data) {return html`<${EmptyState} />`;}
 
   const trendData = data.monthly_trend || [];
 
@@ -641,9 +844,9 @@ function SlaReport({ period, rangeParams = {} }) {
            icon="percent"
            color=${data.compliance_rate >= 80
              ? "success"
-             : data.compliance_rate >= 50
+             : (data.compliance_rate >= 50
                ? "warning"
-               : "danger"}
+               : "danger")}
          />
        </div>
      </div>
@@ -669,9 +872,9 @@ function SlaReport({ period, rangeParams = {} }) {
                 html`<span
                   class="badge bg-${v >= 80
                     ? "success"
-                    : v >= 50
+                    : (v >= 50
                       ? "warning"
-                      : "danger"}"
+                      : "danger")}"
                   >${v}%</span
                 >`,
             },
@@ -684,17 +887,23 @@ function SlaReport({ period, rangeParams = {} }) {
 }
 
 
-function CategoryReport({ period, rangeParams = {} }) {
+function CategoryReport({ period, rangeParams = {}, getCardSettings, handleSettingsClick }) {
   const { data, loading, error } = useReportData("/reports/category", { period, ...rangeParams });
+  const safeRows = data || [];
+  const { total, rows } = addShareMetrics(safeRows, "total_tickets");
+  const topK = getCardSettings("category-share").topK || BAR_TOP_K_DEFAULT;
+  const topRows = buildTopKRows(rows, "total_tickets", "completename", topK, ["resolved_tickets", "avg_resolution_hours"]);
+  const chartLabels = topRows.map((row) => row.completename || row.name);
+  const avgResolutionDataset = topRows.map((row) => roundValue(row.avg_resolution_hours || 0, 1));
 
   const columns = [
     { key: "completename", label: __("Category", "dashboardng") },
     { key: "total_tickets", label: __("Total", "dashboardng"), align: "right" },
     {
-      key: "percentage",
+      key: "share",
       label: __("Share", "dashboardng"),
       align: "right",
-      render: (v) => html`<span class="badge bg-secondary">${v}%</span>`,
+      render: (v) => renderShare(v, "secondary"),
     },
     {
       key: "resolved_tickets",
@@ -709,9 +918,9 @@ function CategoryReport({ period, rangeParams = {} }) {
         html`<span
           class="badge bg-${v >= 80
             ? "success"
-            : v >= 50
+            : (v >= 50
               ? "warning"
-              : "danger"}"
+              : "danger")}"
           >${v}%</span
         >`,
     },
@@ -724,28 +933,87 @@ function CategoryReport({ period, rangeParams = {} }) {
   ];
 
   return html`
-    <${ReportCard}
-      title=${__("Category Report", "dashboardng")}
-      loading=${loading}
-      error=${error}
-      onRetry=${() => location.reload()}
-    >
-      <${DataTable}
-        columns=${columns}
-        rows=${data}
-        emptyMessage=${__("No category data available", "dashboardng")}
-      />
-    <//>
+    <div class="row g-4">
+      <div class="col-lg-6">
+        <${ReportCard}
+          title=${__("Category Share", "dashboardng")}
+          loading=${loading}
+          error=${error}
+          onRetry=${() => location.reload()}
+          onSettingsClick=${() => handleSettingsClick("category-share", "pie")}
+        >
+          ${total === 0
+            ? html`<${EmptyState} message=${__("No category data available", "dashboardng")} />`
+            : html`
+                <${PieChart}
+                  data=${topRows.map((row) => ({
+                    label: row.completename || row.name,
+                    count: row.total_tickets || 0,
+                  }))}
+                />
+              `}
+        <//>
+      </div>
+      <div class="col-lg-6">
+        <${ReportCard}
+          title=${__("Avg Resolution Time", "dashboardng")}
+          loading=${loading}
+          error=${error}
+          onRetry=${() => location.reload()}
+          onSettingsClick=${() => handleSettingsClick("category-resolution", "bar")}
+        >
+          ${total === 0
+            ? html`<${EmptyState} message=${__("No category data available", "dashboardng")} />`
+            : html`
+                <${BarChart}
+                  labels=${chartLabels}
+                  datasets=${[
+                    {
+                      label: __("Avg Resolution (h)", "dashboardng"),
+                      data: avgResolutionDataset,
+                      backgroundColor: CHART_COLORS.info,
+                    },
+                  ]}
+                />
+              `}
+        <//>
+      </div>
+      <div class="col-12">
+        <${ReportCard}
+          title=${__("Category Report", "dashboardng")}
+          loading=${loading}
+          error=${error}
+          onRetry=${() => location.reload()}
+        >
+          <${DataTable}
+            columns=${columns}
+            rows=${rows}
+            emptyMessage=${__("No category data available", "dashboardng")}
+          />
+        <//>
+      </div>
+    </div>
   `;
 }
 
 
-function GroupReport({ period, rangeParams = {} }) {
+function GroupReport({ period, rangeParams = {}, getCardSettings, handleSettingsClick }) {
   const { data, loading, error } = useReportData("/reports/group", { period, ...rangeParams });
+  const safeRows = data || [];
+  const { total, rows } = addShareMetrics(safeRows, "total_tickets");
+  const topK = getCardSettings("group-volume").topK || BAR_TOP_K_DEFAULT;
+  const topRows = buildTopKRows(rows, "total_tickets", "completename", topK, ["resolved_tickets", "open_tickets"]);
+  const chartLabels = topRows.map((row) => row.completename || row.name);
 
   const columns = [
     { key: "completename", label: __("Group", "dashboardng") },
     { key: "total_tickets", label: __("Total", "dashboardng"), align: "right" },
+    {
+      key: "share",
+      label: __("Share", "dashboardng"),
+      align: "right",
+      render: (v) => renderShare(v, "primary"),
+    },
     {
       key: "resolved_tickets",
       label: __("Resolved", "dashboardng"),
@@ -760,37 +1028,106 @@ function GroupReport({ period, rangeParams = {} }) {
         html`<span
           class="badge bg-${v >= 80
             ? "success"
-            : v >= 50
+            : (v >= 50
               ? "warning"
-              : "danger"}"
+              : "danger")}"
           >${v}%</span
         >`,
     },
   ];
 
   return html`
-    <${ReportCard}
-      title=${__("Group Report", "dashboardng")}
-      loading=${loading}
-      error=${error}
-      onRetry=${() => location.reload()}
-    >
-      <${DataTable}
-        columns=${columns}
-        rows=${data}
-        emptyMessage=${__("No group data available", "dashboardng")}
-      />
-    <//>
+    <div class="row g-4">
+      <div class="col-lg-6">
+        <${ReportCard}
+          title=${__("Ticket Volume by Group", "dashboardng")}
+          loading=${loading}
+          error=${error}
+          onRetry=${() => location.reload()}
+          onSettingsClick=${() => handleSettingsClick("group-volume", "bar")}
+        >
+          ${total === 0
+            ? html`<${EmptyState} message=${__("No group data available", "dashboardng")} />`
+            : html`
+                <${BarChart}
+                  labels=${chartLabels}
+                  datasets=${[
+                    {
+                      label: __("Total", "dashboardng"),
+                      data: topRows.map((row) => row.total_tickets || 0),
+                      backgroundColor: CHART_COLORS.primary,
+                    },
+                  ]}
+                />
+              `}
+        <//>
+      </div>
+      <div class="col-lg-6">
+        <${ReportCard}
+          title=${__("Resolution Mix", "dashboardng")}
+          loading=${loading}
+          error=${error}
+          onRetry=${() => location.reload()}
+          onSettingsClick=${() => handleSettingsClick("group-resolution", "bar")}
+        >
+          ${total === 0
+            ? html`<${EmptyState} message=${__("No group data available", "dashboardng")} />`
+            : html`
+                <${BarChart}
+                  labels=${chartLabels}
+                  datasets=${[
+                    {
+                      label: __("Resolved", "dashboardng"),
+                      data: topRows.map((row) => row.resolved_tickets || 0),
+                      backgroundColor: CHART_COLORS.success,
+                    },
+                    {
+                      label: __("Open", "dashboardng"),
+                      data: topRows.map((row) => row.open_tickets || 0),
+                      backgroundColor: CHART_COLORS.warning,
+                    },
+                  ]}
+                  stacked=${true}
+                />
+              `}
+        <//>
+      </div>
+      <div class="col-12">
+        <${ReportCard}
+          title=${__("Group Report", "dashboardng")}
+          loading=${loading}
+          error=${error}
+          onRetry=${() => location.reload()}
+        >
+          <${DataTable}
+            columns=${columns}
+            rows=${rows}
+            emptyMessage=${__("No group data available", "dashboardng")}
+          />
+        <//>
+      </div>
+    </div>
   `;
 }
 
 
-function PriorityReport({ period, rangeParams = {} }) {
+function PriorityReport({ period, rangeParams = {}, getCardSettings, handleSettingsClick }) {
   const { data, loading, error } = useReportData("/reports/priority", { period, ...rangeParams });
+  const safeRows = data || [];
+  const { total, rows } = addShareMetrics(safeRows, "total_tickets");
+  const topK = getCardSettings("priority-volume").topK || BAR_TOP_K_DEFAULT;
+  const topRows = buildTopKRows(rows, "total_tickets", "label", topK, ["resolved_tickets"]);
+  const chartLabels = topRows.map((row) => row.label);
 
   const columns = [
     { key: "label", label: __("Priority", "dashboardng") },
     { key: "total_tickets", label: __("Total", "dashboardng"), align: "right" },
+    {
+      key: "share",
+      label: __("Share", "dashboardng"),
+      align: "right",
+      render: (v) => renderShare(v, "danger"),
+    },
     {
       key: "resolved_tickets",
       label: __("Resolved", "dashboardng"),
@@ -804,9 +1141,9 @@ function PriorityReport({ period, rangeParams = {} }) {
         html`<span
           class="badge bg-${v >= 80
             ? "success"
-            : v >= 50
+            : (v >= 50
               ? "warning"
-              : "danger"}"
+              : "danger")}"
           >${v}%</span
         >`,
     },
@@ -819,18 +1156,70 @@ function PriorityReport({ period, rangeParams = {} }) {
   ];
 
   return html`
-    <${ReportCard}
-      title=${__("Priority Report", "dashboardng")}
-      loading=${loading}
-      error=${error}
-      onRetry=${() => location.reload()}
-    >
-      <${DataTable}
-        columns=${columns}
-        rows=${data}
-        emptyMessage=${__("No priority data available", "dashboardng")}
-      />
-    <//>
+    <div class="row g-4">
+      <div class="col-lg-6">
+        <${ReportCard}
+          title=${__("Tickets by Priority", "dashboardng")}
+          loading=${loading}
+          error=${error}
+          onRetry=${() => location.reload()}
+          onSettingsClick=${() => handleSettingsClick("priority-volume", "bar")}
+        >
+          ${total === 0
+            ? html`<${EmptyState} message=${__("No priority data available", "dashboardng")} />`
+            : html`
+                <${BarChart}
+                  labels=${chartLabels}
+                  datasets=${[
+                    {
+                      label: __("Total", "dashboardng"),
+                      data: topRows.map((row) => row.total_tickets || 0),
+                      backgroundColor: CHART_COLORS.danger,
+                    },
+                  ]}
+                />
+              `}
+        <//>
+      </div>
+      <div class="col-lg-6">
+        <${ReportCard}
+          title=${__("Resolution Rate by Priority", "dashboardng")}
+          loading=${loading}
+          error=${error}
+          onRetry=${() => location.reload()}
+          onSettingsClick=${() => handleSettingsClick("priority-resolution", "bar")}
+        >
+          ${total === 0
+            ? html`<${EmptyState} message=${__("No priority data available", "dashboardng")} />`
+            : html`
+                <${BarChart}
+                  labels=${chartLabels}
+                  datasets=${[
+                    {
+                      label: __("Resolution Rate", "dashboardng"),
+                      data: topRows.map((row) => row.resolution_rate || 0),
+                      backgroundColor: CHART_COLORS.info,
+                    },
+                  ]}
+                />
+              `}
+        <//>
+      </div>
+      <div class="col-12">
+        <${ReportCard}
+          title=${__("Priority Report", "dashboardng")}
+          loading=${loading}
+          error=${error}
+          onRetry=${() => location.reload()}
+        >
+          <${DataTable}
+            columns=${columns}
+            rows=${rows}
+            emptyMessage=${__("No priority data available", "dashboardng")}
+          />
+        <//>
+      </div>
+    </div>
   `;
 }
 
@@ -840,7 +1229,8 @@ function TicketReportsApp() {
   const [period, setPeriod] = useState(0); // Default: all time
   const [customRange, setCustomRange] = useState({ start: '', end: '' });
   const [showSettings, setShowSettings] = useState(false);
-  const [settingsCard, setSettingsCard] = useState(null);
+  const [settingsCard, setSettingsCard] = useState(undefined);
+  const [settingsChartType, setSettingsChartType] = useState("pie");
   const [chartSettings, setChartSettings] = useState({});
 
   useEffect(() => {
@@ -848,8 +1238,8 @@ function TicketReportsApp() {
     if (saved) {
       try {
         setChartSettings(JSON.parse(saved));
-      } catch (e) {
-        console.error('Failed to parse chart settings:', e);
+      } catch (error) {
+        console.error('Failed to parse chart settings:', error);
       }
     }
   }, []);
@@ -860,8 +1250,9 @@ function TicketReportsApp() {
     localStorage.setItem('ticketReportsChartSettings', JSON.stringify(updated));
   };
 
-  const handleSettingsClick = (cardId) => {
+  const handleSettingsClick = (cardId, chartType = "pie") => {
     setSettingsCard(cardId);
+    setSettingsChartType(chartType);
     setShowSettings(true);
   };
 
@@ -870,7 +1261,8 @@ function TicketReportsApp() {
       saveChartSettings(settingsCard, newSettings);
     }
     setShowSettings(false);
-    setSettingsCard(null);
+    setSettingsCard(undefined);
+    setSettingsChartType("pie");
   };
 
   const getCardSettings = (cardId) => {
@@ -897,7 +1289,10 @@ function TicketReportsApp() {
       label: __("By Priority", "dashboardng"),
       icon: "fa-exclamation-circle",
     },
+    { id: "source", label: __("By Source", "dashboardng"), icon: "fa-share-alt" },
+    { id: "monthly", label: __("Monthly Trend", "dashboardng"), icon: "fa-chart-line" },
   ];
+  const bulkOptions = tabs.map((tab) => ({ id: tab.id, label: tab.label }));
 
   const renderContent = () => {
     const rangeParams = period === 8
@@ -905,24 +1300,68 @@ function TicketReportsApp() {
       : {};
 
     switch (activeTab) {
-      case "overview":
+      case "overview": {
         return html`<${OverviewReport} period=${period} rangeParams=${rangeParams} getCardSettings=${getCardSettings} handleSettingsClick=${handleSettingsClick} />`;
-      case "entity":
-        return html`<${EntityReport} period=${period} rangeParams=${rangeParams} />`;
-      case "technician":
-        return html`<${TechnicianReport} period=${period} rangeParams=${rangeParams} />`;
-      case "sla":
+      }
+      case "entity": {
+        return html`<${EntityReport}
+          period=${period}
+          rangeParams=${rangeParams}
+          getCardSettings=${getCardSettings}
+          handleSettingsClick=${handleSettingsClick}
+        />`;
+      }
+      case "technician": {
+        return html`<${TechnicianReport}
+          period=${period}
+          rangeParams=${rangeParams}
+          getCardSettings=${getCardSettings}
+          handleSettingsClick=${handleSettingsClick}
+        />`;
+      }
+      case "sla": {
         return html`<${SlaReport} period=${period} rangeParams=${rangeParams} />`;
-      case "category":
-        return html`<${CategoryReport} period=${period} rangeParams=${rangeParams} />`;
-      case "group":
-        return html`<${GroupReport} period=${period} rangeParams=${rangeParams} />`;
-      case "priority":
-        return html`<${PriorityReport} period=${period} rangeParams=${rangeParams} />`;
-      default:
+      }
+      case "category": {
+        return html`<${CategoryReport}
+          period=${period}
+          rangeParams=${rangeParams}
+          getCardSettings=${getCardSettings}
+          handleSettingsClick=${handleSettingsClick}
+        />`;
+      }
+      case "group": {
+        return html`<${GroupReport}
+          period=${period}
+          rangeParams=${rangeParams}
+          getCardSettings=${getCardSettings}
+          handleSettingsClick=${handleSettingsClick}
+        />`;
+      }
+      case "priority": {
+        return html`<${PriorityReport}
+          period=${period}
+          rangeParams=${rangeParams}
+          getCardSettings=${getCardSettings}
+          handleSettingsClick=${handleSettingsClick}
+        />`;
+      }
+      case "source": {
+        return html`<${SourceReport}
+          period=${period}
+          rangeParams=${rangeParams}
+          getCardSettings=${getCardSettings}
+          handleSettingsClick=${handleSettingsClick}
+        />`;
+      }
+      case "monthly": {
+        return html`<${MonthlyReport} period=${period} rangeParams=${rangeParams} />`;
+      }
+      default: {
         return html`<${EmptyState}
           message=${__("Select a report type", "dashboardng")}
         />`;
+      }
     }
   };
 
@@ -931,21 +1370,24 @@ function TicketReportsApp() {
       <!-- Header -->
       <div class="d-flex justify-content-between align-items-center mb-4">
         <h2 class="mb-0">
-          <i class="fas fa-ticket-alt me-2"></i>
           ${__("Ticket Reports", "dashboardng")}
         </h2>
         <div class="d-flex align-items-center gap-3">
           <label class="form-label mb-0 text-muted"
             >${__("Period", "dashboardng")}:</label
           >
-          <${PeriodSelector} value=${period} onChange=${setPeriod} />
-          ${period === 8 && html`
-            <${CustomRangePicker} value=${customRange} onChange=${setCustomRange} />
-          `}
+          <${PeriodSelector}
+            value=${period}
+            onChange=${setPeriod}
+            showCustomRange=${true}
+            customRange=${customRange}
+            onCustomRangeChange=${setCustomRange}
+          />
           <${ExportDropdown}
             reportType=${activeTab}
             period=${period}
             customRange=${customRange}
+            bulkOptions=${bulkOptions}
           />
         </div>
       </div>
@@ -973,17 +1415,18 @@ function TicketReportsApp() {
        <!-- Settings Modal -->
        <${SettingsModal}
          isOpen=${showSettings}
-         onClose=${() => { setShowSettings(false); setSettingsCard(null); }}
-         onSave=${handleSettingsSave}
-         settings=${getCardSettings(settingsCard || '')}
-         chartType=${'pie'}
-       />
+          onClose=${() => { setShowSettings(false); setSettingsCard(undefined); setSettingsChartType("pie"); }}
+          onSave=${handleSettingsSave}
+          settings=${getCardSettings(settingsCard || '')}
+          chartType=${settingsChartType}
+        />
      </div>
    `;
 }
 
 
-document.addEventListener("DOMContentLoaded", () => {
+document.addEventListener("DOMContentLoaded", async () => {
+  await new Promise((resolve) => setTimeout(resolve, 500)); // required for translation loading (TODO: fix the damn translation loader)
   const container = document.getElementById("dashboardng-tickets");
   if (container) {
     render(html`<${TicketReportsApp} />`, container);
@@ -999,5 +1442,7 @@ window.DashboardNGTicketReports = {
   CategoryReport,
   GroupReport,
   PriorityReport,
+  SourceReport,
+  MonthlyReport,
   ExportDropdown,
 };

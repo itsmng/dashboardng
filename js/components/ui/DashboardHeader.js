@@ -3,19 +3,22 @@ import { useRefresh } from '../../lib/hooks/useRefresh.js';
 import { PeriodSelector } from './PeriodSelector.js';
 import { useDashboard } from '../../context/DashboardContext.js';
 import { CONFIG } from '../../lib/config.js';
+import { __ } from '../../lib/i18n.js';
 
-export const DashboardHeader = ({ onOpenWidgetLibrary, onToggleEditMode }) => {
+export const DashboardHeader = ({ onOpenWidgetLibrary, onToggleEditMode, onOpenSharedDashboard }) => {
     const { dashboard, editMode, lastUpdate } = useDashboard();
     const { triggerRefresh } = useRefresh();
 
     const formatTimeAgo = (date) => {
-        if (!date) return '';
+        if (!date) {return '';}
         const seconds = Math.floor((new Date() - date) / 1000);
-        if (seconds < 60) return `${seconds}s ago`;
+        if (seconds < 60) {return `${seconds}s ago`;}
         const minutes = Math.floor(seconds / 60);
-        if (minutes < 60) return `${minutes}m ago`;
+        if (minutes < 60) {return `${minutes}m ago`;}
         return date.toLocaleTimeString();
     };
+
+    const isPersonalMode = CONFIG.pageMode === 'personal';
 
     return html`
         <div class="d-flex justify-content-between align-items-center mb-4">
@@ -29,6 +32,15 @@ export const DashboardHeader = ({ onOpenWidgetLibrary, onToggleEditMode }) => {
                 `}
             </div>
             <div class="d-flex align-items-center gap-2">
+                ${isPersonalMode && html`
+                    <button
+                        class="btn btn-outline-info btn-sm"
+                        onClick=${onOpenSharedDashboard}
+                    >
+                        <i class="fas fa-share-alt me-1"></i>
+                        ${__('Load Shared Dashboard', 'dashboardng')}
+                    </button>
+                `}
                 ${(!dashboard?.is_global || CONFIG.canEditGlobalDashboard) && html`
                     <button
                         class="btn btn-outline-success btn-sm"

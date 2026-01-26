@@ -6,7 +6,11 @@ use GlpiPlugin\Dashboardng\PluginDashboardngDashboard;
 use GlpiPlugin\Dashboardng\PluginDashboardngWidgetDefinition;
 use GlpiPlugin\Dashboardng\PluginDashboardngDashboardWidget;
 use GlpiPlugin\Dashboardng\Migration\DashboardngMigrationRunner;
+use GlpiPlugin\Dashboardng\Cache\QueryCacheManager;
+use GlpiPlugin\Dashboardng\DataSources\GenericDataSource;
 use Plugin;
+use Config;
+use CommonDBTM;
 
 /**
  * Plugin installation
@@ -15,63 +19,8 @@ use Plugin;
  */
 function plugin_dashboardng_install()
 {
-    global $DB;
-
-    $alreadyInstalled = (new Plugin())->isInstalled('dashboardng');
-
-    if ($alreadyInstalled) {
-        return true;
-    }
-
-    if (!PluginDashboardngConfig::install()) {
-        return false;
-    }
-
-    if (!PluginDashboardngProfile::install()) {
-        return false;
-    }
-
-    $dashboardId = PluginDashboardngDashboard::install();
-    if ($dashboardId === false) {
-        return false;
-    }
-
-    if (!PluginDashboardngWidgetDefinition::install()) {
-        return false;
-    }
-
-    if (!PluginDashboardngDashboardWidget::install($dashboardId, ['migrate_only' => false])) {
-        return false;
-    }
-
-    DashboardngMigrationRunner::markInstalledAsLatest();
-
-    $profileRight = new ProfileRight();
-    $superAdminProfileId = 4;
-
-    $existingConfig = countElementsInTable('glpi_profilerights', [
-        'profiles_id' => $superAdminProfileId,
-        'name' => 'plugin_dashboardng_config'
-    ]);
-    if ($existingConfig === 0) {
-        $profileRight->add([
-            'profiles_id' => $superAdminProfileId,
-            'name' => 'plugin_dashboardng_config',
-            'rights' => UPDATE,
-        ]);
-    }
-
-    $existingAccess = countElementsInTable('glpi_profilerights', [
-        'profiles_id' => $superAdminProfileId,
-        'name' => 'plugin_dashboardng_access'
-    ]);
-    if ($existingAccess === 0) {
-        $profileRight->add([
-            'profiles_id' => $superAdminProfileId,
-            'name' => 'plugin_dashboardng_access',
-            'rights' => READ | UPDATE,
-        ]);
-    }
+    $migration = new Migration('0.0.0');
+    DashboardngMigrationRunner::runPendingMigrations($migration);
 
     return true;
 }
@@ -110,6 +59,12 @@ function plugin_dashboardng_uninstall()
         'name' => ['LIKE', 'plugin_dashboardng_%']
     ]);
 
+    // Remove migration version tracking
+    Config::deleteConfigurationValues(
+        DashboardngMigrationRunner::CONFIG_CONTEXT,
+        [DashboardngMigrationRunner::CONFIG_KEY]
+    );
+
     return true;
 }
 
@@ -119,10 +74,67 @@ function plugin_dashboardng_uninstall()
  * @param string $current_version Current version
  * @return boolean
  */
-function plugin_dashboardng_update($current_version, $migrationname = null)
+function plugin_dashboardng_update($current_version)
 {
     $migration = new Migration($current_version);
     DashboardngMigrationRunner::runPendingMigrations($migration);
 
     return true;
+}
+
+/**
+ * Invalidate cache after item update
+ *
+ * @param CommonDBTM $item
+ * @return void
+ */
+function plugin_dashboardng_post_update_item(CommonDBTM $item)
+{
+    if (!Toolbox::useCache()) {
+        return;
+    }
+
+    $cacheManager = new QueryCacheManager();
+    $itemtype = get_class($item);
+    $cacheManager->invalidateItemtype($itemtype);
+
+    $allowedItemtypes = GlpiPlugin\Dashboardng\Registry\ItemtypeRegistry::getAllowedItemtypes();
+
+    if (!in_array($itemtype, $allowedItemtypes, true)) {
+        return;
+    }
+}
+
+/**
+ * Invalidate cache after item delete
+ *
+ * @param CommonDBTM $item
+ * @return void
+ */
+function plugin_dashboardng_post_delete_item(CommonDBTM $item)
+{
+    if (!Toolbox::useCache()) {
+        return;
+    }
+
+    $cacheManager = new QueryCacheManager();
+    $itemtype = get_class($item);
+    $cacheManager->invalidateItemtype($itemtype);
+}
+
+/**
+ * Invalidate cache after item creation
+ *
+ * @param CommonDBTM $item
+ * @return void
+ */
+function plugin_dashboardng_post_add_item(CommonDBTM $item)
+{
+    if (!Toolbox::useCache()) {
+        return;
+    }
+
+    $cacheManager = new QueryCacheManager();
+    $itemtype = get_class($item);
+    $cacheManager->invalidateItemtype($itemtype);
 }

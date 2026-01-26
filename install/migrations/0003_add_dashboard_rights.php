@@ -1,19 +1,11 @@
 <?php
 
-final class PluginDashboardngMigration0001AddDashboardRights extends \GlpiPlugin\Dashboardng\Migration\AbstractDashboardngMigration
+final class PluginDashboardngMigration0003AddDashboardRights extends \GlpiPlugin\Dashboardng\Migration\AbstractDashboardngMigration
 {
-    public const VERSION = '0001';
+    public const VERSION = '0003';
 
     public function upgrade(\Migration $migration): void
     {
-        if (!defined('UPDATE')) {
-            define('UPDATE', 2);
-        }
-        if (!defined('READ')) {
-            define('READ', 1);
-        }
-
-        // Add new rights with default deny (0) for all profiles
         $migration->addRight('plugin_dashboardng_globaldashboard', 0, []);
         $migration->addRight('plugin_dashboardng_mydashboard', 0, []);
 

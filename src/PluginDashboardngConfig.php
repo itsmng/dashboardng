@@ -16,40 +16,6 @@ class PluginDashboardngConfig extends CommonDBTM
         return 'glpi_plugin_dashboardng_config';
     }
 
-    public static function install(): bool
-    {
-        global $DB;
-
-        $table = self::getTable();
-
-        if (!$DB->tableExists($table)) {
-            $query = <<<SQL
-                CREATE TABLE `$table` (
-                    `id` INT(11) NOT NULL AUTO_INCREMENT,
-                    `users_id` INT(11) NOT NULL DEFAULT 0,
-                    `name` VARCHAR(255) COLLATE utf8mb4_unicode_ci NOT NULL,
-                    `value` TEXT COLLATE utf8mb4_unicode_ci DEFAULT NULL,
-                    PRIMARY KEY (`id`),
-                    KEY `users_id` (`users_id`),
-                    KEY `name` (`name`)
-                ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-            SQL;
-
-            $DB->queryOrDie($query, $DB->error());
-
-            self::setGlobal('refresh_interval', '60');
-            self::setGlobal('default_period', '0');
-            self::setGlobal('theme', 'default');
-            
-            // Query limits for dynamic widgets
-            self::setGlobal('query_default_limit', '1000');
-            self::setGlobal('query_max_limit', '10000');
-            self::setGlobal('query_timeout', '30');
-        }
-
-        return true;
-    }
-
     public static function uninstall(): bool
     {
         global $DB;
@@ -221,6 +187,12 @@ class PluginDashboardngConfig extends CommonDBTM
         $config['query_max_limit'] = (int)($config['query_max_limit'] ?? 10000);
         $config['query_timeout'] = (int)($config['query_timeout'] ?? 30);
 
+        // Cache configuration
+        $config['cache_enabled'] = isset($config['cache_enabled']) ? (bool)$config['cache_enabled'] : true;
+        $config['cache_ttl'] = (int)($config['cache_ttl'] ?? 300);
+        $config['cache_long_ttl'] = (int)($config['cache_long_ttl'] ?? 900);
+        $config['cache_exclude_itemtypes'] = $config['cache_exclude_itemtypes'] ?? '';
+
         return $config;
     }
 
@@ -292,6 +264,34 @@ class PluginDashboardngConfig extends CommonDBTM
         echo '<div class="col-sm-9">';
         echo '<input type="number" class="form-control" name="query_timeout" value="' . ($config['query_timeout'] ?? 30) . '" min="5" max="300">';
         echo '<small class="form-text text-muted">' . __('Maximum query execution time before timeout', 'dashboardng') . '</small>';
+        echo '</div></div>';
+
+        // Cache Section
+        echo '<hr class="my-4">';
+        echo '<h5 class="mb-3">' . __('Query Caching', 'dashboardng') . '</h5>';
+
+        echo '<div class="mb-3 row">';
+        echo '<label class="col-sm-3 col-form-label">' . __('Enable Caching', 'dashboardng') . '</label>';
+        echo '<div class="col-sm-9">';
+        echo '<div class="form-check">';
+        $cacheEnabled = $config['cache_enabled'] ?? true;
+        echo '<input class="form-check-input" type="checkbox" name="cache_enabled" id="cache_enabled" value="1"' . ($cacheEnabled ? ' checked' : '') . '>';
+        echo '<label class="form-check-label" for="cache_enabled">' . __('Cache query results to improve performance', 'dashboardng') . '</label>';
+        echo '</div>';
+        echo '</div></div>';
+
+        echo '<div class="mb-3 row">';
+        echo '<label class="col-sm-3 col-form-label">' . __('Cache TTL (seconds)', 'dashboardng') . '</label>';
+        echo '<div class="col-sm-9">';
+        echo '<input type="number" class="form-control" name="cache_ttl" value="' . ($config['cache_ttl'] ?? 300) . '" min="30" max="3600">';
+        echo '<small class="form-text text-muted">' . __('Default cache duration for query results (recommended: 300-600s)', 'dashboardng') . '</small>';
+        echo '</div></div>';
+
+        echo '<div class="mb-3 row">';
+        echo '<label class="col-sm-3 col-form-label">' . __('Long Cache TTL (seconds)', 'dashboardng') . '</label>';
+        echo '<div class="col-sm-9">';
+        echo '<input type="number" class="form-control" name="cache_long_ttl" value="' . ($config['cache_long_ttl'] ?? 900) . '" min="60" max="7200">';
+        echo '<small class="form-text text-muted">' . __('Cache duration for aggregated queries (recommended: 900-1800s)', 'dashboardng') . '</small>';
         echo '</div></div>';
 
         echo '<div class="d-flex justify-content-end">';

@@ -1,1224 +1,1708 @@
-# French translations for DashboardNG package
-# Copyright (C) 2026 ITSMNG Team
-# This file is distributed under the same license as the DashboardNG package.
-# FIRST AUTHOR <EMAIL@ADDRESS>, 2026.
-#
 msgid ""
 msgstr ""
-"Project-Id-Version: DashboardNG 1.0.0\n"
+"Project-Id-Version: DashboardNG\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-01-08 11:22+0100\n"
-"PO-Revision-Date: 2026-01-08 11:22+0100\n"
-"Last-Translator: \n"
-"Language-Team: French <fr@li.org>\n"
+"POT-Creation-Date: 2026-01-26 16:29+0100\n"
+"PO-Revision-Date: 2026-01-23 11:17+0100\n"
+"Last-Translator: Théodore Clément\n"
+"Language-Team: none\n"
 "Language: fr_FR\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Plural-Forms: nplurals=2; plural=(n > 1);\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
-#: src/DashboardMenu.php:21 src/PluginDashboardngProfile.php:119
-#: src/PluginDashboardngProfile.php:176
+#: src/DashboardMenu.php:21 src/PluginDashboardngProfile.php:136
+#: src/PluginDashboardngProfile.php:192
 msgid "Dashboard NG"
-msgstr ""
+msgstr "Dashboard NG"
 
-#: src/DashboardMenu.php:29 src/NavigationBar.php:184
+#: src/DashboardMenu.php:29 src/NavigationBar.php:73
 msgid "Dashboard"
-msgstr ""
+msgstr "Tableau de bord"
 
-#: src/DashboardMenu.php:35 src/NavigationBar.php:205
+#: src/DashboardMenu.php:36 src/NavigationBar.php:82
+#: src/PluginDashboardngProfile.php:80
+msgid "My Dashboard"
+msgstr "Mon tableau de bord"
+
+#: src/DashboardMenu.php:43 src/NavigationBar.php:99
+#: js/components/ui/ExportDropdown.js:240
 msgid "Reports"
-msgstr ""
+msgstr "Rapports"
 
-#: src/DashboardMenu.php:44 src/PluginDashboardngProfile.php:56
+#: src/DashboardMenu.php:52 src/PluginDashboardngProfile.php:59
 msgid "Configuration"
-msgstr ""
+msgstr "Configuration"
 
-#: src/DataSources/GenericDataSource.php:574
-#: src/DataSources/GenericDataSource.php:605
+#: src/DataSources/FieldResolver.php:145 src/DataSources/FieldResolver.php:189
 msgid "None"
-msgstr ""
+msgstr "Aucun"
 
-#: src/Queries/ReportQueries.php:145
+#: src/Queries/ReportQueries.php:245
 msgid "Incident"
-msgstr ""
+msgstr "Incident"
 
-#: src/Queries/ReportQueries.php:145
+#: src/Queries/ReportQueries.php:245
 msgid "Request"
-msgstr ""
+msgstr "Demande"
 
-#: src/Queries/ReportQueries.php:223 src/Queries/ReportQueries.php:224
-#: src/Queries/ReportQueries.php:1031 src/Queries/ReportQueries.php:1558
+#: src/Queries/ReportQueries.php:324 src/Queries/ReportQueries.php:325
+#: src/Queries/ReportQueries.php:1073 src/Queries/ReportQueries.php:1386
 msgid "Root entity"
-msgstr ""
+msgstr "Entité racine"
 
-#: src/Queries/ReportQueries.php:289 src/Queries/ReportQueries.php:631
-#: src/Queries/ReportQueries.php:814 src/Queries/ReportQueries.php:902
-#: src/Queries/ReportQueries.php:1112 src/Queries/ReportQueries.php:1168
-#: src/Queries/ReportQueries.php:1224 src/Queries/ReportQueries.php:1268
-#: src/Queries/ReportQueries.php:1312 src/Queries/ReportQueries.php:1485
-#: src/Queries/ReportQueries.php:1617
+#: src/Queries/ReportQueries.php:391 src/Queries/ReportQueries.php:738
+#: src/Queries/ReportQueries.php:999 src/Queries/ReportQueries.php:1132
 msgid "Unknown"
-msgstr ""
+msgstr "Inconnu"
 
-#: src/Queries/ReportQueries.php:469 src/Queries/ReportQueries.php:470
-#: src/Queries/ReportQueries.php:1414
+#: src/Queries/ReportQueries.php:573 src/Queries/ReportQueries.php:574
+#: src/Queries/ReportQueries.php:927
 msgid "No category"
-msgstr ""
+msgstr "Pas de catégorie"
 
-#: src/Queries/ReportQueries.php:536 src/Queries/ReportQueries.php:537
+#: src/Queries/ReportQueries.php:641 src/Queries/ReportQueries.php:642
 msgid "No group"
-msgstr ""
+msgstr "Pas de groupe"
 
-#: src/Queries/ReportQueries.php:724 src/Pages/AssetsPage.php:32
-#: js/assetReports.js:852
-msgid "Computers"
-msgstr ""
-
-#: src/Queries/ReportQueries.php:725
-msgid "Monitors"
-msgstr ""
-
-#: src/Queries/ReportQueries.php:726
-msgid "Printers"
-msgstr ""
-
-#: src/Queries/ReportQueries.php:727
-msgid "Network Equipment"
-msgstr ""
-
-#: src/Queries/ReportQueries.php:728
-msgid "Phones"
-msgstr ""
-
-#: src/Queries/ReportQueries.php:729
-msgid "Peripherals"
-msgstr ""
-
-#: src/Queries/ReportQueries.php:858
-msgid "No type"
-msgstr ""
-
-#: src/Queries/ReportQueries.php:965
-msgid "No location"
-msgstr ""
-
-#: src/Queries/ReportQueries.php:1095
-msgid "No status"
-msgstr ""
-
-#: src/Pages/MyDashboardPage.php:24
-msgid "My Dashboard - Coming Soon"
-msgstr ""
-
-#: src/Pages/MyDashboardPage.php:25
-msgid ""
-"This page will show your personal dashboard with tickets assigned to you."
-msgstr ""
-
-#: src/Pages/MyDashboardPage.php:26 src/Pages/ChartsPage.php:76
-msgid "For now, please use the main Dashboard page."
-msgstr ""
-
-#: src/Pages/MyDashboardPage.php:27 src/Pages/ChartsPage.php:77
-msgid "Go to Main Dashboard"
-msgstr ""
+#: src/Queries/ReportQueries.php:1225 src/Queries/ReportQueries.php:1330
+#: src/Queries/ReportQueries.php:1358 src/Queries/ReportQueries.php:1415
+#: src/Queries/ReportQueries.php:1453 src/Queries/ReportQueries.php:1482
+#: src/Queries/ReportQueries.php:1513 src/Queries/ReportQueries.php:1554
+#: src/Queries/ReportQueries.php:1555
+msgid "Not defined"
+msgstr "Non défini"
 
 #: src/Pages/ConfigPage.php:37 src/Pages/ConfigPage.php:82
 msgid "Configuration saved"
-msgstr ""
+msgstr "Configuration sauvegardée"
 
-#: src/Pages/ConfigPage.php:60 src/Pages/TicketsPage.php:64
-#: src/PluginDashboardngConfig.php:256 js/components/kpi/KPIGrid.js:9
-#: js/ticketReports.js:480 js/ticketReports.js:655 js/ticketReports.js:700
-#: js/ticketReports.js:766 js/ticketReports.js:821
+#: src/Pages/ConfigPage.php:60 src/Pages/TicketsPage.php:66
+#: src/Pages/AssetsPage.php:48 src/Handlers/ExportReport.php:45
+#: src/Handlers/ExportReport.php:73 src/Handlers/ExportReport.php:84
+#: src/Handlers/ExportReport.php:95 src/Handlers/ExportReport.php:106
+#: src/Handlers/ExportReport.php:114 src/Handlers/ExportReport.php:557
+#: src/Handlers/ExportReport.php:827 src/Handlers/ExportReport.php:1079
+#: src/PluginDashboardngConfig.php:228 js/assetReports.js:281
+#: js/ticketReports.js:288 js/ticketReports.js:341 js/ticketReports.js:429
+#: js/ticketReports.js:562 js/ticketReports.js:614 js/ticketReports.js:860
+#: js/ticketReports.js:901 js/ticketReports.js:1010 js/ticketReports.js:1056
+#: js/ticketReports.js:1124 js/ticketReports.js:1175
 msgid "Total"
-msgstr ""
+msgstr "Total"
 
-#: src/Pages/ConfigPage.php:61 src/Pages/TasksPage.php:31
-#: src/Pages/TicketsPage.php:31 src/Handlers/ExportReport.php:180
-#: src/PluginDashboardngConfig.php:257 js/taskReports.js:202
-#: js/ticketReports.js:193
+#: src/Pages/ConfigPage.php:61 src/Pages/TasksPage.php:33
+#: src/Pages/TicketsPage.php:33 src/Handlers/ExportReport.php:339
+#: src/PluginDashboardngConfig.php:229
 msgid "Current year"
-msgstr ""
+msgstr "Année en cours"
 
-#: src/Pages/ConfigPage.php:62 src/Pages/TasksPage.php:32
-#: src/Pages/TicketsPage.php:32 src/Handlers/ExportReport.php:181
-#: src/PluginDashboardngConfig.php:258 js/taskReports.js:203
-#: js/ticketReports.js:194
+#: src/Pages/ConfigPage.php:62 src/Pages/TasksPage.php:34
+#: src/Pages/TicketsPage.php:34 src/Handlers/ExportReport.php:340
+#: src/PluginDashboardngConfig.php:230
 msgid "Current month"
-msgstr ""
+msgstr "Mois en cours"
 
-#: src/Pages/ConfigPage.php:63 src/PluginDashboardngConfig.php:259
+#: src/Pages/ConfigPage.php:63 src/PluginDashboardngConfig.php:231
 msgid "Last week"
-msgstr ""
+msgstr "Semaine dernière"
 
-#: src/Pages/ConfigPage.php:64 src/Pages/TasksPage.php:34
-#: src/Pages/TicketsPage.php:34 src/Handlers/ExportReport.php:183
-#: src/PluginDashboardngConfig.php:260 js/taskReports.js:205
-#: js/ticketReports.js:196
+#: src/Pages/ConfigPage.php:64 src/Pages/TasksPage.php:36
+#: src/Pages/TicketsPage.php:36 src/Handlers/ExportReport.php:342
+#: src/PluginDashboardngConfig.php:232
 msgid "Last 15 days"
-msgstr ""
+msgstr "15 derniers jours"
 
-#: src/Pages/ConfigPage.php:65 src/Pages/TasksPage.php:35
-#: src/Pages/TicketsPage.php:35 src/Handlers/ExportReport.php:184
-#: src/PluginDashboardngConfig.php:261 js/taskReports.js:206
-#: js/ticketReports.js:197
+#: src/Pages/ConfigPage.php:65 src/Pages/TasksPage.php:37
+#: src/Pages/TicketsPage.php:37 src/Handlers/ExportReport.php:343
+#: src/PluginDashboardngConfig.php:233
 msgid "Last 30 days"
-msgstr ""
+msgstr "30 derniers jours"
 
-#: src/Pages/ConfigPage.php:66 src/Pages/TasksPage.php:36
-#: src/Pages/TicketsPage.php:36 src/Handlers/ExportReport.php:185
-#: src/PluginDashboardngConfig.php:262 js/taskReports.js:207
-#: js/ticketReports.js:198
+#: src/Pages/ConfigPage.php:66 src/Pages/TasksPage.php:38
+#: src/Pages/TicketsPage.php:38 src/Handlers/ExportReport.php:344
+#: src/PluginDashboardngConfig.php:234
 msgid "Last 90 days"
-msgstr ""
+msgstr "90 derniers jours"
 
-#: src/Pages/ConfigPage.php:67 src/Pages/TasksPage.php:37
-#: src/Pages/TicketsPage.php:37 src/Handlers/ExportReport.php:186
-#: src/PluginDashboardngConfig.php:263 js/taskReports.js:208
-#: js/ticketReports.js:199
+#: src/Pages/ConfigPage.php:67 src/Pages/TasksPage.php:39
+#: src/Pages/TicketsPage.php:39 src/Handlers/ExportReport.php:345
+#: src/PluginDashboardngConfig.php:235
 msgid "Last 180 days"
-msgstr ""
+msgstr "180 derniers jours"
 
-#: src/Pages/ConfigPage.php:79 src/PluginDashboardngConfig.php:246
+#: src/Pages/ConfigPage.php:79 src/PluginDashboardngConfig.php:218
 msgid "Refresh Interval (seconds)"
-msgstr ""
+msgstr "Intervalle de rafraîchissement (secondes)"
 
-#: src/Pages/ConfigPage.php:80 src/PluginDashboardngConfig.php:252
+#: src/Pages/ConfigPage.php:80 src/PluginDashboardngConfig.php:224
 msgid "Default Period"
-msgstr ""
+msgstr "Période par défaut"
 
-#: src/Pages/ConfigPage.php:81 src/PluginDashboardngConfig.php:298
+#: src/Pages/ConfigPage.php:81 src/Pages/TasksPage.php:95
+#: src/Pages/TicketsPage.php:115 src/Pages/AssetsPage.php:100
+#: src/PluginDashboardngConfig.php:298 js/components/ui/SettingsModal.js:99
 msgid "Save"
-msgstr ""
-
-#: src/Pages/TasksPage.php:24 src/Pages/TicketsPage.php:24
-#: src/Pages/AbstractPage.php:84 src/Pages/AssetsPage.php:24
-#: js/widgets/generic/GenericChartWidget.js:324
-#: js/widgets/generic/GenericCardWidget.js:156
-#: js/widgets/generic/GenericTableWidget.js:238 js/taskReports.js:79
-#: js/assetReports.js:65 js/components/charts/ChartCard.js:10
-#: js/ticketReports.js:67
-msgid "Loading..."
-msgstr ""
-
-#: src/Pages/TasksPage.php:25 src/Pages/TicketsPage.php:25
-#: src/Pages/AssetsPage.php:25
-msgid "Error loading report"
-msgstr ""
+msgstr "Enregistrer"
 
 #: src/Pages/TasksPage.php:26 src/Pages/TicketsPage.php:26
-#: src/Pages/AssetsPage.php:26 js/widgets/generic/GenericChartWidget.js:343
-#: js/widgets/generic/GenericChartWidget.js:359
-#: js/widgets/generic/GenericTableWidget.js:257 js/taskReports.js:103
-#: js/assetReports.js:89 js/components/lists/LoggedUsersList.js:17
-#: js/components/lists/SystemHealth.js:15
-#: js/components/lists/TechnicianWorkload.js:19
-#: js/components/lists/LastEventsList.js:46
-#: js/components/lists/RecentTicketsList.js:44
-#: js/components/charts/BarChart.js:98 js/components/charts/PieChart.js:79
-#: js/components/charts/PieChart.js:84 js/ticketReports.js:91
-msgid "No data available"
-msgstr ""
+#: src/Pages/AbstractPage.php:114 src/Pages/AssetsPage.php:26
+#: js/widgets/generic/GenericChartWidget.js:343
+#: js/widgets/generic/GenericCardWidget.js:141
+#: js/widgets/generic/GenericTableWidget.js:165
+#: js/components/ui/common/LoadingSpinner.js:8
+#: js/components/ui/ReportCard.js:42 js/components/charts/ChartCard.js:23
+msgid "Loading..."
+msgstr "Chargement..."
 
 #: src/Pages/TasksPage.php:27 src/Pages/TicketsPage.php:27
-#: src/Pages/AssetsPage.php:27 js/taskReports.js:92 js/assetReports.js:78
-#: js/ticketReports.js:80
+#: src/Pages/AssetsPage.php:27
+msgid "Error loading report"
+msgstr "Erreur lors du chargement du rapport"
+
+#: src/Pages/TasksPage.php:28 src/Pages/TicketsPage.php:28
+#: src/Pages/AssetsPage.php:28 js/widgets/generic/GenericChartWidget.js:362
+#: js/widgets/generic/GenericChartWidget.js:378
+#: js/widgets/generic/GenericTableWidget.js:189 js/assetReports.js:343
+#: js/assetReports.js:378 js/components/ui/common/EmptyState.js:8
+#: js/components/charts/BarChart.js:110 js/components/charts/PieChart.js:127
+#: js/components/charts/PieChart.js:133
+msgid "No data available"
+msgstr "Aucune donnée disponible"
+
+#: src/Pages/TasksPage.php:29 src/Pages/TicketsPage.php:29
+#: src/Pages/AssetsPage.php:29 js/components/ui/common/ErrorAlert.js:12
+#: js/components/ui/ReportCard.js:52
 msgid "Retry"
-msgstr ""
+msgstr "Réessayer"
 
-#: src/Pages/TasksPage.php:30 src/Pages/TicketsPage.php:30
-#: src/Handlers/ExportReport.php:179 js/taskReports.js:201
-#: js/ticketReports.js:192
+#: src/Pages/TasksPage.php:32 src/Pages/TicketsPage.php:32
+#: src/Handlers/ExportReport.php:338
 msgid "All time"
-msgstr ""
+msgstr "Toutes les périodes"
 
-#: src/Pages/TasksPage.php:33 src/Pages/TicketsPage.php:33
-#: src/Handlers/ExportReport.php:182 js/taskReports.js:204
-#: js/ticketReports.js:195
+#: src/Pages/TasksPage.php:35 src/Pages/TicketsPage.php:35
+#: src/Handlers/ExportReport.php:341
 msgid "Last 7 days"
-msgstr ""
+msgstr "7 derniers jours"
 
-#: src/Pages/TasksPage.php:40 src/NavigationBar.php:209 js/taskReports.js:726
+#: src/Pages/TasksPage.php:42 src/NavigationBar.php:110 js/taskReports.js:614
 msgid "Task Reports"
-msgstr ""
+msgstr "Rapports de tâches"
 
-#: src/Pages/TasksPage.php:41 src/Pages/TicketsPage.php:41
-#: src/Pages/AssetsPage.php:31 js/taskReports.js:699 js/assetReports.js:851
-#: js/ticketReports.js:862
+#: src/Pages/TasksPage.php:43 src/Pages/TicketsPage.php:43
+#: js/taskReports.js:574 js/ticketReports.js:1273
 msgid "Overview"
-msgstr ""
+msgstr "Vue d'ensemble"
 
-#: src/Pages/TasksPage.php:42 src/Pages/TicketsPage.php:43
-#: js/taskReports.js:700 js/ticketReports.js:864
+#: src/Pages/TasksPage.php:44 src/Pages/TicketsPage.php:45
+#: js/taskReports.js:575 js/ticketReports.js:1277
 msgid "By Technician"
-msgstr ""
+msgstr "Par technicien"
 
-#: src/Pages/TasksPage.php:43 src/Pages/TicketsPage.php:42
-#: src/Pages/AssetsPage.php:35 js/taskReports.js:701 js/assetReports.js:855
-#: js/ticketReports.js:863
+#: src/Pages/TasksPage.php:45 src/Pages/TicketsPage.php:44
+#: src/Pages/AssetsPage.php:57 js/taskReports.js:576 js/assetReports.js:407
+#: js/ticketReports.js:1274
 msgid "By Entity"
-msgstr ""
+msgstr "Par entité"
 
-#: src/Pages/TasksPage.php:44 js/taskReports.js:702
+#: src/Pages/TasksPage.php:46 js/taskReports.js:577
 msgid "By Ticket"
-msgstr ""
-
-#: src/Pages/TasksPage.php:45 src/Pages/TicketsPage.php:48
-#: js/taskReports.js:729 js/ticketReports.js:901
-msgid "Period"
-msgstr ""
-
-#: src/Pages/TasksPage.php:46 src/Pages/TicketsPage.php:49
-#: src/Pages/AssetsPage.php:38
-msgid "Print"
-msgstr ""
+msgstr "Par ticket"
 
 #: src/Pages/TasksPage.php:47 src/Pages/TicketsPage.php:50
-#: src/Pages/AssetsPage.php:39 js/taskReports.js:171 js/assetReports.js:157
-#: js/ticketReports.js:162
+#: src/Handlers/ExportReport.php:498 src/Handlers/ExportReport.php:722
+#: src/Handlers/ExportReport.php:1023 js/taskReports.js:618
+#: js/assetReports.js:667 js/ticketReports.js:1377
+msgid "Period"
+msgstr "Période"
+
+#: src/Pages/TasksPage.php:48 src/Pages/TicketsPage.php:51
+#: src/Pages/AssetsPage.php:33
+msgid "Print"
+msgstr "Imprimer"
+
+#: src/Pages/TasksPage.php:49 src/Pages/TicketsPage.php:52
+#: src/Pages/AssetsPage.php:34 js/components/ui/ExportDropdown.js:187
 msgid "Export"
-msgstr ""
+msgstr "Exporter"
 
-#: src/Pages/TasksPage.php:50 js/taskReports.js:439
+#: src/Pages/TasksPage.php:52 js/taskReports.js:224
 msgid "Total Tasks"
-msgstr ""
+msgstr "Total des tâches"
 
-#: src/Pages/TasksPage.php:51 js/taskReports.js:447
+#: src/Pages/TasksPage.php:53 js/taskReports.js:232
 msgid "Total Time Spent"
-msgstr ""
+msgstr "Temps total passé"
 
-#: src/Pages/TasksPage.php:52 js/taskReports.js:455
+#: src/Pages/TasksPage.php:54 js/taskReports.js:240
 msgid "Total Hours"
-msgstr ""
+msgstr "Heures totales"
 
-#: src/Pages/TasksPage.php:53 js/taskReports.js:477 js/taskReports.js:522
-#: js/taskReports.js:592 js/taskReports.js:668
+#: src/Pages/TasksPage.php:55 src/Handlers/ExportReport.php:129
+#: src/Handlers/ExportReport.php:138 src/Handlers/ExportReport.php:148
+#: src/Handlers/ExportReport.php:569 src/Handlers/ExportReport.php:839
+#: src/Handlers/ExportReport.php:1091 js/taskReports.js:272
+#: js/taskReports.js:294 js/taskReports.js:340 js/taskReports.js:418
+#: js/taskReports.js:502
 msgid "Time Spent"
-msgstr ""
+msgstr "Temps passé"
 
-#: src/Pages/TasksPage.php:54 src/Pages/TasksPage.php:62 js/taskReports.js:474
-#: js/taskReports.js:519 js/taskReports.js:589 js/taskReports.js:662
+#: src/Pages/TasksPage.php:56 src/Pages/TasksPage.php:64
+#: src/Handlers/ExportReport.php:128 src/Handlers/ExportReport.php:137
+#: src/Handlers/ExportReport.php:147 src/Handlers/ExportReport.php:568
+#: src/Handlers/ExportReport.php:838 src/Handlers/ExportReport.php:1090
+#: js/taskReports.js:267 js/taskReports.js:291 js/taskReports.js:335
+#: js/taskReports.js:415 js/taskReports.js:496
 msgid "Tasks"
-msgstr ""
+msgstr "Tâches"
 
-#: src/Pages/TasksPage.php:55 js/taskReports.js:528 js/taskReports.js:598
+#: src/Pages/TasksPage.php:57 src/Handlers/ExportReport.php:130
+#: src/Handlers/ExportReport.php:139 js/taskReports.js:346
+#: js/taskReports.js:424
 msgid "Hours"
-msgstr ""
+msgstr "Heures"
 
-#: src/Pages/TasksPage.php:58 src/Pages/TicketsPage.php:60
-#: src/NavigationBar.php:223 js/taskReports.js:518 js/ticketReports.js:540
+#: src/Pages/TasksPage.php:60 src/Pages/TicketsPage.php:62
+#: src/Handlers/ExportReport.php:56 src/Handlers/ExportReport.php:127
+#: js/taskReports.js:332 js/ticketReports.js:681
 msgid "Technician"
-msgstr ""
+msgstr "Technicien"
 
-#: src/Pages/TasksPage.php:59 src/Pages/TicketsPage.php:59
-#: src/Pages/AssetsPage.php:68 js/taskReports.js:588 js/assetReports.js:709
-#: js/ticketReports.js:479
+#: src/Pages/TasksPage.php:61 src/Pages/TicketsPage.php:61
+#: src/Pages/AssetsPage.php:68 src/Handlers/ExportReport.php:44
+#: src/Handlers/ExportReport.php:136 js/taskReports.js:414
+#: js/ticketReports.js:561
 msgid "Entity"
-msgstr ""
+msgstr "Entité"
 
-#: src/Pages/TasksPage.php:60 js/taskReports.js:656
+#: src/Pages/TasksPage.php:62 src/Handlers/ExportReport.php:145
+#: js/taskReports.js:489
 msgid "ID"
-msgstr ""
+msgstr "ID"
 
-#: src/Pages/TasksPage.php:61 js/taskReports.js:659
+#: src/Pages/TasksPage.php:63 src/Handlers/ExportReport.php:146
+#: js/taskReports.js:493
 msgid "Ticket"
-msgstr ""
+msgstr "Ticket"
 
-#: src/Pages/TasksPage.php:63 src/Pages/TicketsPage.php:61
-#: src/NavigationBar.php:216 js/taskReports.js:473 js/ticketReports.js:699
+#: src/Pages/TasksPage.php:65 src/Pages/TicketsPage.php:63
+#: src/Pages/AssetsPage.php:72 src/Handlers/ExportReport.php:72
+#: src/Handlers/ExportReport.php:567 src/Handlers/ExportReport.php:638
+#: src/Handlers/ExportReport.php:837 src/Handlers/ExportReport.php:938
+#: src/Handlers/ExportReport.php:1089 src/Handlers/ExportReport.php:1200
+#: js/taskReports.js:264 js/taskReports.js:290 js/assetReports.js:519
+#: js/ticketReports.js:900
 msgid "Category"
-msgstr ""
+msgstr "Catégorie"
 
-#: src/Pages/TasksPage.php:64 src/Pages/TicketsPage.php:70
-#: src/Pages/AssetsPage.php:64 js/assetReports.js:436 js/assetReports.js:495
-#: js/assetReports.js:514 js/assetReports.js:533 js/assetReports.js:591
-#: js/assetReports.js:604 js/assetReports.js:617
-#: js/components/ui/WidgetConfigModal.js:220 js/ticketReports.js:422
-#: js/ticketReports.js:440
+#: src/Pages/TasksPage.php:66 src/Pages/TicketsPage.php:72
+#: src/Pages/AssetsPage.php:73 src/Handlers/ExportReport.php:533
+#: src/Handlers/ExportReport.php:538 src/Handlers/ExportReport.php:614
+#: src/Handlers/ExportReport.php:619 src/Handlers/ExportReport.php:625
+#: src/Handlers/ExportReport.php:632 src/Handlers/ExportReport.php:639
+#: src/Handlers/ExportReport.php:645 src/Handlers/ExportReport.php:803
+#: src/Handlers/ExportReport.php:808 src/Handlers/ExportReport.php:914
+#: src/Handlers/ExportReport.php:919 src/Handlers/ExportReport.php:925
+#: src/Handlers/ExportReport.php:932 src/Handlers/ExportReport.php:939
+#: src/Handlers/ExportReport.php:945 src/Handlers/ExportReport.php:1055
+#: src/Handlers/ExportReport.php:1060 src/Handlers/ExportReport.php:1176
+#: src/Handlers/ExportReport.php:1181 src/Handlers/ExportReport.php:1187
+#: src/Handlers/ExportReport.php:1194 src/Handlers/ExportReport.php:1201
+#: src/Handlers/ExportReport.php:1207 js/assetReports.js:338
+#: js/assetReports.js:373 js/assetReports.js:450 js/assetReports.js:481
+#: js/assetReports.js:523 js/assetReports.js:556
+#: js/components/ui/widgetconfig/DataSourceStep.js:342 js/ticketReports.js:509
+#: js/ticketReports.js:537
 msgid "Count"
-msgstr ""
+msgstr "Nombre"
 
-#: src/Pages/TasksPage.php:67 js/taskReports.js:536
+#: src/Pages/TasksPage.php:69 js/taskReports.js:354 js/taskReports.js:365
 msgid "Tasks by Technician"
-msgstr ""
+msgstr "Tâches par technicien"
 
-#: src/Pages/TasksPage.php:68 js/taskReports.js:606
+#: src/Pages/TasksPage.php:70 js/taskReports.js:432 js/taskReports.js:443
 msgid "Tasks by Entity"
-msgstr ""
+msgstr "Tâches par entité"
 
-#: src/Pages/TasksPage.php:69 js/taskReports.js:465
+#: src/Pages/TasksPage.php:71 src/Handlers/ExportReport.php:573
+#: src/Handlers/ExportReport.php:842 src/Handlers/ExportReport.php:1094
+#: js/taskReports.js:251
 msgid "Tasks by Category"
-msgstr ""
+msgstr "Tâches par catégorie"
 
-#: src/Pages/TasksPage.php:70 js/taskReports.js:470
+#: src/Pages/TasksPage.php:72 src/Handlers/ExportReport.php:574
+#: src/Handlers/ExportReport.php:843 src/Handlers/ExportReport.php:1095
+#: js/taskReports.js:286
 msgid "Category Breakdown"
-msgstr ""
+msgstr "Répartition par catégorie"
 
-#: src/Pages/TasksPage.php:71 js/taskReports.js:676
+#: src/Pages/TasksPage.php:73 js/taskReports.js:510
 msgid "Tickets with Most Tasks"
-msgstr ""
+msgstr "Tickets avec le plus de tâches"
 
-#: src/Pages/TasksPage.php:74 src/Pages/TicketsPage.php:94
-#: js/taskReports.js:553 js/ticketReports.js:568
+#: src/Pages/TasksPage.php:76 src/Pages/TicketsPage.php:96
+#: js/taskReports.js:359 js/taskReports.js:382 js/ticketReports.js:732
+#: js/ticketReports.js:756 js/ticketReports.js:787
 msgid "No technician data available"
-msgstr ""
+msgstr "Aucune donnée de technicien disponible"
 
-#: src/Pages/TasksPage.php:75 src/Pages/TicketsPage.php:93
-#: src/Pages/AssetsPage.php:79 js/taskReports.js:619 js/assetReports.js:728
-#: js/ticketReports.js:507
+#: src/Pages/TasksPage.php:77 src/Pages/TicketsPage.php:95
+#: js/taskReports.js:437 js/taskReports.js:456 js/ticketReports.js:608
+#: js/ticketReports.js:632 js/ticketReports.js:663
 msgid "No entity data available"
-msgstr ""
+msgstr "Aucune donnée d'entité disponible"
 
-#: src/Pages/TasksPage.php:76 src/Pages/TicketsPage.php:95
-#: js/taskReports.js:483 js/ticketReports.js:732
+#: src/Pages/TasksPage.php:78 src/Pages/TicketsPage.php:97
+#: js/taskReports.js:278 js/taskReports.js:300 js/ticketReports.js:946
+#: js/ticketReports.js:966 js/ticketReports.js:991
 msgid "No category data available"
-msgstr ""
+msgstr "Aucune donnée de catégorie disponible"
 
-#: src/Pages/TasksPage.php:77 src/Pages/AssetsPage.php:84 js/taskReports.js:684
-#: js/assetReports.js:837
+#: src/Pages/TasksPage.php:79 js/taskReports.js:518
 msgid "No ticket data available"
-msgstr ""
+msgstr "Aucune donnée de ticket disponible"
 
-#: src/Pages/TasksPage.php:78 src/Pages/TicketsPage.php:98
-#: src/Pages/AssetsPage.php:85 js/taskReports.js:716 js/assetReports.js:877
-#: js/ticketReports.js:888
+#: src/Pages/TasksPage.php:80 src/Pages/TicketsPage.php:100
+#: js/taskReports.js:604 js/ticketReports.js:1362
 msgid "Select a report type"
-msgstr ""
-
-#: src/Pages/TasksPage.php:81 src/Pages/TicketsPage.php:101
-#: src/Pages/AssetsPage.php:88 js/taskReports.js:153 js/assetReports.js:139
-#: js/ticketReports.js:144
-msgid "Comma-separated values"
-msgstr ""
-
-#: src/Pages/TasksPage.php:82 src/Pages/TicketsPage.php:102
-#: src/Pages/AssetsPage.php:89 js/taskReports.js:154 js/assetReports.js:140
-#: js/ticketReports.js:145
-msgid "Microsoft Excel format"
-msgstr ""
+msgstr "Sélectionner un type de rapport"
 
 #: src/Pages/TasksPage.php:83 src/Pages/TicketsPage.php:103
-#: src/Pages/AssetsPage.php:90 js/taskReports.js:155 js/assetReports.js:141
-#: js/ticketReports.js:146
-msgid "Portable Document Format"
-msgstr ""
+#: src/Pages/AssetsPage.php:88 js/components/ui/ExportDropdown.js:155
+msgid "Comma-separated values"
+msgstr "Valeurs séparées par des virgules"
 
 #: src/Pages/TasksPage.php:84 src/Pages/TicketsPage.php:104
-#: src/Pages/AssetsPage.php:91 js/taskReports.js:146 js/assetReports.js:132
-#: js/ticketReports.js:137
+#: src/Pages/AssetsPage.php:89 js/components/ui/ExportDropdown.js:161
+msgid "Microsoft Excel format"
+msgstr "Format Microsoft Excel"
+
+#: src/Pages/TasksPage.php:85 src/Pages/TicketsPage.php:105
+#: src/Pages/AssetsPage.php:90 js/components/ui/ExportDropdown.js:167
+msgid "Portable Document Format"
+msgstr "Format PDF"
+
+#: src/Pages/TasksPage.php:86 src/Pages/TicketsPage.php:106
+#: src/Pages/AssetsPage.php:91 js/components/ui/ExportDropdown.js:89
 msgid "Export failed. Please try again."
-msgstr ""
+msgstr "L'exportation a échoué. Veuillez réessayer."
 
-#: src/Pages/TicketsPage.php:40 js/ticketReports.js:898
+#: src/Pages/TasksPage.php:89 src/Pages/TicketsPage.php:109
+#: src/Pages/AssetsPage.php:94 js/components/ui/SettingsModal.js:48
+msgid "Chart Settings"
+msgstr "Paramètres du graphique"
+
+#: src/Pages/TasksPage.php:90 src/Pages/TicketsPage.php:110
+#: src/Pages/AssetsPage.php:95 js/components/ui/SettingsModal.js:56
+msgid "Top K elements"
+msgstr "K premiers éléments"
+
+#: src/Pages/TasksPage.php:91 src/Pages/TicketsPage.php:111
+#: src/Pages/AssetsPage.php:96 js/components/ui/SettingsModal.js:58
+msgid "Show only the top K elements; group the rest as Others"
+msgstr ""
+"Afficher uniquement les K premiers éléments; regrouper le reste sous 'Autres'"
+
+#: src/Pages/TasksPage.php:92 src/Pages/TicketsPage.php:112
+#: src/Pages/AssetsPage.php:97 js/components/ui/SettingsModal.js:69
+msgid "All"
+msgstr "Tous"
+
+#: src/Pages/TasksPage.php:93 src/Pages/TicketsPage.php:113
+#: src/Pages/AssetsPage.php:98 js/components/ui/SettingsModal.js:71
+msgid "items"
+msgstr "éléments"
+
+#: src/Pages/TasksPage.php:94 src/Pages/TicketsPage.php:114
+#: src/Pages/AssetsPage.php:99 js/components/ui/SettingsModal.js:84
+msgid "No specific settings available for this chart type."
+msgstr "Aucun paramètre spécifique disponible pour ce type de graphique."
+
+#: src/Pages/TasksPage.php:96 src/Pages/TicketsPage.php:116
+#: src/Pages/AssetsPage.php:101 js/components/ui/ExportDropdown.js:288
+#: js/components/ui/SettingsModal.js:91
+msgid "Cancel"
+msgstr "Annuler"
+
+#: src/Pages/TasksPage.php:97 src/Pages/TicketsPage.php:117
+#: src/Pages/AssetsPage.php:102 js/components/ui/ReportCard.js:29
+msgid "Settings"
+msgstr "Paramètres"
+
+#: src/Pages/TasksPage.php:98 src/Pages/AssetsPage.php:103 js/taskReports.js:58
+#: js/assetReports.js:117 js/components/charts/PieChart.js:39
+#: js/ticketReports.js:70 js/ticketReports.js:118
+msgid "Others"
+msgstr "Autres"
+
+#: src/Pages/TicketsPage.php:42 js/ticketReports.js:1373
 msgid "Ticket Reports"
-msgstr ""
+msgstr "Rapports de tickets"
 
-#: src/Pages/TicketsPage.php:44 js/ticketReports.js:865
+#: src/Pages/TicketsPage.php:46 js/ticketReports.js:1282
 msgid "SLA Compliance"
-msgstr ""
+msgstr "Conformité SLA"
 
-#: src/Pages/TicketsPage.php:45 js/ticketReports.js:866
+#: src/Pages/TicketsPage.php:47 src/Pages/AssetsPage.php:61
+#: src/Handlers/ExportReport.php:637 src/Handlers/ExportReport.php:937
+#: src/Handlers/ExportReport.php:1199 js/assetReports.js:504
+#: js/ticketReports.js:1285
 msgid "By Category"
-msgstr ""
+msgstr "Par catégorie"
 
-#: src/Pages/TicketsPage.php:46 js/ticketReports.js:867
+#: src/Pages/TicketsPage.php:48 js/ticketReports.js:1286
 msgid "By Group"
-msgstr ""
+msgstr "Par groupe"
 
-#: src/Pages/TicketsPage.php:47 js/ticketReports.js:868
+#: src/Pages/TicketsPage.php:49 js/ticketReports.js:1289
 msgid "By Priority"
-msgstr ""
+msgstr "Par priorité"
 
-#: src/Pages/TicketsPage.php:53 js/ticketReports.js:379
+#: src/Pages/TicketsPage.php:55 js/ticketReports.js:458
 msgid "Total Tickets"
-msgstr ""
+msgstr "Total des tickets"
 
-#: src/Pages/TicketsPage.php:54 js/ticketReports.js:387 js/ticketReports.js:481
-#: js/ticketReports.js:542 js/ticketReports.js:707 js/ticketReports.js:767
-#: js/ticketReports.js:822
+#: src/Pages/TicketsPage.php:56 src/Handlers/ExportReport.php:47
+#: src/Handlers/ExportReport.php:59 src/Handlers/ExportReport.php:75
+#: src/Handlers/ExportReport.php:86 src/Handlers/ExportReport.php:97
+#: src/Handlers/ExportReport.php:115 js/ticketReports.js:296
+#: js/ticketReports.js:342 js/ticketReports.js:466 js/ticketReports.js:571
+#: js/ticketReports.js:638 js/ticketReports.js:695 js/ticketReports.js:762
+#: js/ticketReports.js:910 js/ticketReports.js:1019 js/ticketReports.js:1080
+#: js/ticketReports.js:1133
 msgid "Resolved"
-msgstr ""
+msgstr "Résolu"
 
-#: src/Pages/TicketsPage.php:55 src/Pages/TicketsPage.php:65
-#: js/ticketReports.js:395 js/ticketReports.js:482 js/ticketReports.js:543
-#: js/ticketReports.js:768
+#: src/Pages/TicketsPage.php:57 src/Pages/TicketsPage.php:67
+#: src/Handlers/ExportReport.php:48 src/Handlers/ExportReport.php:60
+#: src/Handlers/ExportReport.php:87 js/ticketReports.js:474
+#: js/ticketReports.js:574 js/ticketReports.js:643 js/ticketReports.js:698
+#: js/ticketReports.js:767 js/ticketReports.js:1022 js/ticketReports.js:1085
 msgid "Open"
-msgstr ""
+msgstr "Ouvert"
 
-#: src/Pages/TicketsPage.php:56 js/ticketReports.js:403
+#: src/Pages/TicketsPage.php:58 js/ticketReports.js:322 js/ticketReports.js:482
+#: js/ticketReports.js:1199
 msgid "Resolution Rate"
-msgstr ""
+msgstr "Taux de résolution"
 
-#: src/Pages/TicketsPage.php:62 js/ticketReports.js:765
+#: src/Pages/TicketsPage.php:64 src/Handlers/ExportReport.php:83
+#: js/ticketReports.js:1009
 msgid "Group"
-msgstr ""
+msgstr "Grouper"
 
-#: src/Pages/TicketsPage.php:63 js/ticketReports.js:820
+#: src/Pages/TicketsPage.php:65 src/Handlers/ExportReport.php:94
+#: js/ticketReports.js:1123
 msgid "Priority"
-msgstr ""
+msgstr "Priorité"
 
-#: src/Pages/TicketsPage.php:66 js/ticketReports.js:541
+#: src/Pages/TicketsPage.php:68 src/Handlers/ExportReport.php:57
+#: js/ticketReports.js:684 js/ticketReports.js:738
 msgid "Assigned"
-msgstr ""
+msgstr "Assigné"
 
-#: src/Pages/TicketsPage.php:67 js/ticketReports.js:485 js/ticketReports.js:546
-#: js/ticketReports.js:660 js/ticketReports.js:710 js/ticketReports.js:771
-#: js/ticketReports.js:825
+#: src/Pages/TicketsPage.php:69 src/Handlers/ExportReport.php:49
+#: src/Handlers/ExportReport.php:61 src/Handlers/ExportReport.php:76
+#: src/Handlers/ExportReport.php:88 src/Handlers/ExportReport.php:98
+#: src/Handlers/ExportReport.php:116 src/Handlers/ExportReport.php:560
+#: src/Handlers/ExportReport.php:830 src/Handlers/ExportReport.php:1082
+#: js/ticketReports.js:345 js/ticketReports.js:577 js/ticketReports.js:701
+#: js/ticketReports.js:869 js/ticketReports.js:915 js/ticketReports.js:1025
+#: js/ticketReports.js:1138
 msgid "Rate"
-msgstr ""
+msgstr "Taux"
 
-#: src/Pages/TicketsPage.php:68 js/ticketReports.js:703
+#: src/Pages/TicketsPage.php:70 src/Handlers/ExportReport.php:46
+#: src/Handlers/ExportReport.php:58 src/Handlers/ExportReport.php:74
+#: src/Handlers/ExportReport.php:85 src/Handlers/ExportReport.php:96
+#: src/Handlers/ExportReport.php:107 js/ticketReports.js:432
+#: js/ticketReports.js:565 js/ticketReports.js:689 js/ticketReports.js:904
+#: js/ticketReports.js:1013 js/ticketReports.js:1127
 msgid "Share"
-msgstr ""
+msgstr "Partager"
 
-#: src/Pages/TicketsPage.php:69 js/ticketReports.js:491 js/ticketReports.js:552
-#: js/ticketReports.js:716 js/ticketReports.js:831
+#: src/Pages/TicketsPage.php:71 src/Handlers/ExportReport.php:50
+#: src/Handlers/ExportReport.php:62 src/Handlers/ExportReport.php:77
+#: src/Handlers/ExportReport.php:99 src/Handlers/ExportReport.php:117
+#: js/ticketReports.js:351 js/ticketReports.js:591 js/ticketReports.js:715
+#: js/ticketReports.js:929 js/ticketReports.js:1152
 msgid "Avg Time"
-msgstr ""
+msgstr "Temps moyen"
 
-#: src/Pages/TicketsPage.php:71 src/Pages/AssetsPage.php:63
-#: js/assetReports.js:435 js/assetReports.js:513 js/assetReports.js:818
-#: js/ticketReports.js:421
+#: src/Pages/TicketsPage.php:73 src/Pages/AssetsPage.php:71
+#: src/Handlers/ExportReport.php:532 src/Handlers/ExportReport.php:631
+#: src/Handlers/ExportReport.php:802 src/Handlers/ExportReport.php:931
+#: src/Handlers/ExportReport.php:1054 src/Handlers/ExportReport.php:1193
+#: js/assetReports.js:478 js/ticketReports.js:506
 msgid "Type"
-msgstr ""
+msgstr "Type"
 
-#: src/Pages/TicketsPage.php:72 src/Pages/AssetsPage.php:69
-#: js/assetReports.js:763 js/ticketReports.js:439
+#: src/Pages/TicketsPage.php:74 src/Pages/AssetsPage.php:66
+#: src/Handlers/ExportReport.php:537 src/Handlers/ExportReport.php:618
+#: src/Handlers/ExportReport.php:664 src/Handlers/ExportReport.php:807
+#: src/Handlers/ExportReport.php:918 src/Handlers/ExportReport.php:964
+#: src/Handlers/ExportReport.php:1059 src/Handlers/ExportReport.php:1180
+#: src/Handlers/ExportReport.php:1226 js/assetReports.js:370
+#: js/assetReports.js:593 js/ticketReports.js:534
 msgid "Status"
-msgstr ""
+msgstr "Statut"
 
-#: src/Pages/TicketsPage.php:73 src/Pages/AssetsPage.php:48
-#: js/assetReports.js:505 js/ticketReports.js:413
+#: src/Pages/TicketsPage.php:75 src/Pages/AssetsPage.php:60
+#: src/Handlers/ExportReport.php:531 src/Handlers/ExportReport.php:630
+#: src/Handlers/ExportReport.php:801 src/Handlers/ExportReport.php:930
+#: src/Handlers/ExportReport.php:1053 src/Handlers/ExportReport.php:1192
+#: js/assetReports.js:462 js/ticketReports.js:493
 msgid "By Type"
-msgstr ""
+msgstr "Par type"
 
-#: src/Pages/TicketsPage.php:74 src/Pages/AssetsPage.php:36
-#: js/assetReports.js:856 js/ticketReports.js:431
+#: src/Pages/TicketsPage.php:76 src/Pages/AssetsPage.php:55
+#: src/Handlers/ExportReport.php:536 src/Handlers/ExportReport.php:617
+#: src/Handlers/ExportReport.php:806 src/Handlers/ExportReport.php:917
+#: src/Handlers/ExportReport.php:1058 src/Handlers/ExportReport.php:1179
+#: js/assetReports.js:355 js/ticketReports.js:521
 msgid "By Status"
-msgstr ""
+msgstr "Par statut"
 
-#: src/Pages/TicketsPage.php:77 js/ticketReports.js:610
+#: src/Pages/TicketsPage.php:79 js/ticketReports.js:810
 msgid "With SLA"
-msgstr ""
+msgstr "Avec SLA"
 
-#: src/Pages/TicketsPage.php:78 js/ticketReports.js:618 js/ticketReports.js:656
+#: src/Pages/TicketsPage.php:80 src/Handlers/ExportReport.php:558
+#: src/Handlers/ExportReport.php:828 src/Handlers/ExportReport.php:1080
+#: js/ticketReports.js:818 js/ticketReports.js:863
 msgid "On Time"
-msgstr ""
+msgstr "À temps"
 
-#: src/Pages/TicketsPage.php:79 js/components/kpi/KPIGrid.js:10
-#: js/ticketReports.js:626 js/ticketReports.js:657
+#: src/Pages/TicketsPage.php:81 src/Handlers/ExportReport.php:559
+#: src/Handlers/ExportReport.php:829 src/Handlers/ExportReport.php:1081
+#: js/ticketReports.js:826 js/ticketReports.js:866
 msgid "Late"
-msgstr ""
+msgstr "En retard"
 
-#: src/Pages/TicketsPage.php:80 js/ticketReports.js:634
+#: src/Pages/TicketsPage.php:82 js/ticketReports.js:834
 msgid "Overdue"
-msgstr ""
+msgstr "En dépassement"
 
-#: src/Pages/TicketsPage.php:81 js/ticketReports.js:642
+#: src/Pages/TicketsPage.php:83 js/ticketReports.js:842
 msgid "SLA Compliance Rate"
-msgstr ""
+msgstr "Taux de conformité SLA"
 
-#: src/Pages/TicketsPage.php:82 js/ticketReports.js:651
+#: src/Pages/TicketsPage.php:84 src/Handlers/ExportReport.php:555
+#: src/Handlers/ExportReport.php:825 src/Handlers/ExportReport.php:1077
+#: js/ticketReports.js:856
 msgid "Monthly SLA Trend"
-msgstr ""
+msgstr "Tendance SLA mensuelle"
 
-#: src/Pages/TicketsPage.php:83 js/ticketReports.js:654
+#: src/Pages/TicketsPage.php:85 src/Handlers/ExportReport.php:113
+#: src/Handlers/ExportReport.php:556 src/Handlers/ExportReport.php:826
+#: src/Handlers/ExportReport.php:1078
+#: js/components/ui/widgetconfig/DataSourceStep.js:323 js/ticketReports.js:340
+#: js/ticketReports.js:859
 msgid "Month"
-msgstr ""
+msgstr "Mois"
 
-#: src/Pages/TicketsPage.php:86 js/ticketReports.js:499
+#: src/Pages/TicketsPage.php:88 src/Handlers/ExportReport.php:42
+#: js/ticketReports.js:655
 msgid "Entity Report"
-msgstr ""
-
-#: src/Pages/TicketsPage.php:87 js/ticketReports.js:560
-msgid "Technician Performance"
-msgstr ""
-
-#: src/Pages/TicketsPage.php:88 js/ticketReports.js:724
-msgid "Category Report"
-msgstr ""
+msgstr "Rapport par entité"
 
 #: src/Pages/TicketsPage.php:89 js/ticketReports.js:779
+msgid "Technician Performance"
+msgstr "Performance des techniciens"
+
+#: src/Pages/TicketsPage.php:90 src/Handlers/ExportReport.php:70
+#: js/ticketReports.js:983
+msgid "Category Report"
+msgstr "Rapport par catégorie"
+
+#: src/Pages/TicketsPage.php:91 src/Handlers/ExportReport.php:81
+#: js/ticketReports.js:1097
 msgid "Group Report"
-msgstr ""
+msgstr "Rapport par groupe"
 
-#: src/Pages/TicketsPage.php:90 js/ticketReports.js:839
+#: src/Pages/TicketsPage.php:92 src/Handlers/ExportReport.php:92
+#: js/ticketReports.js:1210
 msgid "Priority Report"
-msgstr ""
+msgstr "Rapport par priorité"
 
-#: src/Pages/TicketsPage.php:96 js/ticketReports.js:787
+#: src/Pages/TicketsPage.php:98 js/ticketReports.js:1050
+#: js/ticketReports.js:1074 js/ticketReports.js:1105
 msgid "No group data available"
-msgstr ""
+msgstr "Aucune donnée de groupe disponible"
 
-#: src/Pages/TicketsPage.php:97 js/ticketReports.js:847
+#: src/Pages/TicketsPage.php:99 js/ticketReports.js:1169
+#: js/ticketReports.js:1193 js/ticketReports.js:1218
 msgid "No priority data available"
-msgstr ""
+msgstr "Aucune donnée de priorité disponible"
 
-#: src/Pages/AbstractPage.php:85
+#: src/Pages/AbstractPage.php:115
 msgid "Error"
-msgstr ""
+msgstr "Erreur"
 
-#: src/Pages/AbstractPage.php:86 js/dashboard.js:311
+#: src/Pages/AbstractPage.php:116
 msgid "Refresh"
-msgstr ""
+msgstr "Actualiser"
 
-#: src/Pages/ChartsPage.php:62
-#, php-format
-msgid "Charts - %s"
-msgstr ""
-
-#: src/Pages/ChartsPage.php:74
-msgid "Charts - Coming Soon"
-msgstr ""
-
-#: src/Pages/ChartsPage.php:75
-#, php-format
-msgid "The %s chart view is under development."
-msgstr ""
-
-#: src/Pages/AssetsPage.php:30 src/NavigationBar.php:208 js/assetReports.js:887
+#: src/Pages/AssetsPage.php:32 src/NavigationBar.php:104 js/assetReports.js:660
 msgid "Asset Reports"
-msgstr ""
+msgstr "Rapports d'actifs"
 
-#: src/Pages/AssetsPage.php:33 js/assetReports.js:853
-msgid "Hardware"
-msgstr ""
+#: src/Pages/AssetsPage.php:35 js/assetReports.js:70
+msgid "Asset Type"
+msgstr "Type d'actif"
 
-#: src/Pages/AssetsPage.php:34 js/assetReports.js:854
-msgid "By Location"
-msgstr ""
+#: src/Pages/AssetsPage.php:36 js/assetReports.js:692
+msgid "Showing reports for"
+msgstr "Affichage des rapports pour"
 
-#: src/Pages/AssetsPage.php:37 js/assetReports.js:857
-msgid "With Tickets"
-msgstr ""
+#: src/Pages/AssetsPage.php:39 js/assetReports.js:36
+msgid "Computers"
+msgstr "Ordinateurs"
 
-#: src/Pages/AssetsPage.php:42 js/assetReports.js:404
-msgid "Total Assets"
-msgstr ""
+#: src/Pages/AssetsPage.php:40 js/assetReports.js:42
+msgid "Monitors"
+msgstr "Écrans"
 
-#: src/Pages/AssetsPage.php:43 js/assetReports.js:427
-msgid "Assets by Type"
-msgstr ""
+#: src/Pages/AssetsPage.php:41 js/assetReports.js:46
+msgid "Printers"
+msgstr "Imprimantes"
 
-#: src/Pages/AssetsPage.php:44 js/assetReports.js:432
-msgid "Asset Distribution"
-msgstr ""
+#: src/Pages/AssetsPage.php:42 js/assetReports.js:49
+msgid "Network Equipment"
+msgstr "Équipement réseau"
 
-#: src/Pages/AssetsPage.php:47 js/assetReports.js:486
-msgid "By Operating System"
-msgstr ""
+#: src/Pages/AssetsPage.php:43 js/assetReports.js:53
+msgid "Phones"
+msgstr "Téléphones"
 
-#: src/Pages/AssetsPage.php:49 js/assetReports.js:524
+#: src/Pages/AssetsPage.php:44 js/assetReports.js:56
+msgid "Peripherals"
+msgstr "Périphériques"
+
+#: src/Pages/AssetsPage.php:45 js/assetReports.js:60
+msgid "Software"
+msgstr "Logiciels"
+
+#: src/Pages/AssetsPage.php:49 js/assetReports.js:289
+msgid "In Use"
+msgstr "En cours d'utilisation"
+
+#: src/Pages/AssetsPage.php:50 js/assetReports.js:297
+msgid "In Stock"
+msgstr "En stock"
+
+#: src/Pages/AssetsPage.php:51 js/assetReports.js:305
+msgid "With Open Tickets"
+msgstr "Avec tickets ouverts"
+
+#: src/Pages/AssetsPage.php:54 src/Handlers/ExportReport.php:612
+#: src/Handlers/ExportReport.php:912 src/Handlers/ExportReport.php:1174
+#: js/assetReports.js:317
 msgid "By Manufacturer"
-msgstr ""
+msgstr "Par fabricant"
 
-#: src/Pages/AssetsPage.php:52 js/assetReports.js:586
-msgid "Monitors by Manufacturer"
-msgstr ""
+#: src/Pages/AssetsPage.php:56 js/assetReports.js:393
+msgid "By Location"
+msgstr "Par emplacement"
 
-#: src/Pages/AssetsPage.php:53 js/assetReports.js:599
-msgid "Printers by Manufacturer"
-msgstr ""
+#: src/Pages/AssetsPage.php:58 src/Handlers/ExportReport.php:643
+#: src/Handlers/ExportReport.php:943 src/Handlers/ExportReport.php:1205
+#: js/assetReports.js:542
+msgid "By Model"
+msgstr "Par modèle"
 
-#: src/Pages/AssetsPage.php:54 js/assetReports.js:612
-msgid "Network Equipment by Manufacturer"
-msgstr ""
+#: src/Pages/AssetsPage.php:59 src/Handlers/ExportReport.php:623
+#: src/Handlers/ExportReport.php:923 src/Handlers/ExportReport.php:1185
+#: js/assetReports.js:430
+msgid "By Operating System"
+msgstr "Par système d'exploitation"
 
-#: src/Pages/AssetsPage.php:57 js/assetReports.js:661
-msgid "Assets by Location"
-msgstr ""
+#: src/Pages/AssetsPage.php:62 src/Handlers/ExportReport.php:660
+#: src/Handlers/ExportReport.php:960 src/Handlers/ExportReport.php:1222
+#: js/assetReports.js:575
+msgid "Recently Added"
+msgstr "Récemment ajouté"
 
-#: src/Pages/AssetsPage.php:58 js/assetReports.js:715
-msgid "Assets by Entity"
-msgstr ""
-
-#: src/Pages/AssetsPage.php:59 js/assetReports.js:769
-msgid "Assets by Status"
-msgstr ""
-
-#: src/Pages/AssetsPage.php:60 js/assetReports.js:829
-msgid "Assets with Most Tickets"
-msgstr ""
-
-#: src/Pages/AssetsPage.php:65 js/assetReports.js:494
-msgid "Operating System"
-msgstr ""
-
-#: src/Pages/AssetsPage.php:66 js/assetReports.js:532 js/assetReports.js:590
-#: js/assetReports.js:603 js/assetReports.js:616
+#: src/Pages/AssetsPage.php:65 src/Handlers/ExportReport.php:613
+#: src/Handlers/ExportReport.php:913 src/Handlers/ExportReport.php:1175
+#: js/assetReports.js:334
 msgid "Manufacturer"
-msgstr ""
+msgstr "Fabricant"
 
-#: src/Pages/AssetsPage.php:67 src/NavigationBar.php:220 js/assetReports.js:655
+#: src/Pages/AssetsPage.php:67 src/Handlers/ExportReport.php:663
+#: src/Handlers/ExportReport.php:963 src/Handlers/ExportReport.php:1225
+#: js/assetReports.js:592
 msgid "Location"
-msgid_plural "Locations"
-msgstr[0] ""
-msgstr[1] ""
+msgstr "Emplacement"
 
-#: src/Pages/AssetsPage.php:70 js/assetReports.js:817
-msgid "Asset Name"
-msgstr ""
+#: src/Pages/AssetsPage.php:69 src/Handlers/ExportReport.php:644
+#: src/Handlers/ExportReport.php:944 src/Handlers/ExportReport.php:1206
+#: js/assetReports.js:553
+msgid "Model"
+msgstr "Modèle"
 
-#: src/Pages/AssetsPage.php:71 js/assetReports.js:656 js/assetReports.js:710
-#: js/assetReports.js:764
-msgid "Asset Count"
-msgstr ""
+#: src/Pages/AssetsPage.php:70 src/Handlers/ExportReport.php:624
+#: src/Handlers/ExportReport.php:924 src/Handlers/ExportReport.php:1186
+#: js/assetReports.js:446
+msgid "Operating System"
+msgstr "Système d'exploitation"
 
-#: src/Pages/AssetsPage.php:72 src/NavigationBar.php:196 js/assetReports.js:821
-#: js/components/charts/UPlotChart.js:69
+#: src/Pages/AssetsPage.php:74 src/Handlers/ExportReport.php:661
+#: src/Handlers/ExportReport.php:961 src/Handlers/ExportReport.php:1223
+#: js/assetReports.js:580
+msgid "Name"
+msgstr "Nom"
+
+#: src/Pages/AssetsPage.php:75 src/Handlers/ExportReport.php:662
+#: src/Handlers/ExportReport.php:962 src/Handlers/ExportReport.php:1224
+#: js/assetReports.js:591
+msgid "Serial"
+msgstr "Numéro de série"
+
+#: src/Pages/AssetsPage.php:76 src/Handlers/ExportReport.php:665
+#: src/Handlers/ExportReport.php:965 src/Handlers/ExportReport.php:1227
+#: js/assetReports.js:594
+msgid "Created"
+msgstr "Créé"
+
+#: src/Pages/AssetsPage.php:77 js/assetReports.js:587
+msgid "(unnamed)"
+msgstr "(sans nom)"
+
+#: src/Pages/AssetsPage.php:80 js/assetReports.js:349
+msgid "No manufacturer data"
+msgstr "Aucune donnée de fabricant"
+
+#: src/Pages/AssetsPage.php:81 js/assetReports.js:384
+msgid "No status data"
+msgstr "Aucune donnée de statut"
+
+#: src/Pages/AssetsPage.php:82 js/assetReports.js:402
+msgid "No location data"
+msgstr "Aucune donnée d'emplacement"
+
+#: src/Pages/AssetsPage.php:83 js/assetReports.js:416
+msgid "No entity data"
+msgstr "Aucune donnée d'entité"
+
+#: src/Pages/AssetsPage.php:84 js/assetReports.js:491
+msgid "No type data"
+msgstr "Aucune donnée de type"
+
+#: src/Pages/AssetsPage.php:85 js/assetReports.js:597
+msgid "No recent items"
+msgstr "Aucun élément récent"
+
+#: src/NavigationBar.php:91 js/components/charts/UPlotChart.js:81
+#: js/ticketReports.js:410
 msgid "Tickets"
-msgstr ""
+msgstr "Tickets"
 
-#: src/Pages/AssetsPage.php:75 js/assetReports.js:498
-msgid "No OS data available"
-msgstr ""
-
-#: src/Pages/AssetsPage.php:76 js/assetReports.js:517
-msgid "No type data available"
-msgstr ""
-
-#: src/Pages/AssetsPage.php:77 js/assetReports.js:536
-msgid "No manufacturer data available"
-msgstr ""
-
-#: src/Pages/AssetsPage.php:78 js/assetReports.js:674
-msgid "No location data available"
-msgstr ""
-
-#: src/Pages/AssetsPage.php:80 js/assetReports.js:782
-msgid "No status data available"
-msgstr ""
-
-#: src/Pages/AssetsPage.php:81 js/assetReports.js:594
-msgid "No monitor data available"
-msgstr ""
-
-#: src/Pages/AssetsPage.php:82 js/assetReports.js:607
-msgid "No printer data available"
-msgstr ""
-
-#: src/Pages/AssetsPage.php:83 js/assetReports.js:620
-msgid "No network equipment data available"
-msgstr ""
-
-#: src/ApiRouter.php:230
-msgid "User not authenticated"
-msgstr ""
-
-#: src/ApiRouter.php:235
-msgid "No active profile found"
-msgstr ""
-
-#: src/ApiRouter.php:240
-msgid "Access denied to Dashboard NG API"
-msgstr ""
-
-#: src/ApiRouter.php:248
-msgid "API disabled"
-msgstr ""
-
-#: src/NavigationBar.php:190
-msgid "My Dashboard"
-msgstr ""
-
-#: src/NavigationBar.php:214
-msgid "General Charts"
-msgstr ""
-
-#: src/NavigationBar.php:215
-msgid "Assets"
-msgstr ""
-
-#: src/NavigationBar.php:218 src/NavigationBar.php:262
-msgid "Overall"
-msgstr ""
-
-#: src/NavigationBar.php:221
-msgid "Requester"
-msgstr ""
-
-#: src/NavigationBar.php:222
-msgid "Satisfaction"
-msgstr ""
-
-#: src/NavigationBar.php:224
-msgid "Time range"
-msgstr ""
-
-#: src/NavigationBar.php:227
-msgid "by Category"
-msgstr ""
-
-#: src/NavigationBar.php:228
-msgid "by Date"
-msgstr ""
-
-#: src/NavigationBar.php:229 src/NavigationBar.php:263
-msgid "by Entity"
-msgstr ""
-
-#: src/NavigationBar.php:230 src/NavigationBar.php:264
-msgid "by Group"
-msgstr ""
-
-#: src/NavigationBar.php:231
-msgid "by Location"
-msgstr ""
-
-#: src/NavigationBar.php:232
-msgid "by Requester"
-msgstr ""
-
-#: src/NavigationBar.php:233
-msgid "by Technician"
-msgstr ""
-
-#: src/NavigationBar.php:234
-msgid "by Type"
-msgstr ""
-
-#: src/NavigationBar.php:236
-msgid "SLA"
-msgstr ""
-
-#: src/NavigationBar.php:238 src/NavigationBar.php:243
-msgid "Time to own"
-msgstr ""
-
-#: src/NavigationBar.php:239 src/NavigationBar.php:244
-msgid "Time to resolve"
-msgstr ""
-
-#: src/NavigationBar.php:241
-msgid "OLA"
-msgstr ""
-
-#: src/NavigationBar.php:250 js/components/ui/WidgetLibrary.js:62
-msgid "Charts"
-msgstr ""
-
-#: src/NavigationBar.php:259
-msgid "Metrics"
-msgstr ""
-
-#: src/PluginDashboardngProfile.php:58 src/PluginDashboardngProfile.php:66
+#: src/PluginDashboardngProfile.php:61 src/PluginDashboardngProfile.php:69
+#: src/PluginDashboardngProfile.php:76 src/PluginDashboardngProfile.php:84
 msgid "Update"
-msgstr ""
-
-#: src/PluginDashboardngProfile.php:62
-msgid "Dashboard Access"
-msgstr ""
+msgstr "Mettre à jour"
 
 #: src/PluginDashboardngProfile.php:65
+msgid "Dashboard Access"
+msgstr "Accès au tableau de bord"
+
+#: src/PluginDashboardngProfile.php:68 src/PluginDashboardngProfile.php:83
 msgid "Read"
-msgstr ""
+msgstr "Lecture"
 
-#: src/Handlers/ExportReport.php:187 js/components/ui/WidgetLibrary.js:151
+#: src/PluginDashboardngProfile.php:74
+msgid "Global Dashboard Edit"
+msgstr "Modification du tableau de bord global"
+
+#: src/Handlers/ExportReport.php:38
+msgid "Overview Report"
+msgstr "Rapport de vue d'ensemble"
+
+#: src/Handlers/ExportReport.php:54
+msgid "Technician Report"
+msgstr "Rapport du technicien"
+
+#: src/Handlers/ExportReport.php:66
+msgid "SLA Compliance Report"
+msgstr "Rapport de conformité SLA"
+
+#: src/Handlers/ExportReport.php:103 js/ticketReports.js:421
+msgid "Source Report"
+msgstr "Rapport source"
+
+#: src/Handlers/ExportReport.php:105 js/ticketReports.js:428
+msgid "Source"
+msgstr "Source"
+
+#: src/Handlers/ExportReport.php:111
+msgid "Monthly Trend Report"
+msgstr "Rapport de tendance mensuelle"
+
+#: src/Handlers/ExportReport.php:121
+msgid "Task Overview Report"
+msgstr "Rapport de vue d'ensemble des tâches"
+
+#: src/Handlers/ExportReport.php:125
+msgid "Tasks by Technician Report"
+msgstr "Rapport des tâches par technicien"
+
+#: src/Handlers/ExportReport.php:134
+msgid "Tasks by Entity Report"
+msgstr "Rapport des tâches par entité"
+
+#: src/Handlers/ExportReport.php:143
+msgid "Tasks by Ticket Report"
+msgstr "Rapport des tâches par ticket"
+
+#: src/Handlers/ExportReport.php:152
+msgid "Asset Report"
+msgstr "Rapport d'actifs"
+
+#: src/Handlers/ExportReport.php:334
+#, php-format
+msgid "Custom (%s to %s)"
+msgstr "Personnalisé (%s à %s)"
+
+#: src/Handlers/ExportReport.php:334
+msgid "N/A"
+msgstr "N/A"
+
+#: src/Handlers/ExportReport.php:346 js/components/ui/WidgetLibrary.js:161
 msgid "Custom"
-msgstr ""
+msgstr "Personnalisé"
 
-#: src/PluginDashboardngConfig.php:238
+#: src/Handlers/ExportReport.php:725 src/Handlers/ExportReport.php:1024
+msgid "Generated"
+msgstr "Généré"
+
+#: src/PluginDashboardngConfig.php:210
 msgid "Dashboard NG Configuration"
-msgstr ""
+msgstr "Configuration du tableau de bord NG"
 
-#: src/PluginDashboardngConfig.php:274
+#: src/PluginDashboardngConfig.php:246
 msgid "Query Limits (for custom widgets)"
-msgstr ""
+msgstr "Limites de requête (pour les widgets personnalisés)"
 
-#: src/PluginDashboardngConfig.php:277
+#: src/PluginDashboardngConfig.php:249
 msgid "Default Row Limit"
-msgstr ""
+msgstr "Limite de lignes par défaut"
 
-#: src/PluginDashboardngConfig.php:280
+#: src/PluginDashboardngConfig.php:252
 msgid "Default number of rows returned by custom widget queries"
 msgstr ""
+"Nombre de lignes par défaut renvoyé par les requêtes de widgets personnalisés"
+
+#: src/PluginDashboardngConfig.php:256
+msgid "Maximum Row Limit"
+msgstr "Limite maximale de lignes"
+
+#: src/PluginDashboardngConfig.php:259
+msgid "Maximum allowed rows per query (for performance)"
+msgstr "Nombre maximal de lignes autorisées par requête (pour la performance)"
+
+#: src/PluginDashboardngConfig.php:263
+msgid "Query Timeout (seconds)"
+msgstr "Délai d'attente de requête (secondes)"
+
+#: src/PluginDashboardngConfig.php:266
+msgid "Maximum query execution time before timeout"
+msgstr "Temps d'exécution maximal de la requête avant le délai d'attente"
+
+#: src/PluginDashboardngConfig.php:271
+msgid "Query Caching"
+msgstr "Mise en cache des requêtes"
+
+#: src/PluginDashboardngConfig.php:274
+msgid "Enable Caching"
+msgstr "Activer la mise en cache"
+
+#: src/PluginDashboardngConfig.php:279
+msgid "Cache query results to improve performance"
+msgstr ""
+"Mettre en cache les résultats de requête pour améliorer les performances"
 
 #: src/PluginDashboardngConfig.php:284
-msgid "Maximum Row Limit"
-msgstr ""
+msgid "Cache TTL (seconds)"
+msgstr "TTL du cache (secondes)"
 
 #: src/PluginDashboardngConfig.php:287
-msgid "Maximum allowed rows per query (for performance)"
+msgid "Default cache duration for query results (recommended: 300-600s)"
 msgstr ""
+"Durée de cache par défaut pour les résultats de requête (recommandé: "
+"300-600s)"
 
 #: src/PluginDashboardngConfig.php:291
-msgid "Query Timeout (seconds)"
-msgstr ""
+msgid "Long Cache TTL (seconds)"
+msgstr "TTL de cache long (secondes)"
 
 #: src/PluginDashboardngConfig.php:294
-msgid "Maximum query execution time before timeout"
-msgstr ""
+msgid "Cache duration for aggregated queries (recommended: 900-1800s)"
+msgstr "Durée de cache pour les requêtes agrégées (recommandé: 900-1800s)"
 
-#: js/widgets/generic/GenericChartWidget.js:245
+#: js/widgets/generic/GenericChartWidget.js:264
 msgid "Value"
-msgstr ""
+msgstr "Valeur"
 
-#: js/widgets/generic/GenericTableWidget.js:352
+#: js/widgets/generic/GenericTableWidget.js:294
 msgid "Showing"
-msgstr ""
+msgstr "Affichage de"
 
-#: js/widgets/generic/GenericTableWidget.js:352
+#: js/widgets/generic/GenericTableWidget.js:299
 msgid "of"
-msgstr ""
+msgstr "sur"
 
-#: js/components/lists/SystemHealth.js:36
-msgid "Uptime"
-msgstr ""
+#: js/components/ui/ExportDropdown.js:110
+msgid "Select at least one report."
+msgstr "Sélectionnez au moins un rapport."
 
-#: js/components/lists/SystemHealth.js:45
-msgid "Memory"
-msgstr ""
+#: js/components/ui/ExportDropdown.js:144
+msgid "Bulk export failed. Please try again."
+msgstr "L'export groupé a échoué. Veuillez réessayer."
 
-#: js/components/lists/SystemHealth.js:61
-msgid "Disk"
-msgstr ""
+#: js/components/ui/ExportDropdown.js:217
+#: js/components/ui/ExportDropdown.js:234
+msgid "Bulk export"
+msgstr "Export groupé"
 
-#: js/components/lists/SystemHealth.js:76
-msgid "CPU"
-msgstr ""
+#: js/components/ui/ExportDropdown.js:218
+msgid "Choose tabs to export"
+msgstr "Choisir les onglets à exporter"
 
-#: js/components/ui/WidgetConfigModal.js:140
-msgid "Data Source"
-msgstr ""
+#: js/components/ui/ExportDropdown.js:242
+msgid "Select all"
+msgstr "Tout sélectionner"
 
-#: js/components/ui/WidgetConfigModal.js:141
-#: js/components/ui/WidgetConfigModal.js:486
-msgid "Filters"
-msgstr ""
+#: js/components/ui/ExportDropdown.js:262
+msgid "Format"
+msgstr "Format"
 
-#: js/components/ui/WidgetConfigModal.js:142
-#: js/components/ui/WidgetConfigModal.js:482
-msgid "Visualization"
-msgstr ""
+#: js/components/ui/ExportDropdown.js:298
+msgid "Export selected"
+msgstr "Exporter la sélection"
 
-#: js/components/ui/WidgetConfigModal.js:143
-#: js/components/ui/WidgetConfigModal.js:414
-msgid "Preview"
-msgstr ""
+#: js/components/ui/DashboardGrid.js:38
+msgid "Edit Widget"
+msgstr "Modifier le widget"
 
-#: js/components/ui/WidgetConfigModal.js:158
-msgid "Select Data Source"
-msgstr ""
+#: js/components/ui/DashboardGrid.js:45
+msgid "Remove Widget"
+msgstr "Supprimer le widget"
 
-#: js/components/ui/WidgetConfigModal.js:161
-msgid "Widget Title"
-msgstr ""
+#: js/components/ui/CustomRangePicker.js:11
+msgid "From"
+msgstr "De"
 
-#: js/components/ui/WidgetConfigModal.js:167
-msgid "Enter widget title..."
-msgstr ""
+#: js/components/ui/CustomRangePicker.js:18
+msgid "To"
+msgstr "À"
 
-#: js/components/ui/WidgetConfigModal.js:172
-msgid "Collection"
-msgstr ""
-
-#: js/components/ui/WidgetConfigModal.js:178
-msgid "-- Select Collection --"
-msgstr ""
-
-#: js/components/ui/WidgetConfigModal.js:193
-msgid "Group by"
-msgstr ""
-
-#: js/components/ui/WidgetConfigModal.js:193
-msgid "optional"
-msgstr ""
-
-#: js/components/ui/WidgetConfigModal.js:199
-msgid "-- No grouping --"
-msgstr ""
-
-#: js/components/ui/WidgetConfigModal.js:209
-msgid "Aggregation"
-msgstr ""
-
-#: js/components/ui/WidgetConfigModal.js:221
-msgid "Sum"
-msgstr ""
-
-#: js/components/ui/WidgetConfigModal.js:222
-msgid "Average"
-msgstr ""
-
-#: js/components/ui/WidgetConfigModal.js:223
-msgid "Minimum"
-msgstr ""
-
-#: js/components/ui/WidgetConfigModal.js:224
-msgid "Maximum"
-msgstr ""
-
-#: js/components/ui/WidgetConfigModal.js:237
-msgid "-- Select field --"
-msgstr ""
-
-#: js/components/ui/WidgetConfigModal.js:253
-msgid "Configure Filters"
-msgstr ""
-
-#: js/components/ui/WidgetConfigModal.js:277
-msgid "-- Field --"
-msgstr ""
-
-#: js/components/ui/WidgetConfigModal.js:291
-msgid "Contains"
-msgstr ""
-
-#: js/components/ui/WidgetConfigModal.js:292
-msgid "Does not contain"
-msgstr ""
-
-#: js/components/ui/WidgetConfigModal.js:295
-msgid "Is empty"
-msgstr ""
-
-#: js/components/ui/WidgetConfigModal.js:296
-msgid "Is not empty"
-msgstr ""
-
-#: js/components/ui/WidgetConfigModal.js:305
-msgid "Value..."
-msgstr ""
-
-#: js/components/ui/WidgetConfigModal.js:324
-msgid "Add filter"
-msgstr ""
-
-#: js/components/ui/WidgetConfigModal.js:328
-msgid "Limit"
-msgstr ""
-
-#: js/components/ui/WidgetConfigModal.js:344
-msgid "Choose Visualization"
-msgstr ""
-
-#: js/components/ui/WidgetConfigModal.js:349
-msgid "Card"
-msgstr ""
-
-#: js/components/ui/WidgetConfigModal.js:350
-msgid "Chart"
-msgstr ""
-
-#: js/components/ui/WidgetConfigModal.js:351
-msgid "Table"
-msgstr ""
-
-#: js/components/ui/WidgetConfigModal.js:370
-msgid "Chart type"
-msgstr ""
-
-#: js/components/ui/WidgetConfigModal.js:373
-msgid "Bar"
-msgstr ""
-
-#: js/components/ui/WidgetConfigModal.js:374
-msgid "Line"
-msgstr ""
-
-#: js/components/ui/WidgetConfigModal.js:375
-msgid "Pie"
-msgstr ""
-
-#: js/components/ui/WidgetConfigModal.js:376
-msgid "Doughnut"
-msgstr ""
-
-#: js/components/ui/WidgetConfigModal.js:395
-msgid "Refresh interval"
-msgstr ""
-
-#: js/components/ui/WidgetConfigModal.js:401
-msgid "Disabled"
-msgstr ""
-
-#: js/components/ui/WidgetConfigModal.js:402
-msgid "seconds"
-msgstr ""
-
-#: js/components/ui/WidgetConfigModal.js:403
-msgid "Minute"
-msgstr ""
-
-#: js/components/ui/WidgetConfigModal.js:404
-#: js/components/ui/WidgetConfigModal.js:405
-msgid "Minutes"
-msgstr ""
-
-#: js/components/ui/WidgetConfigModal.js:419
-msgid "Load preview"
-msgstr ""
-
-#: js/components/ui/WidgetConfigModal.js:427
-msgid "Results"
-msgstr ""
-
-#: js/components/ui/WidgetConfigModal.js:428
-msgid "Showing first"
-msgstr ""
-
-#: js/components/ui/WidgetConfigModal.js:463
-msgid "Chart will render with actual data"
-msgstr ""
-
-#: js/components/ui/WidgetConfigModal.js:464
-msgid "data points"
-msgstr ""
-
-#: js/components/ui/WidgetConfigModal.js:471
-msgid "Configuration summary"
-msgstr ""
-
-#: js/components/ui/WidgetConfigModal.js:474
-msgid "Title"
-msgstr ""
-
-#: js/components/ui/WidgetConfigModal.js:475
-msgid "Untitled"
-msgstr ""
-
-#: js/components/ui/WidgetConfigModal.js:478
-msgid "Data source"
-msgstr ""
-
-#: js/components/ui/WidgetConfigModal.js:514
+#: js/components/ui/WidgetConfigModal.js:333
 msgid "Edit widget"
-msgstr ""
+msgstr "Modifier le widget"
 
-#: js/components/ui/WidgetConfigModal.js:514
-#: js/components/ui/WidgetConfigModal.js:548
-#: js/components/ui/WidgetLibrary.js:228
+#: js/components/ui/WidgetConfigModal.js:333
+#: js/components/ui/WidgetConfigModal.js:367
+#: js/components/ui/WidgetLibrary.js:238
 msgid "Create Widget"
-msgstr ""
+msgstr "Créer un widget"
 
-#: js/components/ui/WidgetConfigModal.js:529
+#: js/components/ui/WidgetConfigModal.js:348
+#: js/components/ui/SharedDashboardModal.js:145
 msgid "Back"
-msgstr ""
+msgstr "Retour"
 
-#: js/components/ui/WidgetConfigModal.js:538
+#: js/components/ui/WidgetConfigModal.js:357
 msgid "Next"
-msgstr ""
+msgstr "Suivant"
 
-#: js/components/ui/WidgetConfigModal.js:548
+#: js/components/ui/WidgetConfigModal.js:367
 msgid "Save changes"
-msgstr ""
+msgstr "Enregistrer les modifications"
 
-#: js/components/ui/WidgetLibrary.js:61
+#: js/components/ui/SettingsModal.js:76
+msgid "Elements beyond the top K will be grouped into \"Others\""
+msgstr "Les éléments au-delà du top K seront regroupés sous \"Autres\""
+
+#: js/components/ui/widgetconfig/FiltersStep.js:36
+msgid "Configure Filters"
+msgstr "Configurer les filtres"
+
+#: js/components/ui/widgetconfig/FiltersStep.js:60
+#: js/components/ui/widgetconfig/DataSourceStep.js:715
+msgid "-- Field --"
+msgstr "-- Champ --"
+
+#: js/components/ui/widgetconfig/FiltersStep.js:72
+#: js/components/ui/widgetconfig/DataSourceStep.js:729
+msgid "Contains"
+msgstr "Contient"
+
+#: js/components/ui/widgetconfig/FiltersStep.js:73
+#: js/components/ui/widgetconfig/DataSourceStep.js:730
+msgid "Does not contain"
+msgstr "Ne contient pas"
+
+#: js/components/ui/widgetconfig/FiltersStep.js:76
+#: js/components/ui/widgetconfig/DataSourceStep.js:733
+msgid "Is empty"
+msgstr "Est vide"
+
+#: js/components/ui/widgetconfig/FiltersStep.js:77
+#: js/components/ui/widgetconfig/DataSourceStep.js:734
+msgid "Is not empty"
+msgstr "N'est pas vide"
+
+#: js/components/ui/widgetconfig/FiltersStep.js:86
+#: js/components/ui/widgetconfig/DataSourceStep.js:743
+msgid "Value..."
+msgstr "Valeur..."
+
+#: js/components/ui/widgetconfig/FiltersStep.js:105
+#: js/components/ui/widgetconfig/DataSourceStep.js:765
+msgid "Add filter"
+msgstr "Ajouter un filtre"
+
+#: js/components/ui/widgetconfig/FiltersStep.js:109
+msgid "Limit"
+msgstr "Limite"
+
+#: js/components/ui/widgetconfig/StepIndicator.js:8
+msgid "Data Source"
+msgstr "Source de données"
+
+#: js/components/ui/widgetconfig/StepIndicator.js:9
+#: js/components/ui/widgetconfig/PreviewStep.js:167
+msgid "Filters"
+msgstr "Filtres"
+
+#: js/components/ui/widgetconfig/StepIndicator.js:10
+#: js/components/ui/widgetconfig/PreviewStep.js:107
+msgid "Visualization"
+msgstr "Visualisation"
+
+#: js/components/ui/widgetconfig/StepIndicator.js:11
+#: js/components/ui/widgetconfig/PreviewStep.js:39
+msgid "Preview"
+msgstr "Aperçu"
+
+#: js/components/ui/widgetconfig/PreviewStep.js:19
+#: js/components/ui/widgetconfig/DataSourceStep.js:475
+msgid "Year over year"
+msgstr "Année sur année"
+
+#: js/components/ui/widgetconfig/PreviewStep.js:20
+#: js/components/ui/widgetconfig/DataSourceStep.js:476
+msgid "Month over month"
+msgstr "Mois sur mois"
+
+#: js/components/ui/widgetconfig/PreviewStep.js:21
+#: js/components/ui/widgetconfig/DataSourceStep.js:477
+msgid "Quarter over quarter"
+msgstr "Trimestre sur trimestre"
+
+#: js/components/ui/widgetconfig/PreviewStep.js:22
+#: js/components/ui/widgetconfig/DataSourceStep.js:478
+msgid "Custom ranges"
+msgstr "Périodes personnalisées"
+
+#: js/components/ui/widgetconfig/PreviewStep.js:34
+#: js/components/ui/widgetconfig/DataSourceStep.js:524
+#: js/components/ui/widgetconfig/DataSourceStep.js:592
+#: js/components/ui/widgetconfig/DataSourceStep.js:663
+msgid "Replace base filters"
+msgstr "Remplacer les filtres de base"
+
+#: js/components/ui/widgetconfig/PreviewStep.js:34
+#: js/components/ui/widgetconfig/DataSourceStep.js:523
+#: js/components/ui/widgetconfig/DataSourceStep.js:591
+#: js/components/ui/widgetconfig/DataSourceStep.js:662
+msgid "Add to base filters"
+msgstr "Ajouter aux filtres de base"
+
+#: js/components/ui/widgetconfig/PreviewStep.js:35
+msgid "Mixed filter mode"
+msgstr "Mode de filtre mixte"
+
+#: js/components/ui/widgetconfig/PreviewStep.js:44
+msgid "Load preview"
+msgstr "Charger l'aperçu"
+
+#: js/components/ui/widgetconfig/PreviewStep.js:52
+msgid "Results"
+msgstr "Résultats"
+
+#: js/components/ui/widgetconfig/PreviewStep.js:53
+msgid "Showing first"
+msgstr "Affichage des premiers"
+
+#: js/components/ui/widgetconfig/PreviewStep.js:88
+msgid "Chart will render with actual data"
+msgstr "Le graphique s'affichera avec les données réelles"
+
+#: js/components/ui/widgetconfig/PreviewStep.js:89
+msgid "data points"
+msgstr "points de données"
+
+#: js/components/ui/widgetconfig/PreviewStep.js:96
+msgid "Configuration summary"
+msgstr "Résumé de la configuration"
+
+#: js/components/ui/widgetconfig/PreviewStep.js:99
+msgid "Title"
+msgstr "Titre"
+
+#: js/components/ui/widgetconfig/PreviewStep.js:100
+msgid "Untitled"
+msgstr "Sans titre"
+
+#: js/components/ui/widgetconfig/PreviewStep.js:103
+msgid "Data source"
+msgstr "Source de données"
+
+#: js/components/ui/widgetconfig/PreviewStep.js:112
+#: js/components/ui/widgetconfig/DataSourceStep.js:271
+msgid "Group by"
+msgstr "Regrouper par"
+
+#: js/components/ui/widgetconfig/PreviewStep.js:121
+#: js/components/ui/widgetconfig/DataSourceStep.js:372
+msgid "Sort by"
+msgstr "Trier par"
+
+#: js/components/ui/widgetconfig/PreviewStep.js:130
+msgid "Series mode"
+msgstr "Mode de série"
+
+#: js/components/ui/widgetconfig/PreviewStep.js:132
+msgid "Time-based"
+msgstr "Basé sur le temps"
+
+#: js/components/ui/widgetconfig/PreviewStep.js:132
+msgid "Filter-based"
+msgstr "Basé sur les filtres"
+
+#: js/components/ui/widgetconfig/PreviewStep.js:138
+msgid "Series preset"
+msgstr "Préréglage de série"
+
+#: js/components/ui/widgetconfig/PreviewStep.js:144
+msgid "Series count"
+msgstr "Nombre de séries"
+
+#: js/components/ui/widgetconfig/PreviewStep.js:150
+msgid "Series filters"
+msgstr "Filtres de série"
+
+#: js/components/ui/widgetconfig/PreviewStep.js:156
+#: js/components/ui/widgetconfig/DataSourceStep.js:408
+msgid "Columns"
+msgstr "Colonnes"
+
+#: js/components/ui/widgetconfig/PreviewStep.js:162
+msgid "Page size"
+msgstr "Taille de page"
+
+#: js/components/ui/widgetconfig/PreviewStep.js:171
+#: js/components/ui/widgetconfig/VisualizationStep.js:113
+msgid "Refresh interval"
+msgstr "Intervalle de rafraîchissement"
+
+#: js/components/ui/widgetconfig/PreviewStep.js:173
+#: js/components/ui/widgetconfig/VisualizationStep.js:119
+msgid "Disabled"
+msgstr "Désactivé"
+
+#: js/components/ui/widgetconfig/DataSourceStep.js:236
+msgid "Select Data Source"
+msgstr "Sélectionner la source de données"
+
+#: js/components/ui/widgetconfig/DataSourceStep.js:239
+msgid "Widget Title"
+msgstr "Titre du widget"
+
+#: js/components/ui/widgetconfig/DataSourceStep.js:245
+msgid "Enter widget title..."
+msgstr "Saisir le titre du widget..."
+
+#: js/components/ui/widgetconfig/DataSourceStep.js:250
+msgid "Collection"
+msgstr "Collection"
+
+#: js/components/ui/widgetconfig/DataSourceStep.js:256
+msgid "-- Select Collection --"
+msgstr "-- Sélectionner une collection --"
+
+#: js/components/ui/widgetconfig/DataSourceStep.js:271
+#: js/components/ui/widgetconfig/DataSourceStep.js:372
+msgid "optional"
+msgstr "optionnel"
+
+#: js/components/ui/widgetconfig/DataSourceStep.js:301
+msgid "-- No grouping --"
+msgstr "-- Pas de regroupement --"
+
+#: js/components/ui/widgetconfig/DataSourceStep.js:311
+msgid "Date Interval"
+msgstr "Intervalle de date"
+
+#: js/components/ui/widgetconfig/DataSourceStep.js:320
+msgid "-- No interval --"
+msgstr "-- Aucun intervalle --"
+
+#: js/components/ui/widgetconfig/DataSourceStep.js:321
+msgid "Day"
+msgstr "Jour"
+
+#: js/components/ui/widgetconfig/DataSourceStep.js:322
+msgid "Week"
+msgstr "Semaine"
+
+#: js/components/ui/widgetconfig/DataSourceStep.js:324
+msgid "Year"
+msgstr "Année"
+
+#: js/components/ui/widgetconfig/DataSourceStep.js:331
+msgid "Aggregation"
+msgstr "Agrégation"
+
+#: js/components/ui/widgetconfig/DataSourceStep.js:343
+msgid "Sum"
+msgstr "Somme"
+
+#: js/components/ui/widgetconfig/DataSourceStep.js:344
+msgid "Average"
+msgstr "Moyenne"
+
+#: js/components/ui/widgetconfig/DataSourceStep.js:345
+msgid "Minimum"
+msgstr "Minimum"
+
+#: js/components/ui/widgetconfig/DataSourceStep.js:346
+msgid "Maximum"
+msgstr "Maximum"
+
+#: js/components/ui/widgetconfig/DataSourceStep.js:359
+msgid "-- Select field --"
+msgstr "-- Sélectionner un champ --"
+
+#: js/components/ui/widgetconfig/DataSourceStep.js:383
+msgid "-- Default sorting --"
+msgstr "-- Tri par défaut --"
+
+#: js/components/ui/widgetconfig/DataSourceStep.js:398
+msgid "Descending"
+msgstr "Décroissant"
+
+#: js/components/ui/widgetconfig/DataSourceStep.js:399
+msgid "Ascending"
+msgstr "Croissant"
+
+#: js/components/ui/widgetconfig/DataSourceStep.js:409
+msgid "Select which columns to display"
+msgstr "Sélectionner les colonnes à afficher"
+
+#: js/components/ui/widgetconfig/DataSourceStep.js:437
+msgid "Series comparison"
+msgstr "Comparaison de séries"
+
+#: js/components/ui/widgetconfig/DataSourceStep.js:438
+msgid "Compare time periods or filtered segments"
+msgstr "Comparer des périodes de temps ou des segments filtrés"
+
+#: js/components/ui/widgetconfig/DataSourceStep.js:442
+msgid "Select a group by field to enable comparisons."
+msgstr "Sélectionner un champ de regroupement pour activer les comparaisons."
+
+#: js/components/ui/widgetconfig/DataSourceStep.js:449
+msgid "Mode"
+msgstr "Mode"
+
+#: js/components/ui/widgetconfig/DataSourceStep.js:455
+msgid "Single series"
+msgstr "Série unique"
+
+#: js/components/ui/widgetconfig/DataSourceStep.js:456
+msgid "Time-based comparison"
+msgstr "Comparaison basée sur le temps"
+
+#: js/components/ui/widgetconfig/DataSourceStep.js:457
+msgid "Filter-based comparison"
+msgstr "Comparaison basée sur les filtres"
+
+#: js/components/ui/widgetconfig/DataSourceStep.js:462
+msgid "Preset"
+msgstr "Préréglage"
+
+#: js/components/ui/widgetconfig/DataSourceStep.js:483
+msgid "Periods"
+msgstr "Périodes"
+
+#: js/components/ui/widgetconfig/DataSourceStep.js:499
+msgid "Time comparisons require a date-based group by field."
+msgstr ""
+"Les comparaisons temporelles nécessitent un champ de regroupement basé sur "
+"la date."
+
+#: js/components/ui/widgetconfig/DataSourceStep.js:514
+#: js/components/ui/widgetconfig/DataSourceStep.js:566
+#: js/components/ui/widgetconfig/DataSourceStep.js:653
+msgid "Series name"
+msgstr "Nom de la série"
+
+#: js/components/ui/widgetconfig/DataSourceStep.js:533
+#: js/components/ui/widgetconfig/DataSourceStep.js:611
+#: js/components/ui/widgetconfig/DataSourceStep.js:672
+msgid "Series color"
+msgstr "Couleur de la série"
+
+#: js/components/ui/widgetconfig/DataSourceStep.js:541
+#: js/components/ui/widgetconfig/DataSourceStep.js:619
+#: js/components/ui/widgetconfig/DataSourceStep.js:680
+msgid "Use palette"
+msgstr "Utiliser la palette"
+
+#: js/components/ui/widgetconfig/DataSourceStep.js:638
+msgid "Add range"
+msgstr "Ajouter une plage"
+
+#: js/components/ui/widgetconfig/DataSourceStep.js:780
+msgid "Add series"
+msgstr "Ajouter une série"
+
+#: js/components/ui/widgetconfig/VisualizationStep.js:16
+msgid "Choose Visualization"
+msgstr "Choisir la visualisation"
+
+#: js/components/ui/widgetconfig/VisualizationStep.js:21
+msgid "Card"
+msgstr "Carte"
+
+#: js/components/ui/widgetconfig/VisualizationStep.js:22
+msgid "Chart"
+msgstr "Graphique"
+
+#: js/components/ui/widgetconfig/VisualizationStep.js:23
+msgid "Table"
+msgstr "Tableau"
+
+#: js/components/ui/widgetconfig/VisualizationStep.js:42
+msgid "Chart type"
+msgstr "Type de graphique"
+
+#: js/components/ui/widgetconfig/VisualizationStep.js:45
+msgid "Bar"
+msgstr "Barres"
+
+#: js/components/ui/widgetconfig/VisualizationStep.js:46
+msgid "Line"
+msgstr "Lignes"
+
+#: js/components/ui/widgetconfig/VisualizationStep.js:47
+msgid "Pie"
+msgstr "Camembert"
+
+#: js/components/ui/widgetconfig/VisualizationStep.js:48
+msgid "Doughnut"
+msgstr "Donut"
+
+#: js/components/ui/widgetconfig/VisualizationStep.js:68
+msgid "Color Palette"
+msgstr "Palette de couleurs"
+
+#: js/components/ui/widgetconfig/VisualizationStep.js:97
+msgid "Page Size"
+msgstr "Taille de la page"
+
+#: js/components/ui/widgetconfig/VisualizationStep.js:103
+#: js/components/ui/widgetconfig/VisualizationStep.js:104
+#: js/components/ui/widgetconfig/VisualizationStep.js:105
+#: js/components/ui/widgetconfig/VisualizationStep.js:106
+#: js/components/ui/widgetconfig/VisualizationStep.js:107
+msgid "rows per page"
+msgstr "lignes par page"
+
+#: js/components/ui/widgetconfig/VisualizationStep.js:120
+msgid "seconds"
+msgstr "secondes"
+
+#: js/components/ui/widgetconfig/VisualizationStep.js:121
+msgid "Minute"
+msgstr "Minute"
+
+#: js/components/ui/widgetconfig/VisualizationStep.js:122
+#: js/components/ui/widgetconfig/VisualizationStep.js:123
+msgid "Minutes"
+msgstr "Minutes"
+
+#: js/components/ui/WidgetLibrary.js:65
 msgid "KPI Cards"
-msgstr ""
+msgstr "Cartes KPI"
 
-#: js/components/ui/WidgetLibrary.js:63
+#: js/components/ui/WidgetLibrary.js:66
+msgid "Charts"
+msgstr "Graphiques"
+
+#: js/components/ui/WidgetLibrary.js:67
 msgid "Tables"
-msgstr ""
+msgstr "Tableaux"
 
-#: js/components/ui/WidgetLibrary.js:64
+#: js/components/ui/WidgetLibrary.js:68
 msgid "Other"
-msgstr ""
+msgstr "Autre"
 
-#: js/components/ui/WidgetLibrary.js:114
+#: js/components/ui/WidgetLibrary.js:124
 msgid "Widget Library"
-msgstr ""
+msgstr "Bibliothèque de widgets"
 
-#: js/components/ui/WidgetLibrary.js:127
+#: js/components/ui/WidgetLibrary.js:137
 msgid "Search widgets..."
-msgstr ""
+msgstr "Rechercher des widgets..."
 
-#: js/components/ui/WidgetLibrary.js:142
+#: js/components/ui/WidgetLibrary.js:152
 msgid "Available"
-msgstr ""
+msgstr "Disponible"
 
-#: js/components/ui/WidgetLibrary.js:210
+#: js/components/ui/WidgetLibrary.js:220
 msgid "No widgets found"
-msgstr ""
+msgstr "Aucun widget trouvé"
 
-#: js/components/ui/WidgetLibrary.js:219
+#: js/components/ui/WidgetLibrary.js:229
 msgid "Create a Custom Widget"
-msgstr ""
+msgstr "Créer un widget personnalisé"
 
-#: js/components/ui/WidgetLibrary.js:221
+#: js/components/ui/WidgetLibrary.js:231
 msgid ""
 "Build a widget from any GLPI collection with custom filters, grouping, and "
 "visualization."
 msgstr ""
+"Créer un widget à partir de n'importe quelle collection GLPI avec des "
+"filtres personnalisés, un regroupement et une visualisation."
 
-#: js/components/charts/UPlotChart.js:123
-msgid "tickets"
-msgstr ""
-
-#: js/components/kpi/KPIGrid.js:6
-msgid "Today"
-msgstr ""
-
-#: js/components/kpi/KPIGrid.js:7
-msgid "This Month"
-msgstr ""
-
-#: js/components/kpi/KPIGrid.js:8
-msgid "This Year"
-msgstr ""
-
-#: js/components/kpi/KPIGrid.js:11
-msgid "Backlog"
-msgstr ""
-
-#: js/lib/config.js:73
-msgid "All Time"
-msgstr ""
-
-#: js/lib/config.js:74
-msgid "Current Year"
-msgstr ""
-
-#: js/lib/config.js:75
-msgid "Current Month"
-msgstr ""
-
-#: js/lib/config.js:76
-msgid "Last Week"
-msgstr ""
-
-#: js/lib/config.js:77
-msgid "Last 15 Days"
-msgstr ""
-
-#: js/lib/config.js:78
-msgid "Last 30 Days"
-msgstr ""
-
-#: js/lib/config.js:79
-msgid "Last 90 Days"
-msgstr ""
-
-#: js/lib/config.js:80
-msgid "Last 180 Days"
-msgstr ""
-
-#: js/dashboard.js:173
-msgid "Are you sure you want to remove this widget from the dashboard?"
-msgstr ""
-
-#: js/dashboard.js:179
-msgid "Cannot edit global dashboard. Create a personal dashboard first."
-msgstr ""
-
-#: js/dashboard.js:282
-msgid "Remove Widget"
-msgstr ""
-
-#: js/dashboard.js:301
+#: js/components/ui/DashboardHeader.js:30
 msgid "Last updated"
-msgstr ""
+msgstr "Dernière mise à jour"
 
-#: js/dashboard.js:318
+#: js/components/ui/DashboardHeader.js:41
+#: js/components/ui/SharedDashboardModal.js:61
+msgid "Load Shared Dashboard"
+msgstr "Charger un tableau de bord partagé"
+
+#: js/components/ui/DashboardHeader.js:50
 msgid "Add Widget"
-msgstr ""
+msgstr "Ajouter un widget"
 
-#: js/dashboard.js:325
+#: js/components/ui/DashboardHeader.js:57
 msgid "Done"
-msgstr ""
+msgstr "Terminé"
 
-#: js/dashboard.js:325
+#: js/components/ui/DashboardHeader.js:57
 msgid "Edit Layout"
+msgstr "Modifier la disposition"
+
+#: js/components/ui/EntitySelector.js:46
+msgid "Select with children"
+msgstr "Sélectionner avec les enfants"
+
+#: js/components/ui/EntitySelector.js:285
+#: js/components/ui/EntitySelector.js:290
+msgid "Search"
+msgstr "Rechercher"
+
+#: js/components/ui/SharedDashboardModal.js:30
+msgid "Replace your personal dashboard with this template?"
+msgstr "Remplacer votre tableau de bord personnel par ce modèle?"
+
+#: js/components/ui/SharedDashboardModal.js:62
+msgid "Create Shared Dashboard"
+msgstr "Créer un tableau de bord partagé"
+
+#: js/components/ui/SharedDashboardModal.js:73
+msgid "Create New Shared Dashboard"
+msgstr "Créer un nouveau tableau de bord partagé"
+
+#: js/components/ui/SharedDashboardModal.js:82
+msgid "No shared dashboards available"
+msgstr "Aucun tableau de bord partagé disponible"
+
+#: js/components/ui/SharedDashboardModal.js:92
+msgid "Shared Dashboard Template"
+msgstr "Modèle de tableau de bord partagé"
+
+#: js/components/ui/SharedDashboardModal.js:99
+msgid "Use Template"
+msgstr "Utiliser le modèle"
+
+#: js/components/ui/SharedDashboardModal.js:110
+msgid "Dashboard Name"
+msgstr "Nom du tableau de bord"
+
+#: js/components/ui/SharedDashboardModal.js:117
+msgid "Enter dashboard name"
+msgstr "Saisir le nom du tableau de bord"
+
+#: js/components/ui/SharedDashboardModal.js:123
+msgid "Source Dashboard"
+msgstr "Tableau de bord source"
+
+#: js/components/ui/SharedDashboardModal.js:130
+msgid "Copy from global default"
+msgstr "Copier depuis le global par défaut"
+
+#: js/components/ui/SharedDashboardModal.js:136
+msgid "Leave empty to copy from the default global dashboard"
+msgstr "Laisser vide pour copier depuis le tableau de bord global par défaut"
+
+#: js/components/ui/SharedDashboardModal.js:153
+msgid "Create"
+msgstr "Créer"
+
+#: js/components/ui/SharedDashboardModal.js:157
+msgid "Close"
+msgstr "Fermer"
+
+#: js/components/charts/UPlotChart.js:135
+msgid "tickets"
+msgstr "tickets"
+
+#: js/context/DashboardContext.js:60 js/context/DashboardContext.js:81
+#: js/context/DashboardContext.js:196 js/context/DashboardContext.js:238
+#: js/context/DashboardContext.js:304
+msgid "You are not authorized to perform this action"
+msgstr "Vous n'êtes pas autorisé à effectuer cette action"
+
+#: js/context/DashboardContext.js:166 js/context/DashboardContext.js:171
+msgid "Failed to save dashboard"
+msgstr "Échec de la sauvegarde du tableau de bord"
+
+#: js/context/DashboardContext.js:318
+msgid ""
+"You have unsaved changes. Do you want to save them before entering edit mode?"
 msgstr ""
+"Vous avez des modifications non sauvegardées. Voulez-vous les sauvegarder "
+"avant d'entrer en mode édition?"
+
+#: js/context/DashboardContext.js:324
+msgid "You are not authorized to edit the global dashboard"
+msgstr "Vous n'êtes pas autorisé à modifier le tableau de bord global"
+
+#: js/context/DashboardContext.js:361
+msgid ""
+"You have unsaved changes from a previous session. Would you like to restore "
+"them?"
+msgstr ""
+"Vous avez des modifications non sauvegardées d'une session précédente. "
+"Voulez-vous les restaurer?"
+
+#: js/lib/config.js:99
+msgid "All Time"
+msgstr "Toutes les périodes"
+
+#: js/lib/config.js:100
+msgid "Current Year"
+msgstr "Année en cours"
+
+#: js/lib/config.js:101
+msgid "Current Month"
+msgstr "Mois en cours"
+
+#: js/lib/config.js:102
+msgid "Last 7 Days"
+msgstr "7 derniers jours"
+
+#: js/lib/config.js:103
+msgid "Last 15 Days"
+msgstr "15 derniers jours"
+
+#: js/lib/config.js:104
+msgid "Last 30 Days"
+msgstr "30 derniers jours"
+
+#: js/lib/config.js:105
+msgid "Last 90 Days"
+msgstr "90 derniers jours"
+
+#: js/lib/config.js:106
+msgid "Last 180 Days"
+msgstr "180 derniers jours"
+
+#: js/lib/config.js:107
+msgid "Custom Range"
+msgstr "Période personnalisée"
+
+#: js/ticketReports.js:276
+msgid "Monthly Ticket Volume"
+msgstr "Volume mensuel de tickets"
+
+#: js/ticketReports.js:282 js/ticketReports.js:316 js/ticketReports.js:357
+msgid "No monthly data available"
+msgstr "Aucune donnée mensuelle disponible"
+
+#: js/ticketReports.js:310
+msgid "Resolution Rate Trend"
+msgstr "Tendance du taux de résolution"
+
+#: js/ticketReports.js:333 js/ticketReports.js:1293
+msgid "Monthly Trend"
+msgstr "Tendance mensuelle"
+
+#: js/ticketReports.js:376
+msgid "Ticket Sources"
+msgstr "Sources des tickets"
+
+#: js/ticketReports.js:383 js/ticketReports.js:404 js/ticketReports.js:438
+msgid "No source data available"
+msgstr "Aucune donnée source disponible"
+
+#: js/ticketReports.js:397
+msgid "Source Volume"
+msgstr "Volume source"
+
+#: js/ticketReports.js:601
+msgid "Ticket Volume by Entity"
+msgstr "Volume de tickets par entité"
+
+#: js/ticketReports.js:625
+msgid "Entity Resolution Mix"
+msgstr "Répartition des résolutions par entité"
+
+#: js/ticketReports.js:725
+msgid "Tickets by Technician"
+msgstr "Tickets par technicien"
+
+#: js/ticketReports.js:749 js/ticketReports.js:1067
+msgid "Resolution Mix"
+msgstr "Répartition des résolutions"
+
+#: js/ticketReports.js:939
+msgid "Category Share"
+msgstr "Part par catégorie"
+
+#: js/ticketReports.js:959
+msgid "Avg Resolution Time"
+msgstr "Temps de résolution moyen"
+
+#: js/ticketReports.js:972
+msgid "Avg Resolution (h)"
+msgstr "Résolution moy. (h)"
+
+#: js/ticketReports.js:1043
+msgid "Ticket Volume by Group"
+msgstr "Volume de tickets par groupe"
+
+#: js/ticketReports.js:1162
+msgid "Tickets by Priority"
+msgstr "Tickets par priorité"
+
+#: js/ticketReports.js:1186
+msgid "Resolution Rate by Priority"
+msgstr "Taux de résolution par priorité"
+
+#: js/ticketReports.js:1292
+msgid "By Source"
+msgstr "Par source"
+
+#~ msgid "Last Week"
+#~ msgstr "Semaine dernière"

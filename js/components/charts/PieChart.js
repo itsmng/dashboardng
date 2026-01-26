@@ -14,7 +14,7 @@ import { COLORS } from '../../lib/config.js';
  * @param {number|null} [props.topK=null] - Number of top elements to show, or null for all
  * @returns {import('preact').VNode} Rendered pie chart
  */
-export const PieChart = ({ data, title, height = 250, donut = false, topK = null }) => {
+export const PieChart = ({ data, title, height = 250, donut = false, topK = undefined }) => {
     const canvasRef = useRef(null);
     const chartRef = useRef(null);
 
@@ -28,7 +28,7 @@ export const PieChart = ({ data, title, height = 250, donut = false, topK = null
         let values = data.values.map((v, i) => ({ label: labels[i], value: v }));
 
         // Sort by value descending for Top K
-        const sorted = values.sort((a, b) => b.value - a.value);
+        const sorted = values.toSorted((a, b) => b.value - a.value);
 
         if (topK && topK > 0 && sorted.length > topK) {
             const topKItems = sorted.slice(0, topK);
@@ -60,7 +60,7 @@ export const PieChart = ({ data, title, height = 250, donut = false, topK = null
 
         if (chartRef.current) {
             chartRef.current.destroy();
-            chartRef.current = null;
+            chartRef.current = undefined;
         }
 
         const total = processed.values.reduce((a, b) => a + b, 0);

@@ -1,3 +1,5 @@
+import { __ } from './i18n.js';
+
 /**
  * Global configuration object from window.DASHBOARDNG_CONFIG
  * @type {Object}
@@ -97,11 +99,12 @@ export const PERIODS = [
     { value: 0, label: __('All Time', 'dashboardng') },
     { value: 1, label: __('Current Year', 'dashboardng') },
     { value: 2, label: __('Current Month', 'dashboardng') },
-    { value: 3, label: __('Last Week', 'dashboardng') },
+    { value: 3, label: __('Last 7 Days', 'dashboardng') },
     { value: 4, label: __('Last 15 Days', 'dashboardng') },
     { value: 5, label: __('Last 30 Days', 'dashboardng') },
     { value: 6, label: __('Last 90 Days', 'dashboardng') },
     { value: 7, label: __('Last 180 Days', 'dashboardng') },
+    { value: 8, label: __('Custom Range', 'dashboardng') },
 ];
 
 /**

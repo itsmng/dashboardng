@@ -1,45 +1,47 @@
 import { h, createContext, useState, useCallback, useContext } from '../lib/preact.js';
 import { api } from '../lib/config.js';
+import { __ } from '../lib/i18n.js';
 
 const DASHBOARD_STORAGE_KEY = 'dashboardng_unsaved_changes';
 
 const saveToLocalStorage = (data) => {
     try {
         localStorage.setItem(DASHBOARD_STORAGE_KEY, JSON.stringify(data));
-    } catch (err) {
-        console.error('Failed to save to localStorage:', err);
+    } catch (error) {
+        console.error('Failed to save to localStorage:', error);
     }
 };
 
 const loadFromLocalStorage = () => {
     try {
         const data = localStorage.getItem(DASHBOARD_STORAGE_KEY);
-        return data ? JSON.parse(data) : null;
-    } catch (err) {
-        console.error('Failed to load from localStorage:', err);
-        return null;
+        return data ? JSON.parse(data) : undefined;
+    } catch (error) {
+        console.error('Failed to load from localStorage:', error);
+        return ;
     }
 };
 
 const clearLocalStorage = () => {
     try {
         localStorage.removeItem(DASHBOARD_STORAGE_KEY);
-    } catch (err) {
-        console.error('Failed to clear localStorage:', err);
+    } catch (error) {
+        console.error('Failed to clear localStorage:', error);
     }
 };
 
-const DashboardContext = createContext(null);
+const DashboardContext = createContext(undefined);
 
 export const DashboardProvider = ({ children }) => {
-    const [dashboard, setDashboard] = useState(null);
+    const [dashboard, setDashboard] = useState(undefined);
     const [widgets, setWidgets] = useState([]);
     const [editMode, setEditMode] = useState(false);
-    const [lastUpdate, setLastUpdate] = useState(null);
+    const [lastUpdate, setLastUpdate] = useState(undefined);
     const [showWidgetLibrary, setShowWidgetLibrary] = useState(false);
     const [showWidgetConfig, setShowWidgetConfig] = useState(false);
-    const [editingWidget, setEditingWidget] = useState(null);
-    const [authzError, setAuthzError] = useState(null);
+    const [showSharedDashboard, setShowSharedDashboard] = useState(false);
+    const [editingWidget, setEditingWidget] = useState(undefined);
+    const [authzError, setAuthzError] = useState(undefined);
     const [unsavedChanges, setUnsavedChanges] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
 
@@ -50,22 +52,89 @@ export const DashboardProvider = ({ children }) => {
             if (result.success) {
                 setDashboard(result.data.dashboard);
                 setWidgets(result.data.widgets || []);
-                setAuthzError(null);
+                setAuthzError(undefined);
                 setEditMode(false);
                 setUnsavedChanges(false);
                 clearLocalStorage();
             } else if (result.error === 'Unauthorized') {
                 setAuthzError(__('You are not authorized to perform this action', 'dashboardng'));
             }
-        } catch (err) {
-            console.error('Failed to load dashboard:', err);
+        } catch (error) {
+            console.error('Failed to load dashboard:', error);
         } finally {
             setIsLoading(false);
         }
     }, []);
 
+    const loadDashboardById = useCallback(async (dashboardId) => {
+        setIsLoading(true);
+        try {
+            const result = await api.fetch(`/dashboards/${dashboardId}/widgets`);
+            if (result.success) {
+                setDashboard(result.data.dashboard);
+                setWidgets(result.data.widgets || []);
+                setAuthzError(undefined);
+                setEditMode(false);
+                setUnsavedChanges(false);
+                clearLocalStorage();
+            } else if (result.error === 'Unauthorized') {
+                setAuthzError(__('You are not authorized to perform this action', 'dashboardng'));
+            }
+        } catch (error) {
+            console.error('Failed to load dashboard:', error);
+        } finally {
+            setIsLoading(false);
+        }
+    }, []);
+
+    const loadDashboards = useCallback(async () => {
+        try {
+            const result = await api.fetch('/dashboards');
+            if (result.success) {
+                return result.data.dashboards || [];
+            }
+            return [];
+        } catch (error) {
+            console.error('Failed to load dashboards:', error);
+            return [];
+        }
+    }, []);
+
+    const createPersonalDashboard = useCallback(async (sourceDashboardId) => {
+        try {
+            const result = await api.post('/dashboards/personal', {
+                name: 'My Dashboard',
+                source_dashboard_id: sourceDashboardId
+            });
+            if (result.success && result.data.dashboard) {
+                await loadDashboard();
+                return result.data.dashboard;
+            }
+            return ;
+        } catch (error) {
+            console.error('Failed to create personal dashboard:', error);
+            return ;
+        }
+    }, [loadDashboard]);
+
+    const createSharedDashboard = useCallback(async (name, sourceDashboardId) => {
+        try {
+            const result = await api.post('/dashboards/shared', {
+                name,
+                source_dashboard_id: sourceDashboardId
+            });
+            if (result.success && result.data.dashboard) {
+                return result.data.dashboard;
+            }
+            return ;
+        } catch (error) {
+            console.error('Failed to create shared dashboard:', error);
+            return ;
+        }
+    }, []);
+
     const saveDashboard = useCallback(async () => {
-        if (!unsavedChanges) return true;
+        if (!unsavedChanges) {return true;}
 
         saveToLocalStorage({
             dashboard,
@@ -97,8 +166,8 @@ export const DashboardProvider = ({ children }) => {
                 setAuthzError(result.error || __('Failed to save dashboard', 'dashboardng'));
                 return false;
             }
-        } catch (err) {
-            console.error('Failed to save dashboard:', err);
+        } catch (error) {
+            console.error('Failed to save dashboard:', error);
             setAuthzError(__('Failed to save dashboard', 'dashboardng'));
             return false;
         }
@@ -127,8 +196,8 @@ export const DashboardProvider = ({ children }) => {
                 setAuthzError(__('You are not authorized to perform this action', 'dashboardng'));
                 setEditMode(false);
             }
-        } catch (err) {
-            console.error('Failed to save widget positions:', err);
+        } catch (error) {
+            console.error('Failed to save widget positions:', error);
         }
     }, [dashboard, widgets]);
 
@@ -137,8 +206,8 @@ export const DashboardProvider = ({ children }) => {
         newWidgets.push({
             ...widgetData,
             id: `temp_${Date.now()}`,
-            width: widgetData.width || widgetData.default_width || 4,
-            height: widgetData.height || widgetData.default_height || 4
+            width: widgetData.default_width || 4,
+            height: widgetData.default_height || 4
         });
         setWidgets(newWidgets);
         setUnsavedChanges(true);
@@ -149,8 +218,8 @@ export const DashboardProvider = ({ children }) => {
                 dashboard_id: dashboard?.id,
                 x: widgetData.x ?? 0,
                 y: widgetData.y,
-                width: widgetData.width || widgetData.default_width || 4,
-                height: widgetData.height || widgetData.default_height || 4,
+                width: widgetData.default_width || 4,
+                height: widgetData.default_height || 4,
             });
 
             if (result.success) {
@@ -170,8 +239,8 @@ export const DashboardProvider = ({ children }) => {
                 setWidgets(widgets);
                 return false;
             }
-        } catch (err) {
-            console.error('Failed to add widget:', err);
+        } catch (error) {
+            console.error('Failed to add widget:', error);
             setWidgets(widgets);
             return false;
         }
@@ -180,8 +249,8 @@ export const DashboardProvider = ({ children }) => {
 
     const updateWidget = useCallback(async (widgetId, updates) => {
         const configUpdates = updates?.config ?? updates;
-        const width = updates?.width ?? updates?.default_width;
-        const height = updates?.height ?? updates?.default_height;
+        const width = updates?.default_width;
+        const height = updates?.default_height;
         const newWidgets = widgets.map(w => {
             if (w.id !== widgetId && w.widget_definition_id !== widgetId) {
                 return w;
@@ -215,8 +284,8 @@ export const DashboardProvider = ({ children }) => {
                 setUnsavedChanges(false);
                 clearLocalStorage();
             }
-        } catch (err) {
-            console.error('Failed to update widget:', err);
+        } catch (error) {
+            console.error('Failed to update widget:', error);
         }
     }, [dashboard, widgets]);
 
@@ -236,8 +305,8 @@ export const DashboardProvider = ({ children }) => {
                 setWidgets(widgets);
                 return false;
             }
-        } catch (err) {
-            console.error('Failed to delete widget:', err);
+        } catch (error) {
+            console.error('Failed to delete widget:', error);
             setWidgets(widgets);
             return false;
         }
@@ -255,7 +324,7 @@ export const DashboardProvider = ({ children }) => {
             setAuthzError(__('You are not authorized to edit the global dashboard', 'dashboardng'));
             return false;
         }
-        setAuthzError(null);
+        setAuthzError(undefined);
         setEditMode(enabled);
         return true;
     }, [dashboard, unsavedChanges]);
@@ -268,14 +337,22 @@ export const DashboardProvider = ({ children }) => {
         setShowWidgetLibrary(false);
     }, []);
 
-    const openWidgetConfig = useCallback((widget = null) => {
+    const openWidgetConfig = useCallback((widget = undefined) => {
         setEditingWidget(widget);
         setShowWidgetConfig(true);
     }, []);
 
     const closeWidgetConfig = useCallback(() => {
         setShowWidgetConfig(false);
-        setEditingWidget(null);
+        setEditingWidget(undefined);
+    }, []);
+
+    const openSharedDashboard = useCallback(() => {
+        setShowSharedDashboard(true);
+    }, []);
+
+    const closeSharedDashboard = useCallback(() => {
+        setShowSharedDashboard(false);
     }, []);
 
     const resetChanges = useCallback(() => {
@@ -299,11 +376,16 @@ export const DashboardProvider = ({ children }) => {
         setLastUpdate,
         showWidgetLibrary,
         showWidgetConfig,
+        showSharedDashboard,
         editingWidget,
         authzError,
         unsavedChanges,
         isLoading,
         loadDashboard,
+        loadDashboardById,
+        loadDashboards,
+        createPersonalDashboard,
+        createSharedDashboard,
         saveDashboard,
         saveWidgetPositions,
         addWidget,
@@ -314,6 +396,8 @@ export const DashboardProvider = ({ children }) => {
         closeWidgetLibrary,
         openWidgetConfig,
         closeWidgetConfig,
+        openSharedDashboard,
+        closeSharedDashboard,
         resetChanges
     };
 

@@ -11,6 +11,7 @@ use GlpiPlugin\Dashboardng\Handlers\ExportReport;
 use GlpiPlugin\Dashboardng\Handlers\GetDataSources;
 use GlpiPlugin\Dashboardng\Handlers\GetDataSourceFields;
 use GlpiPlugin\Dashboardng\Handlers\ExecuteQuery;
+use GlpiPlugin\Dashboardng\Handlers\ClearCache;
 use GlpiPlugin\Dashboardng\Handlers\GetDashboards;
 use GlpiPlugin\Dashboardng\Handlers\GetDashboardWidgets;
 use GlpiPlugin\Dashboardng\Handlers\GetWidgetLibrary;
@@ -19,6 +20,7 @@ use GlpiPlugin\Dashboardng\Handlers\RemoveWidgetFromDashboard;
 use GlpiPlugin\Dashboardng\Handlers\UpdateWidgetPositions;
 use GlpiPlugin\Dashboardng\Handlers\CreateWidget;
 use GlpiPlugin\Dashboardng\Handlers\CreatePersonalDashboard;
+use GlpiPlugin\Dashboardng\Handlers\CreateSharedDashboard;
 use Session;
 
 /**
@@ -42,6 +44,12 @@ class ApiRouter
                 $handler = new UpdateConfig();
                 $input = json_decode(file_get_contents('php://input'), true) ?? [];
                 echo json_encode($handler->handle($input));
+            });
+
+            $r->addRoute('GET', '/reports/export-bulk', function () {
+                $format = $_GET['format'] ?? 'csv';
+                $handler = new ExportReport();
+                $handler->handleBulk($format, $_GET);
             });
 
             $r->addRoute('GET', '/reports/{type}', function ($type) {
@@ -72,6 +80,12 @@ class ApiRouter
 
             $r->addRoute('POST', '/dashboards/personal', function () {
                 $handler = new CreatePersonalDashboard();
+                $input = json_decode(file_get_contents('php://input'), true) ?? [];
+                echo json_encode(($handler)($input));
+            });
+
+            $r->addRoute('POST', '/dashboards/shared', function () {
+                $handler = new CreateSharedDashboard();
                 $input = json_decode(file_get_contents('php://input'), true) ?? [];
                 echo json_encode(($handler)($input));
             });
@@ -123,6 +137,18 @@ class ApiRouter
 
             $r->addRoute('POST', '/query', function () {
                 $handler = new ExecuteQuery();
+                $input = json_decode(file_get_contents('php://input'), true) ?? [];
+                echo json_encode($handler->handle($input));
+            });
+
+            $r->addRoute('DELETE', '/cache', function () {
+                $handler = new ClearCache();
+                $input = json_decode(file_get_contents('php://input'), true) ?? [];
+                echo json_encode($handler->handle($input));
+            });
+
+            $r->addRoute('POST', '/cache/clear', function () {
+                $handler = new ClearCache();
                 $input = json_decode(file_get_contents('php://input'), true) ?? [];
                 echo json_encode($handler->handle($input));
             });

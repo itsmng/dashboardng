@@ -49,7 +49,7 @@ export const WIDGET_REGISTRY = {
         defaultGrid: { w: 6, h: 4 }
     },
     'custom': {
-        component: null, // Determined dynamically
+        component: undefined, // Determined dynamically
         titleKey: 'customWidget',
         category: 'custom',
         defaultGrid: { w: 4, h: 4 },
@@ -63,7 +63,7 @@ export const WIDGET_REGISTRY = {
  * @param {Object|null} [config=null] - Widget configuration (used for 'custom' type)
  * @returns {import('preact').FunctionComponent|null} The widget component or null if not found
  */
-export const getWidgetComponent = (widgetType, config = null) => {
+export const getWidgetComponent = (widgetType, config = undefined) => {
     if (widgetType === 'custom' && config) {
         const visualization = config.visualization || 'card';
         return getGenericWidgetComponent(visualization);
@@ -83,7 +83,7 @@ export const getWidgetComponent = (widgetType, config = null) => {
  * @returns {WidgetRegistryEntry|null} The registry entry or null if not found
  */
 export const getWidgetEntry = (widgetType) => {
-    return WIDGET_REGISTRY[widgetType] ?? null;
+    return WIDGET_REGISTRY[widgetType] ?? undefined;
 };
 
 /**

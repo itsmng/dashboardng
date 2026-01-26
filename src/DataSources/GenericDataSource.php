@@ -6,6 +6,7 @@ use CommonDBTM;
 use Search;
 use Session;
 use GlpiPlugin\Dashboardng\Registry\ItemtypeRegistry;
+use GlpiPlugin\Dashboardng\Cache\QueryCacheManager;
 
 /**
  * Generic Data Source for querying any GLPI itemtype
@@ -27,6 +28,9 @@ class GenericDataSource
     private JoinBuilder $joinBuilder;
     private FieldResolver $fieldResolver;
     private DateGapFiller $dateGapFiller;
+    private QueryCacheManager $cacheManager;
+    private int $cacheTTL;
+    private bool $cacheEnabled;
 
     /**
      * Constructor with configurable limits
@@ -37,12 +41,20 @@ class GenericDataSource
             $this->defaultLimit = $config['default_limit'] ?? $this->defaultLimit;
             $this->maxLimit = $config['max_limit'] ?? $this->maxLimit;
             $this->timeout = $config['timeout'] ?? $this->timeout;
+            $this->cacheEnabled = $config['cache_enabled'] ?? true;
+            $this->cacheTTL = $config['cache_ttl'] ?? QueryCacheManager::TTL_DEFAULT;
+        } else {
+            $this->cacheEnabled = true;
+            $this->cacheTTL = QueryCacheManager::TTL_DEFAULT;
         }
 
         $this->filterBuilder = new FilterBuilder();
         $this->joinBuilder = new JoinBuilder();
         $this->fieldResolver = new FieldResolver();
         $this->dateGapFiller = new DateGapFiller();
+        $this->cacheManager = new QueryCacheManager([
+            'cache_enabled' => $this->cacheEnabled,
+        ]);
     }
 
     /**
@@ -118,6 +130,7 @@ class GenericDataSource
         $outputFields = $queryConfig['output_fields'] ?? [];
         $dateRange = $queryConfig['date_range'] ?? null;
         $series = $queryConfig['series'] ?? null;
+        $nocache = $queryConfig['nocache'] ?? false;
 
         if (!$this->isItemtypeAllowed($itemtype)) {
             return [
@@ -134,10 +147,32 @@ class GenericDataSource
         }
 
         try {
-            // Check if this is a multi-series query
+            $cacheKey = null;
+            $fromCache = false;
+
+            if (!$nocache && $this->cacheManager->isEnabled()) {
+                $cacheKey = $this->cacheManager->getQueryCacheKey($queryConfig);
+                $cached = $this->cacheManager->get($cacheKey);
+
+                if ($cached !== null) {
+                    return array_merge($cached, ['from_cache' => true]);
+                }
+            }
+
+            $result = null;
+
             if ($series && $aggregation && $groupBy) {
-                $data = $this->executeMultiSeriesQuery($itemtype, $series, $groupBy, $aggregation);
-                return [
+                $data = $this->executeMultiSeriesQuery(
+                    $itemtype,
+                    $series,
+                    $groupBy,
+                    $aggregation,
+                    $filters,
+                    $orderBy,
+                    $limit,
+                    $dateRange
+                );
+                $result = [
                     'success' => true,
                     'data' => $data,
                     'meta' => [
@@ -146,27 +181,33 @@ class GenericDataSource
                     ],
                     'timestamp' => time(),
                 ];
-            }
-
-            // Build and execute query based on aggregation type
-            if ($aggregation && $groupBy) {
-                $data = $this->executeAggregatedQuery($itemtype, $filters, $groupBy, $aggregation, $orderBy, $limit, $dateRange);
             } else {
-                $data = $this->executeListQuery($itemtype, $filters, $outputFields, $orderBy, $limit);
+                if ($aggregation && $groupBy) {
+                    $data = $this->executeAggregatedQuery($itemtype, $filters, $groupBy, $aggregation, $orderBy, $limit, $dateRange);
+                } else {
+                    $data = $this->executeListQuery($itemtype, $filters, $outputFields, $orderBy, $limit);
+                }
+
+                $result = [
+                    'success' => true,
+                    'data' => $data['rows'],
+                    'total' => $data['total'],
+                    'columns' => $data['columns'] ?? [],
+                    'meta' => [
+                        'itemtype' => $itemtype,
+                        'limit' => $limit,
+                        'has_more' => $data['total'] > count($data['rows']),
+                    ],
+                    'timestamp' => time(),
+                ];
             }
 
-            return [
-                'success' => true,
-                'data' => $data['rows'],
-                'total' => $data['total'],
-                'columns' => $data['columns'] ?? [],
-                'meta' => [
-                    'itemtype' => $itemtype,
-                    'limit' => $limit,
-                    'has_more' => $data['total'] > count($data['rows']),
-                ],
-                'timestamp' => time(),
-            ];
+            if ($result['success'] && $cacheKey !== null && $this->cacheManager->isEnabled()) {
+                $ttl = $aggregation ? QueryCacheManager::TTL_LONG : $this->cacheTTL;
+                $this->cacheManager->set($cacheKey, $result, $ttl);
+            }
+
+            return array_merge($result, ['from_cache' => false]);
         } catch (\Exception $e) {
             return [
                 'success' => false,
@@ -354,51 +395,58 @@ class GenericDataSource
     }
 
     /**
-     * Execute multi-series query for year-over-year comparisons
-     * Executes separate queries for each series (year) and combines results
+     * Execute multi-series query for comparison charts
+     * Executes separate queries for each series and combines results
      *
      * @param string $itemtype
-     * @param array $seriesConfigs Array of series configs with 'name' and 'year_filter' keys
+     * @param array $seriesConfigs Array of series configs with name, filters, filter_mode
      * @param array $groupBy Grouping configuration (field + interval)
      * @param array $aggregation Aggregation function
+     * @param array $baseFilters Base filters applied to all series
+     * @param array|null $orderBy Sorting configuration
+     * @param int $limit Row limit
+     * @param array|null $dateRange Date range for gap filling
      * @return array Multi-series data structure
      */
     private function executeMultiSeriesQuery(
         string $itemtype,
         array $seriesConfigs,
         array $groupBy,
-        array $aggregation
+        array $aggregation,
+        array $baseFilters,
+        ?array $orderBy,
+        int $limit,
+        ?array $dateRange
     ): array {
         $result = ['series' => []];
+        $groupByField = $this->getGroupByField($groupBy);
 
-        foreach ($seriesConfigs as $series) {
-            $year = $series['year_filter'];
-            $seriesName = $series['name'] ?? (string) $year;
+        foreach ($seriesConfigs as $index => $series) {
+            $seriesName = $series['name'] ?? 'Series ' . ($index + 1);
+            $seriesFilters = $series['filters'] ?? [];
 
-            // Build year-specific date filters
-            $filters = [
-                ['field' => 15, 'searchtype' => 'between', 'value' => ["$year-01-01", "$year-12-31"]]
-            ];
+            $filterMode = $series['filter_mode'] ?? 'append';
+            $filters = $filterMode === 'replace'
+                ? $seriesFilters
+                : array_merge($baseFilters, $seriesFilters);
 
-            // Execute aggregated query for this year
+            $seriesDateRange = $this->extractDateRangeFromFilters($filters, $groupBy) ?? $dateRange;
+
             $data = $this->executeAggregatedQuery(
                 $itemtype,
                 $filters,
                 $groupBy,
                 $aggregation,
-                null, // orderBy - sort chronologically
-                12,  // limit - 12 months
-                null // dateRange - not needed, we're filtering by year
+                $orderBy,
+                $limit,
+                $seriesDateRange
             );
 
-            // Normalize data to standard format [[label, value], ...]
             $seriesData = [];
             $groupAlias = null;
 
-            // Find the group field alias
             foreach ($data['rows'] as $row) {
                 if (empty($groupAlias)) {
-                    // Find the group_ field (skip 'value' and calculated fields)
                     foreach (array_keys($row) as $key) {
                         if (str_starts_with($key, 'group_') || str_starts_with($key, 'calculated_')) {
                             $groupAlias = $key;
@@ -408,35 +456,137 @@ class GenericDataSource
                 }
 
                 if ($groupAlias && isset($row[$groupAlias]) && isset($row['value'])) {
-                    // Format date for display (e.g., "2024-01-01" -> "Jan")
-                    $label = $this->formatMonthLabel($row[$groupAlias]);
-                    $seriesData[] = [$label, $row['value']];
+                    $seriesData[] = [(string) $row[$groupAlias], $row['value']];
                 }
             }
 
             $result['series'][] = [
                 'name' => $seriesName,
-                'data' => $seriesData
+                'data' => $seriesData,
+                'color' => $series['color'] ?? null,
             ];
         }
 
         return $result;
     }
 
-    /**
-     * Format a date value to a short month label
-     *
-     * @param string $dateValue Date value from database
-     * @return string Formatted month label (e.g., "Jan")
-     */
-    private function formatMonthLabel(string $dateValue): string
+    private function getGroupByField(array $groupBy): ?int
     {
-        try {
-            $date = new \DateTime($dateValue);
-            return $date->format('M'); // Returns "Jan", "Feb", etc.
-        } catch (\Exception $e) {
-            return $dateValue;
+        foreach ($groupBy as $groupItem) {
+            if (is_array($groupItem) && isset($groupItem['field'])) {
+                return (int) $groupItem['field'];
+            }
+
+            if (is_numeric($groupItem)) {
+                return (int) $groupItem;
+            }
         }
+
+        return null;
+    }
+
+    private function getGroupByInterval(array $groupBy): ?string
+    {
+        foreach ($groupBy as $groupItem) {
+            if (is_array($groupItem) && isset($groupItem['field'])) {
+                return $groupItem['interval'] ?? null;
+            }
+        }
+
+        return null;
+    }
+
+    private function extractDateRangeFromFilters(array $filters, array $groupBy): ?array
+    {
+        $groupField = $this->getGroupByField($groupBy);
+        $interval = $this->getGroupByInterval($groupBy);
+
+        if (!$groupField || !$interval) {
+            return null;
+        }
+
+        $startDate = null;
+        $endDate = null;
+
+        foreach ($filters as $filter) {
+            $fieldId = $filter['field'] ?? null;
+            if (!$fieldId || (int) $fieldId !== $groupField) {
+                continue;
+            }
+
+            $operator = $this->normalizeFilterOperator($filter['operator'] ?? null, $filter['searchtype'] ?? null);
+            $value = $filter['value'] ?? null;
+
+            if (!$value) {
+                continue;
+            }
+
+            if ($operator === 'between' && is_array($value) && count($value) >= 2) {
+                $startDate = $this->normalizeDateValue($value[0]);
+                $endDate = $this->normalizeDateValue($value[1]);
+                continue;
+            }
+
+            $normalizedValue = is_array($value) ? reset($value) : $value;
+            $dateValue = $this->normalizeDateValue($normalizedValue);
+
+            if (in_array($operator, ['greater_than', 'greater_or_equal'], true)) {
+                if (!$startDate || $dateValue > $startDate) {
+                    $startDate = $dateValue;
+                }
+            } elseif (in_array($operator, ['less_than', 'less_or_equal'], true)) {
+                if (!$endDate || $dateValue < $endDate) {
+                    $endDate = $dateValue;
+                }
+            } elseif ($operator === 'equals') {
+                $startDate = $dateValue;
+                $endDate = $dateValue;
+            }
+        }
+
+        if ($startDate && !$endDate) {
+            $endDate = date('Y-m-d');
+        }
+
+        if ($startDate && $endDate) {
+            return [
+                'start' => $startDate,
+                'end' => $endDate,
+                'interval' => $interval,
+                'field' => $groupField,
+            ];
+        }
+
+        return null;
+    }
+
+    private function normalizeFilterOperator(?string $operator, ?string $searchType): string
+    {
+        if ($operator) {
+            return $operator;
+        }
+
+        return match ($searchType) {
+            'equals' => 'equals',
+            'notequals' => 'not_equals',
+            'contains' => 'contains',
+            'notcontains' => 'not_contains',
+            'morethan' => 'greater_or_equal',
+            'lessthan' => 'less_than',
+            'between' => 'between',
+            'isnull' => 'is_null',
+            'isnotnull' => 'is_not_null',
+            default => 'equals',
+        };
+    }
+
+    private function normalizeDateValue($value): string
+    {
+        if (is_string($value)) {
+            return explode(' ', $value)[0];
+        }
+
+        return (string) $value;
     }
 
     /**
@@ -495,8 +645,15 @@ class GenericDataSource
         // Extract columns from search options
         if (isset($searchData['data']['cols'])) {
             foreach ($searchData['data']['cols'] as $col) {
+                $colId = $col['id'] ?? '';
+                // If outputFields specified, only include those columns
+                if (!empty($outputFields)) {
+                    if (!in_array($colId, $outputFields)) {
+                        continue;
+                    }
+                }
                 $columns[] = [
-                    'id' => $col['id'] ?? '',
+                    'id' => $colId,
                     'name' => $col['name'] ?? '',
                 ];
             }
@@ -628,15 +785,6 @@ class GenericDataSource
     }
 
     /**
-     * Add custom itemtype to allowed list (for plugins)
-     * @deprecated Use ItemtypeRegistry::addItemtype() instead
-     */
-    public static function addAllowedItemtype(string $itemtype): void
-    {
-        ItemtypeRegistry::addItemtype($itemtype);
-    }
-
-    /**
      * Get current limits
      */
     public function getLimits(): array
@@ -646,5 +794,36 @@ class GenericDataSource
             'max_limit' => $this->maxLimit,
             'timeout' => $this->timeout,
         ];
+    }
+
+    /**
+     * Get the cache manager instance
+     *
+     * @return QueryCacheManager
+     */
+    public function getCacheManager(): QueryCacheManager
+    {
+        return $this->cacheManager;
+    }
+
+    /**
+     * Clear all cached queries for this datasource
+     *
+     * @return void
+     */
+    public function clearCache(): void
+    {
+        $this->cacheManager->clearPluginCache();
+    }
+
+    /**
+     * Clear cached queries for a specific itemtype
+     *
+     * @param string $itemtype Item type
+     * @return void
+     */
+    public function clearItemtypeCache(string $itemtype): void
+    {
+        $this->cacheManager->invalidateItemtype($itemtype);
     }
 }

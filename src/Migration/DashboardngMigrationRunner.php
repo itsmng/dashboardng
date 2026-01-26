@@ -5,15 +5,15 @@ namespace GlpiPlugin\Dashboardng\Migration;
 
 final class DashboardngMigrationRunner
 {
-    private const CONFIG_CONTEXT = 'dashboardng';
-    private const CONFIG_KEY = 'schema_version';
+    public const CONFIG_CONTEXT = 'dashboardng';
+    public const CONFIG_KEY = 'schema_version';
 
     /**
      * Latest schema version bundled with this plugin.
      *
      * This must match the highest migration VERSION.
      */
-    public const LATEST_SCHEMA_VERSION = '0001';
+    public const LATEST_SCHEMA_VERSION = '0003';
 
     public static function getInstalledSchemaVersion(): string
     {

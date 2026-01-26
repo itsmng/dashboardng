@@ -2,7 +2,7 @@
 
 global $CFG_GLPI;
 
-define('DASHBOARDNG_VERSION', '0.2.0');
+define('DASHBOARDNG_VERSION', '1.0.0');
 define('DASHBOARDNG_ITSMNG_MIN_VERSION', '2.0');
 
 $hostLoader = require __DIR__ . '/../../vendor/autoload.php';
@@ -37,19 +37,20 @@ function plugin_init_dashboardng()
 
     $PLUGIN_HOOKS['csrf_compliant']['dashboardng'] = true;
 
-    $PLUGIN_HOOKS['add_javascript']['dashboardng'] = [
-        '/node_modules/preact/dist/preact.min.umd.js',
-        '/node_modules/preact/hooks/dist/hooks.umd.js',
-        '/node_modules/htm/dist/htm.umd.js',
-        '/node_modules/chart.js/dist/chart.umd.js',
-        '/js/dashboard.js',
-    ];
+    if (str_contains($_SERVER['REQUEST_URI'], '/plugins/dashboardng/')) {
+        $PLUGIN_HOOKS['add_javascript']['dashboardng'] = [
+            '/node_modules/preact/dist/preact.min.umd.js',
+            '/node_modules/preact/hooks/dist/hooks.umd.js',
+            '/node_modules/htm/dist/htm.umd.js',
+            '/node_modules/chart.js/dist/chart.umd.js',
+        ];
 
-    $PLUGIN_HOOKS['add_css']['dashboardng'] = [
-        '/node_modules/gridstack/dist/gridstack.min.css',
-        '/css/navbar.css',
-        '/css/dashboard.css',
-    ];
+        $PLUGIN_HOOKS['add_css']['dashboardng'] = [
+            '/node_modules/gridstack/dist/gridstack.min.css',
+            '/css/navbar.css',
+            '/css/dashboard.css',
+        ];
+    }
 
     $CFG_GLPI['javascript']['plugins'][DashboardMenu::class] = 'gridstack';
 

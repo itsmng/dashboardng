@@ -1,4 +1,5 @@
 import { html } from '../../lib/preact.js';
+import { __ } from '../../lib/i18n.js';
 
 /**
  * Shared Report Card Component
@@ -15,7 +16,7 @@ import { html } from '../../lib/preact.js';
  * @param {function(): void} [props.onSettingsClick] - Callback when settings button is clicked
  * @returns {import('preact').VNode} Rendered report card
  */
-export const ReportCard = ({ title, children, loading = false, error = null, onRetry, toolbar, onSettingsClick }) => {
+export const ReportCard = ({ title, children, loading = false, error = undefined, onRetry, toolbar, onSettingsClick }) => {
     return html`
         <div class="card mb-4">
             <div class="card-header d-flex justify-content-between align-items-center">

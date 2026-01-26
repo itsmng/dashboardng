@@ -6,226 +6,28 @@
  * @module taskReports
  */
 
+/* global Chart */
 import {
   html,
   render,
   useState,
   useEffect,
   useCallback,
-  useRef,
 } from "./lib/preact.js";
 
 import { ReportCard } from "./components/ui/ReportCard.js";
 import { SettingsModal } from "./components/ui/SettingsModal.js";
-import { api, CONFIG } from "./lib/config.js";
+import { ExportDropdown } from "./components/ui/ExportDropdown.js";
+import { PeriodSelector } from "./components/ui/PeriodSelector.js";
+import { LoadingSpinner } from "./components/ui/common/LoadingSpinner.js";
+import { ErrorAlert } from "./components/ui/common/ErrorAlert.js";
+import { EmptyState } from "./components/ui/common/EmptyState.js";
+import { DataTable } from "./components/ui/common/DataTable.js";
+import { StatCard } from "./components/ui/common/StatCard.js";
+import { api } from "./lib/config.js";
+import { __ } from "./lib/i18n.js";
 
-const getExportUrl = (type, format, params = {}) => {
-  const url = new URL(`${CONFIG.apiUrl || "/plugins/dashboardng/api.php"}/reports/${type}/export`, window.location.origin);
-  url.searchParams.append("format", format);
-  Object.entries(params).forEach(([key, val]) => {
-    if (val !== undefined && val !== null) {
-      url.searchParams.append(key, val);
-    }
-  });
-  return url.toString();
-};
-
-function LoadingSpinner() {
-  return html`
-    <div class="d-flex justify-content-center align-items-center p-5">
-      <div class="spinner-border text-primary" role="status">
-        <span class="visually-hidden">${__("Loading...", "dashboardng")}</span>
-      </div>
-    </div>
-  `;
-}
-
-function ErrorAlert({ message, onRetry }) {
-  return html`
-    <div class="alert alert-danger d-flex align-items-center" role="alert">
-      <i class="fas fa-exclamation-triangle me-2"></i>
-      <div class="flex-grow-1">${message}</div>
-      ${onRetry &&
-      html`
-        <button class="btn btn-sm btn-outline-danger ms-2" onClick=${onRetry}>
-          <i class="fas fa-refresh me-1"></i>${__("Retry", "dashboardng")}
-        </button>
-      `}
-    </div>
-  `;
-}
-
-function EmptyState({ message }) {
-  return html`
-    <div class="text-center text-muted p-5">
-      <i class="fas fa-chart-bar" style="font-size: 3rem;"></i>
-      <p class="mt-3">${message || __("No data available", "dashboardng")}</p>
-    </div>
-  `;
-}
-
-function ExportDropdown({ reportType, period, entities, customRange = {} }) {
-  const [isOpen, setIsOpen] = useState(false);
-  const [isExporting, setIsExporting] = useState(false);
-  const dropdownRef = useRef(null);
-
-  useEffect(() => {
-    const handleClickOutside = (event) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
-        setIsOpen(false);
-      }
-    };
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, []);
-
-  const handleExport = async (format) => {
-    setIsExporting(true);
-    setIsOpen(false);
-
-    try {
-      const params = { period };
-      if (entities) {
-        params.entities = entities;
-      }
-      if (period === 8) {
-        params.start_date = customRange?.start || undefined;
-        params.end_date = customRange?.end || undefined;
-      }
-
-      const url = getExportUrl(reportType, format, params);
-
-      const link = document.createElement("a");
-      link.href = url;
-      link.style.display = "none";
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-    } catch (error) {
-      console.error("Export failed:", error);
-      alert(__("Export failed. Please try again.", "dashboardng"));
-    } finally {
-      setIsExporting(false);
-    }
-  };
-
-  const formats = [
-    {
-      id: "csv",
-      label: "CSV",
-      icon: "file-alt",
-      description: __("Comma-separated values", "dashboardng"),
-    },
-    {
-      id: "xlsx",
-      label: "Excel (XLSX)",
-      icon: "file-excel",
-      description: __("Microsoft Excel format", "dashboardng"),
-    },
-    {
-      id: "pdf",
-      label: "PDF",
-      icon: "file-pdf",
-      description: __("Portable Document Format", "dashboardng"),
-    },
-  ];
-
-  return html`
-    <div class="dropdown" ref=${dropdownRef}>
-      <button
-        class="btn btn-outline-primary btn-sm dropdown-toggle"
-        type="button"
-        onClick=${() => setIsOpen(!isOpen)}
-        disabled=${isExporting}
-      >
-        ${isExporting
-          ? html`
-              <span
-                class="spinner-border spinner-border-sm me-1"
-                role="status"
-              ></span>
-            `
-          : html` <i class="fas fa-download me-1"></i> `}
-        ${__("Export", "dashboardng")}
-      </button>
-      ${isOpen &&
-      html`
-        <ul class="dropdown-menu show" style="position: absolute; right: 0;">
-          ${formats.map(
-            (format) => html`
-              <li>
-                <button
-                  class="dropdown-item d-flex align-items-center"
-                  onClick=${() => handleExport(format.id)}
-                >
-                  <i class="fas fa-${format.icon} me-2"></i>
-                  <div>
-                    <div>${format.label}</div>
-                    <small class="text-muted">${format.description}</small>
-                  </div>
-                </button>
-              </li>
-            `,
-          )}
-        </ul>
-      `}
-    </div>
-  `;
-}
-
-function PeriodSelector({ value, onChange }) {
-  const periods = [
-    { value: 0, label: __("All time", "dashboardng") },
-    { value: 1, label: __("Current year", "dashboardng") },
-    { value: 2, label: __("Current month", "dashboardng") },
-    { value: 3, label: __("Last 7 days", "dashboardng") },
-    { value: 4, label: __("Last 15 days", "dashboardng") },
-    { value: 5, label: __("Last 30 days", "dashboardng") },
-    { value: 6, label: __("Last 90 days", "dashboardng") },
-    { value: 7, label: __("Last 180 days", "dashboardng") },
-    { value: 8, label: __("Custom range", "dashboardng") },
-  ];
-
-  return html`
-    <select
-      class="form-select form-select-sm"
-      value=${value}
-      onChange=${(e) => onChange(parseInt(e.target.value, 10))}
-      style="width: auto;"
-    >
-      ${periods.map(
-        (p) => html` <option value=${p.value}>${p.label}</option> `,
-      )}
-    </select>
-  `;
-}
-
-function CustomRangePicker({ value, onChange }) {
-  const handleChange = (key, dateValue) => {
-    onChange({ ...value, [key]: dateValue || '' });
-  };
-
-  return html`
-    <div class="d-flex align-items-center gap-2">
-      <label class="form-label mb-0 text-muted">${__("From", "dashboardng")}</label>
-      <input
-        type="date"
-        class="form-control form-control-sm"
-        value=${value.start || ''}
-        onChange=${(e) => handleChange('start', e.target.value)}
-      />
-      <label class="form-label mb-0 text-muted">${__("To", "dashboardng")}</label>
-      <input
-        type="date"
-        class="form-control form-control-sm"
-        value=${value.end || ''}
-        onChange=${(e) => handleChange('end', e.target.value)}
-      />
-    </div>
-  `;
-}
-
-function PieChart({ data, title, topK = null }) {
+function PieChart({ data, title, topK = undefined }) {
   const canvasRef = useCallback(
     (node) => {
       if (node && data && data.length > 0) {
@@ -248,7 +50,7 @@ function PieChart({ data, title, topK = null }) {
         let values = data.map((item) => item.count || item.value);
 
         if (topK && topK > 0 && data.length > topK) {
-          const sorted = [...data].sort((a, b) => (b.count || b.value) - (a.count || a.value));
+          const sorted = [...data].toSorted((a, b) => (b.count || b.value) - (a.count || a.value));
           const topKItems = sorted.slice(0, topK);
           const others = sorted.slice(topK);
           const othersValue = others.reduce((sum, item) => sum + (item.count || item.value), 0);
@@ -274,7 +76,7 @@ function PieChart({ data, title, topK = null }) {
             maintainAspectRatio: false,
             plugins: {
               title: {
-                display: !!title,
+                display: Boolean(title),
                 text: title,
                 color: "#212529",
                 font: { size: 14 },
@@ -338,7 +140,7 @@ function BarChart({ data, title, horizontal = false, valueKey = "count" }) {
             maintainAspectRatio: false,
             plugins: {
               title: {
-                display: !!title,
+                display: Boolean(title),
                 text: title,
                 color: "#212529",
                 font: { size: 14 },
@@ -375,79 +177,8 @@ function BarChart({ data, title, horizontal = false, valueKey = "count" }) {
   ></canvas>`;
 }
 
-function DataTable({ columns, rows, emptyMessage }) {
-  if (!rows || rows.length === 0) {
-    return html`<${EmptyState} message=${emptyMessage} />`;
-  }
-
-  return html`
-    <div class="table-responsive table-scroll">
-      <table class="table table-striped table-hover mb-0" style="min-width: 0;">
-        <thead class="table-light">
-          <tr>
-            ${columns.map(
-              (col) => html`
-                <th class=${col.align === "right" ? "text-end" : ""}>
-                  ${col.label}
-                </th>
-              `,
-            )}
-          </tr>
-        </thead>
-        <tbody>
-          ${rows.map(
-            (row) => html`
-              <tr>
-                ${columns.map(
-                  (col) => html`
-                    <td class=${col.align === "right" ? "text-end" : ""}>
-                      ${col.render
-                        ? col.render(row[col.key], row)
-                        : row[col.key]}
-                    </td>
-                  `,
-                )}
-              </tr>
-            `,
-          )}
-        </tbody>
-      </table>
-    </div>
-  `;
-}
-
-function StatCard({ label, value, icon, color = "primary", trend }) {
-  return html`
-    <div class="card h-100 border-${color} border-start border-4">
-      <div class="card-body">
-        <div class="d-flex justify-content-between align-items-center">
-          <div>
-            <h6 class="text-muted mb-1">${label}</h6>
-            <h3 class="mb-0">${value}</h3>
-            ${trend !== undefined &&
-            html`
-              <small class="text-${trend >= 0 ? "success" : "danger"}">
-                <i
-                  class="fas fa-arrow-${trend >= 0 ? "up" : "down"} me-1"
-                ></i>
-                ${Math.abs(trend)}%
-              </small>
-            `}
-          </div>
-          ${icon &&
-          html`
-            <div class="text-${color} opacity-50">
-              <i class="fas fa-${icon}" style="font-size: 2.5rem;"></i>
-            </div>
-          `}
-        </div>
-      </div>
-    </div>
-  `;
-}
-
 const formatTime = (seconds) => {
-  if (!seconds || seconds === 0) return "0h";
+  if (!seconds || seconds === 0) {return "0h";}
   const hours = Math.floor(seconds / 3600);
   const minutes = Math.floor((seconds % 3600) / 60);
   if (hours > 0 && minutes > 0) {
@@ -460,18 +191,18 @@ const formatTime = (seconds) => {
 };
 
 function OverviewReport({ period, rangeParams = {}, onSettingsClick, getCardSettings, cardIdPrefix }) {
-  const [data, setData] = useState(null);
+  const [data, setData] = useState(undefined);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+  const [error, setError] = useState(undefined);
 
   const loadData = useCallback(async () => {
     setLoading(true);
-    setError(null);
+    setError(undefined);
     try {
       const result = await api.fetch("/reports/task-overview", { period, ...rangeParams });
       setData(result.data);
-    } catch (e) {
-      setError(e.message);
+    } catch (error) {
+      setError(error.message);
     } finally {
       setLoading(false);
     }
@@ -481,10 +212,10 @@ function OverviewReport({ period, rangeParams = {}, onSettingsClick, getCardSett
     loadData();
   }, [loadData]);
 
-  if (loading) return html`<${LoadingSpinner} />`;
+  if (loading) {return html`<${LoadingSpinner} />`;}
   if (error)
-    return html`<${ErrorAlert} message=${error} onRetry=${loadData} />`;
-  if (!data) return html`<${EmptyState} />`;
+    {return html`<${ErrorAlert} message=${error} onRetry=${loadData} />`;}
+  if (!data) {return html`<${EmptyState} />`;}
 
   return html`
     <div class="row g-4 mb-4">
@@ -524,7 +255,7 @@ function OverviewReport({ period, rangeParams = {}, onSettingsClick, getCardSett
             <div class="col-md-6">
               <${PieChart}
                 data=${data.by_category}
-                topK=${getCardSettings(`${cardIdPrefix}-category`).topK || null}
+                topK=${getCardSettings(`${cardIdPrefix}-category`).topK || undefined}
               />
             </div>
             <div class="col-md-6">
@@ -575,18 +306,18 @@ function OverviewReport({ period, rangeParams = {}, onSettingsClick, getCardSett
 }
 
 function TechnicianReport({ period, rangeParams = {} }) {
-  const [data, setData] = useState(null);
+  const [data, setData] = useState(undefined);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+  const [error, setError] = useState(undefined);
 
   const loadData = useCallback(async () => {
     setLoading(true);
-    setError(null);
+    setError(undefined);
     try {
       const result = await api.fetch("/reports/task-by-technician", { period, ...rangeParams });
       setData(result.data);
-    } catch (e) {
-      setError(e.message);
+    } catch (error) {
+      setError(error.message);
     } finally {
       setLoading(false);
     }
@@ -618,6 +349,17 @@ function TechnicianReport({ period, rangeParams = {} }) {
     },
   ];
 
+  if (!data || data.length === 0) {
+    return html`<${ReportCard}
+      title=${__("Tasks by Technician", "dashboardng")}
+      loading=${loading}
+      error=${error}
+      onRetry=${loadData}
+    >
+      <${EmptyState} message=${__("No technician data available", "dashboardng")} />
+    <//>`;
+  }
+
   return html`
     <${ReportCard}
       title=${__("Tasks by Technician", "dashboardng")}
@@ -646,18 +388,18 @@ function TechnicianReport({ period, rangeParams = {} }) {
 }
 
 function EntityReport({ period, rangeParams = {} }) {
-  const [data, setData] = useState(null);
+  const [data, setData] = useState(undefined);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+  const [error, setError] = useState(undefined);
 
   const loadData = useCallback(async () => {
     setLoading(true);
-    setError(null);
+    setError(undefined);
     try {
       const result = await api.fetch("/reports/task-by-entity", { period, ...rangeParams });
       setData(result.data);
-    } catch (e) {
-      setError(e.message);
+    } catch (error) {
+      setError(error.message);
     } finally {
       setLoading(false);
     }
@@ -685,6 +427,17 @@ function EntityReport({ period, rangeParams = {} }) {
     },
   ];
 
+  if (!data || data.length === 0) {
+    return html`<${ReportCard}
+      title=${__("Tasks by Entity", "dashboardng")}
+      loading=${loading}
+      error=${error}
+      onRetry=${loadData}
+    >
+      <${EmptyState} message=${__("No entity data available", "dashboardng")} />
+    <//>`;
+  }
+
   return html`
     <${ReportCard}
       title=${__("Tasks by Entity", "dashboardng")}
@@ -709,17 +462,17 @@ function EntityReport({ period, rangeParams = {} }) {
 }
 
 function TicketReport({ period, rangeParams = {} }) {
-  const [data, setData] = useState(null);
+  const [data, setData] = useState(undefined);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+  const [error, setError] = useState(undefined);
   const loadData = useCallback(async () => {
     setLoading(true);
-    setError(null);
+    setError(undefined);
     try {
       const result = await api.fetch("/reports/task-by-ticket", { period, ...rangeParams });
       setData(result.data);
-    } catch (e) {
-      setError(e.message);
+    } catch (error) {
+      setError(error.message);
     } finally {
       setLoading(false);
     }
@@ -773,16 +526,23 @@ function TaskReportsApp() {
   const [period, setPeriod] = useState(0);
   const [customRange, setCustomRange] = useState({ start: '', end: '' });
   const [showSettings, setShowSettings] = useState(false);
-  const [settingsCard, setSettingsCard] = useState(null);
+  const [settingsCard, setSettingsCard] = useState(undefined);
   const [chartSettings, setChartSettings] = useState({});
+  const exportTypeMap = {
+    overview: "task-overview",
+    technician: "task-by-technician",
+    entity: "task-by-entity",
+    ticket: "task-by-ticket",
+  };
+  const exportType = exportTypeMap[activeTab] || "task-overview";
 
   useEffect(() => {
     const saved = localStorage.getItem('taskReportsChartSettings');
     if (saved) {
       try {
         setChartSettings(JSON.parse(saved));
-      } catch (e) {
-        console.error('Failed to parse chart settings:', e);
+      } catch (error) {
+        console.error('Failed to parse chart settings:', error);
       }
     }
   }, []);
@@ -803,7 +563,7 @@ function TaskReportsApp() {
       saveChartSettings(settingsCard, newSettings);
     }
     setShowSettings(false);
-    setSettingsCard(null);
+    setSettingsCard(undefined);
   };
 
   const getCardSettings = (cardId) => {
@@ -816,6 +576,10 @@ function TaskReportsApp() {
     { id: "entity", label: __("By Entity", "dashboardng"), icon: "fa-building" },
     { id: "ticket", label: __("By Ticket", "dashboardng"), icon: "fa-ticket-alt" },
   ];
+  const bulkOptions = tabs.map((tab) => ({
+    id: exportTypeMap[tab.id] || tab.id,
+    label: tab.label,
+  }));
 
   const renderContent = () => {
     const rangeParams = period === 8
@@ -823,18 +587,23 @@ function TaskReportsApp() {
       : {};
 
     switch (activeTab) {
-      case "overview":
+      case "overview": {
         return html`<${OverviewReport} period=${period} rangeParams=${rangeParams} onSettingsClick=${handleSettingsClick} getCardSettings=${getCardSettings} cardIdPrefix="overview" />`;
-      case "technician":
+      }
+      case "technician": {
         return html`<${TechnicianReport} period=${period} rangeParams=${rangeParams} />`;
-      case "entity":
+      }
+      case "entity": {
         return html`<${EntityReport} period=${period} rangeParams=${rangeParams} />`;
-      case "ticket":
+      }
+      case "ticket": {
         return html`<${TicketReport} period=${period} rangeParams=${rangeParams} />`;
-      default:
+      }
+      default: {
         return html`<${EmptyState}
           message=${__("Select a report type", "dashboardng")}
         />`;
+      }
     }
   };
 
@@ -842,21 +611,24 @@ function TaskReportsApp() {
     <div class="dashboardng-reports">
       <div class="d-flex justify-content-between align-items-center mb-4">
         <h2 class="mb-0">
-          <i class="fas fa-tasks me-2"></i>
           ${__("Task Reports", "dashboardng")}
         </h2>
         <div class="d-flex align-items-center gap-3">
           <label class="form-label mb-0 text-muted"
             >${__("Period", "dashboardng")}:</label
           >
-          <${PeriodSelector} value=${period} onChange=${setPeriod} />
-          ${period === 8 && html`
-            <${CustomRangePicker} value=${customRange} onChange=${setCustomRange} />
-          `}
+          <${PeriodSelector}
+            value=${period}
+            onChange=${setPeriod}
+            showCustomRange=${true}
+            customRange=${customRange}
+            onCustomRangeChange=${setCustomRange}
+          />
           <${ExportDropdown}
-            reportType=${activeTab}
+            reportType=${exportType}
             period=${period}
             customRange=${customRange}
+            bulkOptions=${bulkOptions}
           />
         </div>
       </div>
@@ -881,7 +653,7 @@ function TaskReportsApp() {
 
        <${SettingsModal}
          isOpen=${showSettings}
-         onClose=${() => { setShowSettings(false); setSettingsCard(null); }}
+         onClose=${() => { setShowSettings(false); setSettingsCard(undefined); }}
          onSave=${handleSettingsSave}
          settings=${getCardSettings(settingsCard || '')}
          chartType=${'pie'}
@@ -890,7 +662,8 @@ function TaskReportsApp() {
    `;
 }
 
-document.addEventListener("DOMContentLoaded", () => {
+document.addEventListener("DOMContentLoaded", async () => {
+  await new Promise((resolve) => setTimeout(resolve, 500)); // required for translation loading (TODO: fix the damn translation loader)
   const container = document.getElementById("dashboardng-tasks");
   if (container) {
     render(html`<${TaskReportsApp} />`, container);

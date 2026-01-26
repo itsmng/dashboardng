@@ -1,4 +1,5 @@
 import { html } from '../../../lib/preact.js';
+import { __ } from '../../../lib/i18n.js';
 
 export const StepIndicator = ({ step, onStepClick }) => {
     return html`

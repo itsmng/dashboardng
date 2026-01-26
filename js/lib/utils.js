@@ -21,7 +21,7 @@ export const processFilters = (filters, period) => {
     const lastWeek = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
 
     return filters.map(filter => {
-        let value = filter.value;
+        let {value} = filter;
 
         if (typeof value === 'string') {
             value = value
@@ -50,20 +50,20 @@ export const processFilters = (filters, period) => {
  */
 export const extractDateRange = (filters, groupBy) => {
     if (!groupBy || typeof groupBy !== 'object' || !groupBy.interval) {
-        return null;
+        return ;
     }
 
     const groupField = groupBy.field;
-    let startDate = null;
-    let endDate = null;
+    let startDate;
+    let endDate;
 
     for (const filter of filters) {
-        if (filter.field !== groupField) continue;
+        if (filter.field !== groupField) {continue;}
 
         const searchType = filter.searchtype || filter.operator;
-        const value = filter.value;
+        const {value} = filter;
 
-        if (!value) continue;
+        if (!value) {continue;}
 
         const dateValue = value.split(' ')[0];
 
@@ -91,7 +91,7 @@ export const extractDateRange = (filters, groupBy) => {
         };
     }
 
-    return null;
+    return ;
 };
 
 /**

@@ -778,3 +778,30 @@
 .config-summary .list-group-item:last-child {
     border-bottom: none;
 }
+
+/* ============================================================================
+    Color Palette Options
+    ============================================================================ */
+.palette-option {
+    cursor: pointer;
+    transition: var(--dashboardng-transition);
+    border: 2px solid transparent;
+}
+
+.palette-option:hover {
+    border-color: #dee2e6;
+    transform: translateY(-2px);
+}
+
+.palette-option.selected {
+    border-color: var(--dashboardng-primary);
+    background: rgba(13, 110, 253, 0.05);
+    box-shadow: 0 0 0 2px rgba(13, 110, 253, 0.1);
+}
+
+/* ============================================================================
+    Series Configuration Cards
+    ============================================================================ */
+.widget-config-modal .filter-row .card-body {
+    padding: 0.5rem;
+}

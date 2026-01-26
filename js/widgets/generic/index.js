@@ -13,24 +13,23 @@ export { GenericChartWidget, GenericCardWidget, GenericTableWidget };
 
 /**
  * Get appropriate generic widget component based on visualization type
- * @param {string} visualization - Visualization type ('card', 'chart', 'bar', 'line', 'multiline', 'pie', 'doughnut', 'table')
+ * @param {string} visualization - Visualization type ('card', 'chart', 'table')
  * @returns {import('preact').FunctionComponent} The widget component
  */
 export const getGenericWidgetComponent = (visualization) => {
     switch (visualization) {
-        case 'card':
+        case 'card': {
             return GenericCardWidget;
-        case 'chart':
-        case 'bar':
-        case 'line':
-        case 'multiline':
-        case 'pie':
-        case 'doughnut':
+        }
+        case 'chart': {
             return GenericChartWidget;
-        case 'table':
+        }
+        case 'table': {
             return GenericTableWidget;
-        default:
+        }
+        default: {
             // Default to card for unknown types
             return GenericCardWidget;
+        }
     }
 };

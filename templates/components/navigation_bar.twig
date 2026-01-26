@@ -127,8 +127,8 @@ document.querySelector("#subheader").style.setProperty("display", "none", "impor
         const container = document.getElementById('dashboardng-entity-selector-root');
         const rootDoc = container.dataset.rootDoc;
 
-        const { render, html } = await import(rootDoc + '/plugins/dashboardng/js/lib/preact.js');
-        const { EntitySelector } = await import(rootDoc + '/plugins/dashboardng/js/components/ui/EntitySelector.js');
+        const module = await import('{{ script_paths.entitySelector }}');
+        const { render, html, EntitySelector } = module;
 
         render(html`<${EntitySelector} rootDoc="${rootDoc}" />`, container);
     }

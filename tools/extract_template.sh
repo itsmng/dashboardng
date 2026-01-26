@@ -2,15 +2,17 @@
 # Extract translatable strings from PHP and JavaScript files
 
 PLUGIN_NAME="DashboardNG"
-VERSION="1.0.0"
 COPYRIGHT_HOLDER="ITSMNG Team"
 POT_FILE="itsm.pot"
 
 # Find all PHP files (excluding vendor and node_modules)
 PHP_SOURCES=$(find . -name "*.php" -not -path "./vendor/*" -not -path "./node_modules/*")
 
-# Find all JavaScript files (excluding node_modules)
-JS_SOURCES=$(find ./js -name "*.js" 2>/dev/null)
+# Find all JavaScript files (excluding node_modules, dist, and build directories)
+JS_SOURCES=$(find ./js -name "*.js" \
+    -not -path "./js/dist/*" \
+    -not -path "*/node_modules/*" \
+    2>/dev/null)
 
 # Backup existing .pot file if it exists
 if [ -f "locales/$POT_FILE" ]; then
@@ -21,7 +23,6 @@ fi
 echo "Extracting translatable strings from PHP files..."
 xgettext $PHP_SOURCES \
     --package-name="$PLUGIN_NAME" \
-    --package-version="$VERSION" \
     --copyright-holder="$COPYRIGHT_HOLDER" \
     --output=locales/$POT_FILE \
     --language=PHP \
@@ -37,7 +38,6 @@ if [ -n "$JS_SOURCES" ]; then
     echo "Extracting translatable strings from JavaScript files..."
     xgettext $JS_SOURCES \
         --package-name="$PLUGIN_NAME" \
-        --package-version="$VERSION" \
         --copyright-holder="$COPYRIGHT_HOLDER" \
         --output=locales/$POT_FILE \
         --language=JavaScript \

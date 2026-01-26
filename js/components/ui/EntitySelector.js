@@ -65,7 +65,7 @@ export function EntitySelector({ rootDoc, onOpen }) {
     const [nodeChildrenMap, setNodeChildrenMap] = useState(new Map());
     const [searchText, setSearchText] = useState('');
     const [searching, setSearching] = useState(false);
-    const [searchError, setSearchError] = useState(null);
+    const [searchError, setSearchError] = useState(undefined);
     const [matchedNodeIds, setMatchedNodeIds] = useState(new Set());
     const searchInputRef = useRef(null);
     const [currentSearchText, setCurrentSearchText] = useState('');
@@ -87,7 +87,7 @@ export function EntitySelector({ rootDoc, onOpen }) {
             } else if (searchText.length === 0) {
                 setMatchedNodeIds(new Set());
                 setCurrentSearchText('');
-                setSearchError(null);
+                setSearchError(undefined);
             }
         }, 500);
 
@@ -105,17 +105,17 @@ export function EntitySelector({ rootDoc, onOpen }) {
                     }
                 });
             })
-            .catch(err => console.error('Failed to load root entities:', err));
+            .catch(error => console.error('Failed to load root entities:', error));
     };
 
     const loadChildren = (nodeId, options = {}) => {
         const { force = false } = options;
         const normalizedId = normalizeId(nodeId);
 
-        if (loadingNodes.has(normalizedId)) return Promise.resolve();
+        if (loadingNodes.has(normalizedId)) {return Promise.resolve();}
 
         const childrenStatus = nodeChildrenMap.get(normalizedId);
-        if (!force && childrenStatus !== true && !Array.isArray(childrenStatus)) return Promise.resolve();
+        if (!force && childrenStatus !== true && !Array.isArray(childrenStatus)) {return Promise.resolve();}
 
         setLoadingNodes(prev => new Set(prev).add(normalizedId));
 
@@ -153,14 +153,14 @@ export function EntitySelector({ rootDoc, onOpen }) {
                     return updated;
                 });
             })
-            .catch(err => {
-                console.error('Failed to load children:', err);
+            .catch(error => {
+                console.error('Failed to load children:', error);
                 setLoadingNodes(prev => {
                     const updated = new Set(prev);
                     updated.delete(normalizedId);
                     return updated;
                 });
-                throw err;
+                throw error;
             });
     };
 
@@ -187,7 +187,7 @@ export function EntitySelector({ rootDoc, onOpen }) {
 
     const performSearch = async (searchStr) => {
         setSearching(true);
-        setSearchError(null);
+        setSearchError(undefined);
         setCurrentSearchText(searchStr);
 
         try {
@@ -232,9 +232,9 @@ export function EntitySelector({ rootDoc, onOpen }) {
 
                 await new Promise(resolve => setTimeout(resolve, 0));
             }
-        } catch (err) {
-            console.error('Search error:', err);
-            setSearchError(err.message);
+        } catch (error) {
+            console.error('Search error:', error);
+            setSearchError(error.message);
         } finally {
             setSearching(false);
         }

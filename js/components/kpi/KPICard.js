@@ -14,7 +14,7 @@ import { html } from '../../lib/preact.js';
  * @param {number|null} [props.trend] - Trend percentage (positive=up, negative=down)
  * @returns {import('preact').VNode} Rendered KPI card
  */
-export const KPICard = ({ title, value, icon, color = 'primary', loading = false, trend = null }) => {
+export const KPICard = ({ title, value, icon, color = 'primary', loading = false, trend = undefined }) => {
     return html`
         <div class="card kpi-card h-100 border-0 shadow-sm kpi-${color}">
             <div class="card-body">

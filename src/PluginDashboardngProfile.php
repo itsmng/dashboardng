@@ -24,22 +24,20 @@ class PluginDashboardngProfile extends CommonDBTM
     public static $rightname = 'profile';
 
     /**
-     * Install database table
-     *
-     * @return boolean
-     */
-    public static function install(): bool
-    {
-        return true;
-    }
-
-    /**
      * Uninstall database table
      *
      * @return boolean
      */
     public static function uninstall(): bool
     {
+        global $DB;
+
+        $table = self::getTable();
+
+        if ($DB->tableExists($table)) {
+            $DB->queryOrDie("DROP TABLE `$table`", $DB->error());
+        }
+
         return true;
     }
 

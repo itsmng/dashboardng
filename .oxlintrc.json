@@ -1,0 +1,44 @@
+{
+  "$schema": "./node_modules/oxlint/configuration_schema.json",
+  "env": {
+    "browser": true,
+    "es6": true
+  },
+  "globals": {
+    "ajax": "readonly",
+    "glpi": "readonly",
+    "CFG_GLPI": "readonly",
+    "jQuery": "readonly",
+    "__": "readonly",
+    "GridStack": "readonly",
+    "window": "readonly"
+  },
+  "categories": {
+    "correctness": "error",
+    "suspicious": "warn",
+    "style": "warn",
+    "pedantic": "off"
+  },
+  "rules": {
+    "no-alert": "warn",
+    "no-console": "off",
+    "no-debugger": "warn",
+    "no-unused-vars": "error",
+    "no-undef": "error",
+    "id-length": "off",
+    "sort-keys": "off",
+    "sort-imports": "off",
+    "no-magic-numbers": "off",
+    "no-ternary": "off",
+    "arrow-body-style": "off",
+    "max-statements": "off"
+  },
+  "overrides": [
+    {
+      "files": ["js/**/*.js"],
+      "rules": {
+        "no-undef": "error"
+      }
+    }
+  ]
+}

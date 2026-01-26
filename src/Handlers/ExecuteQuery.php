@@ -28,6 +28,8 @@ class ExecuteQuery
                 'default_limit' => $config['query_default_limit'] ?? 1000,
                 'max_limit' => $config['query_max_limit'] ?? 10000,
                 'timeout' => $config['query_timeout'] ?? 30,
+                'cache_enabled' => $config['cache_enabled'] ?? true,
+                'cache_ttl' => $config['cache_ttl'] ?? 300,
             ]);
 
             return $dataSource->executeQuery($queryConfig);

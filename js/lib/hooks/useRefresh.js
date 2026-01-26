@@ -1,7 +1,7 @@
 import { h, createContext, useState, useCallback, useContext } from '../preact.js';
 
 /** @type {import('preact').Context<RefreshContextValue|null>} */
-const RefreshContext = createContext(null);
+const RefreshContext = createContext(undefined);
 
 /**
  * Provider component for refresh signal context

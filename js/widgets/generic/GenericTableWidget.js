@@ -3,6 +3,7 @@ import { api } from "../../lib/config.js";
 import { extractDateRange, processFilters } from "../../lib/utils.js";
 import { usePeriod } from "../../context/PeriodContext.js";
 import { useRefresh } from "../../lib/hooks/useRefresh.js";
+import { __ } from "../../lib/i18n.js";
 
 /**
  * Generic Table Widget - Renders data tables based on config JSON
@@ -14,15 +15,15 @@ import { useRefresh } from "../../lib/hooks/useRefresh.js";
  * @param {string|number} props.widgetId - Unique widget identifier
  * @returns {import('preact').VNode} Rendered table widget
  */
-export const GenericTableWidget = ({ config, widgetId }) => {
+export const GenericTableWidget = ({ config, widgetId: _widgetId }) => {
   const { period } = usePeriod();
   const { refreshSignal } = useRefresh();
 
   const [data, setData] = useState([]);
   const [columns, setColumns] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-  const [sortField, setSortField] = useState(null);
+  const [error, setError] = useState(undefined);
+  const [sortField, setSortField] = useState(undefined);
   const [sortDirection, setSortDirection] = useState("DESC");
   const [currentPage, setCurrentPage] = useState(1);
   const [totalCount, setTotalCount] = useState(0);
@@ -38,7 +39,7 @@ export const GenericTableWidget = ({ config, widgetId }) => {
     }
 
     setLoading(true);
-    setError(null);
+    setError(undefined);
 
     try {
       const effectiveSortField = sortField || config.orderBy?.field;
@@ -53,15 +54,14 @@ export const GenericTableWidget = ({ config, widgetId }) => {
       const queryConfig = {
         itemtype: config.itemtype,
         filters: processedFilters,
-        group_by: config.groupBy ? [config.groupBy] : null,
+        group_by: config.groupBy ? [config.groupBy] : undefined,
         aggregation: config.groupBy
-          ? config.aggregation || { function: "COUNT", field: null }
-          : null,
+          ? config.aggregation || { function: "COUNT", field: undefined }
+          : undefined,
         order_by: effectiveSortField
           ? { field: effectiveSortField, direction: effectiveSortDirection }
-          : null,
-        output_fields:
-          config.outputFields || config.columns?.map((col) => col.field),
+          : undefined,
+        output_fields: config.outputFields,
         limit: config.limit || 100,
         date_range: dateRange,
       };
@@ -75,8 +75,8 @@ export const GenericTableWidget = ({ config, widgetId }) => {
       } else {
         setError(result.error || "Query failed");
       }
-    } catch (err) {
-      setError(err.message);
+    } catch (error) {
+      setError(error.message);
     }
 
     setLoading(false);
@@ -89,7 +89,7 @@ export const GenericTableWidget = ({ config, widgetId }) => {
 
   // Auto-refresh
   useEffect(() => {
-    if (!config?.refreshInterval || config.refreshInterval <= 0) return;
+    if (!config?.refreshInterval || config.refreshInterval <= 0) {return;}
 
     const interval = setInterval(fetchData, config.refreshInterval);
     return () => clearInterval(interval);
@@ -115,7 +115,7 @@ export const GenericTableWidget = ({ config, widgetId }) => {
 
   // Generate item link
   const getItemLink = (row) => {
-    if (!config.itemtype || !row.id) return null;
+    if (!config.itemtype || !row.id) {return null;}
     return `${window.CFG_GLPI.root_doc}/front/${config.itemtype.toLowerCase()}.form.php?id=${row.id}`;
   };
 
@@ -128,8 +128,8 @@ export const GenericTableWidget = ({ config, widgetId }) => {
 
   // Format cell value
   const formatCell = (value, column) => {
-    if (value === null || value === undefined) return "-";
-    if (value === "-") return "-";
+    if (value === null || value === undefined) {return "-";}
+    if (value === "-") {return "-";}
 
     // Handle dates
     if (column?.datatype === "datetime" || column?.datatype === "date") {
@@ -250,7 +250,7 @@ export const GenericTableWidget = ({ config, widgetId }) => {
                     class="cursor-pointer user-select-none"
                     onClick=${() => handleSort(col.id)}
                   >
-                    ${col.name}
+                    ${decodeHtmlEntities(col.name)}
                     ${sortField === col.id &&
                     html`
                       <i

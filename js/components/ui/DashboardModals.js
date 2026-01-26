@@ -1,6 +1,7 @@
 import { html } from '../../lib/preact.js';
 import { WidgetLibrary } from './WidgetLibrary.js';
 import { WidgetConfigModal } from './WidgetConfigModal.js';
+import { SharedDashboardModal } from './SharedDashboardModal.js';
 import { useDashboard } from '../../context/DashboardContext.js';
 
 export const DashboardModals = () => {
@@ -12,7 +13,9 @@ export const DashboardModals = () => {
         closeWidgetConfig,
         editingWidget,
         dashboard,
-        updateWidget
+        updateWidget,
+        showSharedDashboard,
+        closeSharedDashboard
     } = useDashboard();
 
     const handleAddWidget = async (widgetData) => {
@@ -33,9 +36,15 @@ export const DashboardModals = () => {
         closeWidgetConfig();
     };
 
-
+    const isPersonalMode = window.DASHBOARDNG_CONFIG?.pageMode === 'personal';
 
     return html`
+        ${isPersonalMode && html`
+            <${SharedDashboardModal}
+                isOpen=${showSharedDashboard}
+                onClose=${closeSharedDashboard}
+            />
+        `}
         ${(!dashboard?.is_global || window.DASHBOARDNG_CONFIG?.canEditGlobalDashboard) && html`
             <${WidgetLibrary}
                 isOpen=${showWidgetLibrary}
@@ -47,7 +56,7 @@ export const DashboardModals = () => {
                 onClose=${closeWidgetConfig}
                 onSave=${handleSaveWidgetConfig}
                 initialConfig=${editingWidget?.config}
-                editMode=${!!editingWidget}
+                editMode=${Boolean(editingWidget)}
             />
         `}
     `;

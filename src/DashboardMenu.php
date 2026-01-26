@@ -30,6 +30,14 @@ class DashboardMenu extends CommonDBTM
                 'icon'  => 'fas fa-tachometer-alt',
                 'page'  => '/plugins/dashboardng/front/dashboard.php',
             ];
+
+            if (Session::haveRight('plugin_dashboardng_mydashboard', UPDATE)) {
+                $menu['options']['mydashboard'] = [
+                    'title' => __('My Dashboard', 'dashboardng'),
+                    'icon'  => 'fas fa-user-circle',
+                    'page'  => '/plugins/dashboardng/front/mydashboard.php',
+                ];
+            }
             
             $menu['options']['reports'] = [
                 'title' => __('Reports', 'dashboardng'),

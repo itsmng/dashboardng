@@ -22,55 +22,6 @@ class PluginDashboardngDashboard extends CommonDBTM
     }
 
     /**
-     * Install database table
-     *
-     * @return int|false Dashboard ID on success, false on failure
-     */
-    public static function install(): int|false
-    {
-        global $DB;
-
-        $table = self::getTable();
-
-        if (!$DB->tableExists($table)) {
-            $query = <<<SQL
-                CREATE TABLE `$table` (
-                    `id` INT(11) NOT NULL AUTO_INCREMENT,
-                    `name` VARCHAR(255) COLLATE utf8mb4_unicode_ci NOT NULL,
-                    `users_id` INT(11) NOT NULL DEFAULT 0 COMMENT '0 = global dashboard',
-                    `is_default` TINYINT(1) NOT NULL DEFAULT 0,
-                    `is_active` TINYINT(1) NOT NULL DEFAULT 1,
-                    `config` JSON DEFAULT NULL COMMENT 'Dashboard-level settings',
-                    `date_creation` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-                    `date_mod` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-                    PRIMARY KEY (`id`),
-                    KEY `users_id` (`users_id`),
-                    KEY `is_default` (`is_default`),
-                    KEY `is_active` (`is_active`)
-                ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-            SQL;
-
-            $DB->queryOrDie($query, $DB->error());
-
-            // Insert default global dashboard using ORM
-            $config = json_encode(['refreshInterval' => 60000, 'columnCount' => 12]);
-            $DB->insert($table, [
-                'name' => 'Global Dashboard',
-                'users_id' => 0,
-                'is_default' => 1,
-                'is_active' => 1,
-                'config' => $config,
-            ]);
-
-            // Return newly created dashboard ID
-            return (int) $DB->insertId();
-        } else {
-            // Table exists, ensure default dashboard exists and return its ID
-            return self::createDefaultDashboard() ?? false;
-        }
-    }
-
-    /**
      * Uninstall database table
      *
      * @return boolean
@@ -211,7 +162,8 @@ class PluginDashboardngDashboard extends CommonDBTM
     }
 
     /**
-     * Create a personal dashboard for user (copy from global)
+     * Create a personal dashboard for user (copy from source)
+     * This will replace any existing personal default dashboard
      *
      * @param int $sourceDashboardId Dashboard to copy from
      * @param string $name Name for new dashboard
@@ -224,6 +176,29 @@ class PluginDashboardngDashboard extends CommonDBTM
         $table = self::getTable();
         $userId = Session::getLoginUserID();
 
+        if (!$userId || $userId <= 0) {
+            return false;
+        }
+
+        // Find existing personal default dashboard
+        $existingDefault = null;
+        foreach ($DB->request([
+            'FROM' => $table,
+            'WHERE' => [
+                'users_id' => (int) $userId,
+                'is_default' => 1,
+            ],
+            'LIMIT' => 1,
+        ]) as $row) {
+            $existingDefault = $row;
+            break;
+        }
+
+        // If source is the current personal dashboard, just return it
+        if ($sourceDashboardId > 0 && $existingDefault && $sourceDashboardId == $existingDefault['id']) {
+            return (int) $sourceDashboardId;
+        }
+
         // If no source specified, use global default
         if ($sourceDashboardId === 0) {
             $source = self::getDefaultDashboard();
@@ -232,10 +207,63 @@ class PluginDashboardngDashboard extends CommonDBTM
             }
         }
 
+        // If we have an existing personal dashboard, delete it first
+        if ($existingDefault) {
+            // Delete its widgets
+            PluginDashboardngDashboardWidget::deleteWidgetsForDashboard($existingDefault['id']);
+            // Delete the dashboard
+            $DB->delete($table, ['id' => $existingDefault['id']]);
+        }
+
         $DB->insert($table, [
             'name' => $name,
             'users_id' => $userId,
-            'is_default' => 1, // Make it the user's default
+            'is_default' => 1,
+            'is_active' => 1,
+            'config' => json_encode([
+                'refreshInterval' => 60000,
+                'columnCount' => 12,
+            ]),
+        ]);
+
+        $newDashboardId = $DB->insertId();
+
+        // Copy widgets from source dashboard
+        if ($sourceDashboardId > 0 && $newDashboardId) {
+            PluginDashboardngDashboardWidget::copyWidgetsFromDashboard(
+                $sourceDashboardId,
+                $newDashboardId
+            );
+        }
+
+        return $newDashboardId ?: false;
+    }
+
+    /**
+     * Create a shared global dashboard (template)
+     *
+     * @param int $sourceDashboardId Dashboard to copy from
+     * @param string $name Name for the shared dashboard
+     * @return int|false New dashboard ID or false on failure
+     */
+    public static function createSharedDashboard(int $sourceDashboardId = 0, string $name = 'Shared Dashboard'): int|false
+    {
+        global $DB;
+
+        $table = self::getTable();
+
+        // If no source specified, use global default
+        if ($sourceDashboardId === 0) {
+            $source = self::getDefaultDashboard();
+            if ($source) {
+                $sourceDashboardId = $source['id'];
+            }
+        }
+
+        $DB->insert($table, [
+            'name' => $name,
+            'users_id' => 0,
+            'is_default' => 0,
             'is_active' => 1,
             'config' => json_encode([
                 'refreshInterval' => 60000,
@@ -270,17 +298,21 @@ class PluginDashboardngDashboard extends CommonDBTM
         $userId = Session::getLoginUserID();
 
         // Build WHERE clause based on whether user is logged in
-        $where = ['id' => $dashboardId];
-        
         if ($userId !== false && $userId > 0) {
             // User is logged in - can access global or own dashboards
-            $where['OR'] = [
-                ['users_id' => 0], // Global
-                ['users_id' => $userId], // Own
+            $where = [
+                'id' => $dashboardId,
+                'OR' => [
+                    ['users_id' => 0],
+                    ['users_id' => $userId]
+                ]
             ];
         } else {
             // No user session - can only access global dashboards
-            $where['users_id'] = 0;
+            $where = [
+                'id' => $dashboardId,
+                'users_id' => 0
+            ];
         }
 
         $result = $DB->request([
@@ -289,7 +321,7 @@ class PluginDashboardngDashboard extends CommonDBTM
             'LIMIT' => 1,
         ]);
 
-        $row = $result->current();
+        $row = $result->next();
         if ($row) {
             $row['config'] = json_decode($row['config'] ?? '{}', true);
             $row['is_global'] = ($row['users_id'] == 0);

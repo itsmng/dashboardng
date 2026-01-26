@@ -1,4 +1,5 @@
 import { html, useState, useEffect } from '../../lib/preact.js';
+import { __ } from '../../lib/i18n.js';
 
 /**
  * Settings Modal Component for Report Cards
@@ -13,7 +14,7 @@ import { html, useState, useEffect } from '../../lib/preact.js';
  * @param {string} [props.chartType=null] - Type of chart (pie, doughnut, etc.)
  * @returns {import('preact').VNode|null} Modal or null if not open
  */
-export const SettingsModal = ({ isOpen, onClose, onSave, settings = {}, chartType = null }) => {
+export const SettingsModal = ({ isOpen, onClose, onSave, settings = {}, chartType = undefined }) => {
     const [localSettings, setLocalSettings] = useState(settings);
 
     // Reset local settings when modal opens
@@ -23,7 +24,7 @@ export const SettingsModal = ({ isOpen, onClose, onSave, settings = {}, chartTyp
         }
     }, [isOpen, settings]);
 
-    const isPieChart = chartType === 'pie' || chartType === 'doughnut';
+    const isTopKChart = ['pie', 'doughnut', 'bar', 'line'].includes(chartType);
 
     const handleSave = () => {
         onSave(localSettings);
@@ -34,7 +35,7 @@ export const SettingsModal = ({ isOpen, onClose, onSave, settings = {}, chartTyp
         setLocalSettings({ ...localSettings, [key]: value });
     };
 
-    if (!isOpen) return null;
+    if (!isOpen) {return null;}
 
     return html`
         <div class="modal-backdrop show" onClick=${onClose}></div>
@@ -49,7 +50,7 @@ export const SettingsModal = ({ isOpen, onClose, onSave, settings = {}, chartTyp
                         <button type="button" class="btn-close" onClick=${onClose}></button>
                     </div>
                     <div class="modal-body">
-                        ${isPieChart && html`
+                        ${isTopKChart && html`
                             <div class="mb-3">
                                 <label class="form-label">
                                     ${__('Top K elements', 'dashboardng')}
@@ -62,7 +63,7 @@ export const SettingsModal = ({ isOpen, onClose, onSave, settings = {}, chartTyp
                                         type="number"
                                         class="form-control"
                                         value=${localSettings.topK ?? ''}
-                                        onInput=${(e) => handleChange('topK', parseInt(e.target.value) || null)}
+                                        onInput=${(e) => handleChange('topK', parseInt(e.target.value) || undefined)}
                                         min="1"
                                         max="50"
                                         placeholder="${__('All', 'dashboardng')}"
@@ -77,7 +78,7 @@ export const SettingsModal = ({ isOpen, onClose, onSave, settings = {}, chartTyp
                                 `}
                             </div>
                         `}
-                        ${!isPieChart && html`
+                        ${!isTopKChart && html`
                             <div class="text-center text-muted py-4">
                                 <i class="fas fa-info-circle fa-2x mb-3"></i>
                                 <p>${__('No specific settings available for this chart type.', 'dashboardng')}</p>
@@ -89,7 +90,7 @@ export const SettingsModal = ({ isOpen, onClose, onSave, settings = {}, chartTyp
                             <i class="fas fa-times me-1"></i>
                             ${__('Cancel', 'dashboardng')}
                         </button>
-                        ${isPieChart && html`
+                        ${isTopKChart && html`
                             <button
                                 class="btn btn-primary"
                                 onClick=${handleSave}

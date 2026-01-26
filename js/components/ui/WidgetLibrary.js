@@ -1,5 +1,6 @@
 import { html, useState, useEffect } from '../../lib/preact.js';
-import { api, COLORS } from '../../lib/config.js';
+import { api } from '../../lib/config.js';
+import { __ } from '../../lib/i18n.js';
 
 /**
  * Widget Library Panel - Sidebar for adding widgets from library
@@ -31,8 +32,8 @@ export const WidgetLibrary = ({ isOpen, onClose, onAddWidget }) => {
             if (result.success) {
                 setWidgets(result.data.widgets || []);
             }
-        } catch (err) {
-            console.error('Failed to load widget library:', err);
+        } catch (error) {
+            console.error('Failed to load widget library:', error);
         }
         setLoading(false);
     };
@@ -44,12 +45,8 @@ export const WidgetLibrary = ({ isOpen, onClose, onAddWidget }) => {
     );
 
     const groupedWidgets = filteredWidgets.reduce((acc, widget) => {
-        let cat = widget.visualization || 'other';
-        // Map chart types to 'chart' category
-        if (['bar', 'line', 'pie', 'doughnut'].includes(cat)) {
-            cat = 'chart';
-        }
-        if (!acc[cat]) acc[cat] = [];
+        const cat = widget.visualization || 'other';
+        if (!acc[cat]) {acc[cat] = [];}
         acc[cat].push(widget);
         return acc;
     }, {});
@@ -80,15 +77,21 @@ export const WidgetLibrary = ({ isOpen, onClose, onAddWidget }) => {
 
     const getWidgetIcon = (widget) => {
         const config = widget.config || {};
-        if (config.icon) return config.icon;
+        if (config.icon) {return config.icon;}
         switch (widget.visualization) {
-            case 'card': return 'fa-id-card';
-            case 'bar': return 'fa-chart-bar';
-            case 'line': return 'fa-chart-line';
+            case 'card': { return 'fa-id-card';
+            }
+            case 'bar': { return 'fa-chart-bar';
+            }
+            case 'line': { return 'fa-chart-line';
+            }
             case 'pie': 
-            case 'doughnut': return 'fa-chart-pie';
-            case 'table': return 'fa-table';
-            default: return 'fa-cube';
+            case 'doughnut': { return 'fa-chart-pie';
+            }
+            case 'table': { return 'fa-table';
+            }
+            default: { return 'fa-cube';
+            }
         }
     };
 
@@ -96,10 +99,10 @@ export const WidgetLibrary = ({ isOpen, onClose, onAddWidget }) => {
         const config = widget.config || {};
         if (config.color) {
             // Handle hex colors or bootstrap color names
-            if (config.color.startsWith('#')) return config.color;
-            return null; // Use text-{color} class instead
+            if (config.color.startsWith('#')) {return config.color;}
+            return ; // Use text-{color} class instead
         }
-        return null;
+        return ;
     };
 
     const getWidgetColorClass = (widget) => {
@@ -110,7 +113,7 @@ export const WidgetLibrary = ({ isOpen, onClose, onAddWidget }) => {
         return 'text-secondary';
     };
 
-    if (!isOpen) return null;
+    if (!isOpen) {return null;}
 
     return html`
         <div class="widget-library-overlay" onClick=${onClose}></div>

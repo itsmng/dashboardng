@@ -76,7 +76,36 @@ abstract class AbstractPage
             'translations' => $this->getTranslations(),
             'is_debug' => $_SESSION['glpi_use_mode'] === Session::DEBUG_MODE,
             'plugin_dir' => Plugin::getWebDir('dashboardng'),
+            'script_paths' => $this->getScriptPaths(),
         ];
+    }
+
+    protected function getScriptPaths(): array
+    {
+        $pluginWebDir = Plugin::getWebDir('dashboardng');
+        $pluginPhpDir = Plugin::getPhpDir('dashboardng', true);
+        $distDir = $pluginPhpDir . '/js/dist';
+
+        $entries = [
+            'dashboard' => 'dashboard.js',
+            'mydashboard' => 'mydashboard.js',
+            'assetReports' => 'assetReports.js',
+            'taskReports' => 'taskReports.js',
+            'ticketReports' => 'ticketReports.js',
+            'entitySelector' => 'entitySelector.js',
+        ];
+
+        $paths = [];
+        foreach ($entries as $key => $file) {
+            $bundlePath = $distDir . '/' . $file;
+            if (is_file($bundlePath) && is_readable($bundlePath)) {
+                $paths[$key] = $pluginWebDir . '/js/dist/' . $file;
+            } else {
+                $paths[$key] = $pluginWebDir . '/js/' . $file;
+            }
+        }
+
+        return $paths;
     }
 
     protected function getTranslations(): array
