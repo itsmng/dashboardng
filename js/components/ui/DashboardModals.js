@@ -14,10 +14,11 @@ export const DashboardModals = () => {
         openWidgetConfig,
         closeWidgetConfig,
         editingWidget,
-        dashboard,
+        permissions,
         updateWidget,
         showSharedDashboard,
-        closeSharedDashboard
+        closeSharedDashboard,
+        sharedDashboardMode
     } = useDashboard();
 
     const handleAddWidget = async (widgetData) => {
@@ -32,7 +33,7 @@ export const DashboardModals = () => {
 
     const handleSaveWidgetConfig = async (widgetData) => {
         if (editingWidget) {
-            await updateWidget(editingWidget.widget_definition_id ?? editingWidget.id, widgetData.config || widgetData);
+            await updateWidget(editingWidget.id, widgetData.config || widgetData);
         } else {
             await createCustomWidget(widgetData);
         }
@@ -46,9 +47,10 @@ export const DashboardModals = () => {
             <${SharedDashboardModal}
                 isOpen=${showSharedDashboard}
                 onClose=${closeSharedDashboard}
+                initialMode=${sharedDashboardMode}
             />
         `}
-        ${(!dashboard?.is_global || window.DASHBOARDNG_CONFIG?.canEditGlobalDashboard) && html`
+        ${permissions?.canEdit && html`
             <${WidgetLibrary}
                 isOpen=${showWidgetLibrary}
                 onClose=${closeWidgetLibrary}

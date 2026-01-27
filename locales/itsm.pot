@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: DashboardNG\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-01-26 16:29+0100\n"
+"POT-Creation-Date: 2026-01-27 14:43+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -874,7 +874,7 @@ msgstr ""
 msgid "N/A"
 msgstr ""
 
-#: src/Handlers/ExportReport.php:346 js/components/ui/WidgetLibrary.js:161
+#: src/Handlers/ExportReport.php:346 js/components/ui/WidgetLibrary.js:175
 msgid "Custom"
 msgstr ""
 
@@ -1005,12 +1005,12 @@ msgstr ""
 
 #: js/components/ui/WidgetConfigModal.js:333
 #: js/components/ui/WidgetConfigModal.js:367
-#: js/components/ui/WidgetLibrary.js:238
+#: js/components/ui/WidgetLibrary.js:252
 msgid "Create Widget"
 msgstr ""
 
 #: js/components/ui/WidgetConfigModal.js:348
-#: js/components/ui/SharedDashboardModal.js:145
+#: js/components/ui/SharedDashboardModal.js:243
 msgid "Back"
 msgstr ""
 
@@ -1435,66 +1435,66 @@ msgstr ""
 msgid "Minutes"
 msgstr ""
 
-#: js/components/ui/WidgetLibrary.js:65
+#: js/components/ui/WidgetLibrary.js:79
 msgid "KPI Cards"
 msgstr ""
 
-#: js/components/ui/WidgetLibrary.js:66
+#: js/components/ui/WidgetLibrary.js:80
 msgid "Charts"
 msgstr ""
 
-#: js/components/ui/WidgetLibrary.js:67
+#: js/components/ui/WidgetLibrary.js:81
 msgid "Tables"
 msgstr ""
 
-#: js/components/ui/WidgetLibrary.js:68
+#: js/components/ui/WidgetLibrary.js:82
 msgid "Other"
 msgstr ""
 
-#: js/components/ui/WidgetLibrary.js:124
+#: js/components/ui/WidgetLibrary.js:138
 msgid "Widget Library"
 msgstr ""
 
-#: js/components/ui/WidgetLibrary.js:137
+#: js/components/ui/WidgetLibrary.js:151
 msgid "Search widgets..."
 msgstr ""
 
-#: js/components/ui/WidgetLibrary.js:152
+#: js/components/ui/WidgetLibrary.js:166
 msgid "Available"
 msgstr ""
 
-#: js/components/ui/WidgetLibrary.js:220
+#: js/components/ui/WidgetLibrary.js:234
 msgid "No widgets found"
 msgstr ""
 
-#: js/components/ui/WidgetLibrary.js:229
+#: js/components/ui/WidgetLibrary.js:243
 msgid "Create a Custom Widget"
 msgstr ""
 
-#: js/components/ui/WidgetLibrary.js:231
+#: js/components/ui/WidgetLibrary.js:245
 msgid ""
 "Build a widget from any GLPI collection with custom filters, grouping, and "
 "visualization."
 msgstr ""
 
-#: js/components/ui/DashboardHeader.js:30
+#: js/components/ui/DashboardHeader.js:29
 msgid "Last updated"
 msgstr ""
 
-#: js/components/ui/DashboardHeader.js:41
-#: js/components/ui/SharedDashboardModal.js:61
-msgid "Load Shared Dashboard"
+#: js/components/ui/DashboardHeader.js:40
+#: js/components/ui/SharedDashboardModal.js:97
+msgid "Switch Dashboard"
 msgstr ""
 
-#: js/components/ui/DashboardHeader.js:50
+#: js/components/ui/DashboardHeader.js:49
 msgid "Add Widget"
 msgstr ""
 
-#: js/components/ui/DashboardHeader.js:57
+#: js/components/ui/DashboardHeader.js:56
 msgid "Done"
 msgstr ""
 
-#: js/components/ui/DashboardHeader.js:57
+#: js/components/ui/DashboardHeader.js:56
 msgid "Edit Layout"
 msgstr ""
 
@@ -1507,55 +1507,81 @@ msgstr ""
 msgid "Search"
 msgstr ""
 
-#: js/components/ui/SharedDashboardModal.js:30
-msgid "Replace your personal dashboard with this template?"
+#: js/components/ui/SharedDashboardModal.js:99
+#: js/components/ui/SharedDashboardModal.js:111
+msgid "Create Personal Dashboard"
 msgstr ""
 
-#: js/components/ui/SharedDashboardModal.js:62
+#: js/components/ui/SharedDashboardModal.js:100
 msgid "Create Shared Dashboard"
 msgstr ""
 
-#: js/components/ui/SharedDashboardModal.js:73
+#: js/components/ui/SharedDashboardModal.js:118
 msgid "Create New Shared Dashboard"
 msgstr ""
 
-#: js/components/ui/SharedDashboardModal.js:82
+#: js/components/ui/SharedDashboardModal.js:128
+msgid "Your Dashboards"
+msgstr ""
+
+#: js/components/ui/SharedDashboardModal.js:131
+msgid "No personal dashboards yet"
+msgstr ""
+
+#: js/components/ui/SharedDashboardModal.js:150
+#: js/components/ui/SharedDashboardModal.js:188
+msgid "Current"
+msgstr ""
+
+#: js/components/ui/SharedDashboardModal.js:154
+msgid "Personal dashboard"
+msgstr ""
+
+#: js/components/ui/SharedDashboardModal.js:164
+msgid "Shared Templates"
+msgstr ""
+
+#: js/components/ui/SharedDashboardModal.js:167
 msgid "No shared dashboards available"
 msgstr ""
 
-#: js/components/ui/SharedDashboardModal.js:92
-msgid "Shared Dashboard Template"
+#: js/components/ui/SharedDashboardModal.js:185
+msgid "Default"
 msgstr ""
 
-#: js/components/ui/SharedDashboardModal.js:99
-msgid "Use Template"
+#: js/components/ui/SharedDashboardModal.js:193
+msgid "Global default dashboard"
 msgstr ""
 
-#: js/components/ui/SharedDashboardModal.js:110
+#: js/components/ui/SharedDashboardModal.js:194
+msgid "Shared dashboard template"
+msgstr ""
+
+#: js/components/ui/SharedDashboardModal.js:208
 msgid "Dashboard Name"
 msgstr ""
 
-#: js/components/ui/SharedDashboardModal.js:117
+#: js/components/ui/SharedDashboardModal.js:215
 msgid "Enter dashboard name"
 msgstr ""
 
-#: js/components/ui/SharedDashboardModal.js:123
+#: js/components/ui/SharedDashboardModal.js:221
 msgid "Source Dashboard"
 msgstr ""
 
-#: js/components/ui/SharedDashboardModal.js:130
-msgid "Copy from global default"
+#: js/components/ui/SharedDashboardModal.js:228
+msgid "Copy from current dashboard"
 msgstr ""
 
-#: js/components/ui/SharedDashboardModal.js:136
-msgid "Leave empty to copy from the default global dashboard"
+#: js/components/ui/SharedDashboardModal.js:234
+msgid "Leave empty to copy from the currently loaded dashboard"
 msgstr ""
 
-#: js/components/ui/SharedDashboardModal.js:153
+#: js/components/ui/SharedDashboardModal.js:251
 msgid "Create"
 msgstr ""
 
-#: js/components/ui/SharedDashboardModal.js:157
+#: js/components/ui/SharedDashboardModal.js:255
 msgid "Close"
 msgstr ""
 
@@ -1563,29 +1589,42 @@ msgstr ""
 msgid "tickets"
 msgstr ""
 
-#: js/context/DashboardContext.js:60 js/context/DashboardContext.js:81
-#: js/context/DashboardContext.js:196 js/context/DashboardContext.js:238
-#: js/context/DashboardContext.js:304
+#: js/context/DashboardContext.js:135
+msgid ""
+"You have unsaved changes from a previous session. Would you like to restore "
+"them?"
+msgstr ""
+
+#: js/context/DashboardContext.js:167 js/context/DashboardContext.js:205
+#: js/context/DashboardContext.js:367 js/context/DashboardContext.js:479
+#: js/context/DashboardContext.js:530 js/context/DashboardContext.js:574
+#: js/context/DashboardContext.js:595 js/context/DashboardContext.js:668
 msgid "You are not authorized to perform this action"
 msgstr ""
 
-#: js/context/DashboardContext.js:166 js/context/DashboardContext.js:171
+#: js/context/DashboardContext.js:301 js/context/DashboardContext.js:306
 msgid "Failed to save dashboard"
 msgstr ""
 
-#: js/context/DashboardContext.js:318
+#: js/context/DashboardContext.js:490
+msgid "Failed to add widget"
+msgstr ""
+
+#: js/context/DashboardContext.js:536
+msgid "Failed to create widget"
+msgstr ""
+
+#: js/context/DashboardContext.js:609
 msgid ""
 "You have unsaved changes. Do you want to save them before entering edit mode?"
 msgstr ""
 
-#: js/context/DashboardContext.js:324
+#: js/context/DashboardContext.js:616
 msgid "You are not authorized to edit the global dashboard"
 msgstr ""
 
-#: js/context/DashboardContext.js:361
-msgid ""
-"You have unsaved changes from a previous session. Would you like to restore "
-"them?"
+#: js/context/DashboardContext.js:617
+msgid "You are not authorized to edit this dashboard"
 msgstr ""
 
 #: js/lib/config.js:99

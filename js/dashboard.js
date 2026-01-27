@@ -14,7 +14,7 @@ import './components/ui/ErrorBoundary.js';
 
 const DashboardAppInner = () => {
     const {
-        dashboard: _dashboard,
+        dashboard,
         widgets,
         editMode,
         loadDashboard,
@@ -24,15 +24,23 @@ const DashboardAppInner = () => {
         openWidgetConfig,
         updateWidget: _updateWidget,
         deleteWidget,
-        resetChanges
     } = useDashboard();
 
     const gridRef = useRef(null);
 
     useEffect(() => {
         loadDashboard();
-        resetChanges();
-    }, [loadDashboard, resetChanges]);
+    }, [loadDashboard]);
+
+    useEffect(() => {
+        if (!gridRef.current?.gridstack) {
+            return;
+        }
+
+        gridRef.current.gridstack.destroy(false);
+        gridRef.current.gridstack = null;
+        gridRef.current.grid = null;
+    }, [dashboard?.id]);
 
     useEffect(() => {
         if (!gridRef.current || widgets.length === 0) {

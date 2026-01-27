@@ -1,13 +1,11 @@
 import { html } from '../../lib/preact.js';
-import { useRefresh } from '../../lib/hooks/useRefresh.js';
 import { PeriodSelector } from './PeriodSelector.js';
 import { useDashboard } from '../../context/DashboardContext.js';
 import { CONFIG } from '../../lib/config.js';
 import { __ } from '../../lib/i18n.js';
 
 export const DashboardHeader = ({ onOpenWidgetLibrary, onToggleEditMode, onOpenSharedDashboard }) => {
-    const { dashboard, editMode, lastUpdate } = useDashboard();
-    const { triggerRefresh } = useRefresh();
+    const { editMode, lastUpdate, permissions } = useDashboard();
 
     const formatTimeAgo = (date) => {
         if (!date) {return '';}
@@ -19,6 +17,7 @@ export const DashboardHeader = ({ onOpenWidgetLibrary, onToggleEditMode, onOpenS
     };
 
     const isPersonalMode = CONFIG.pageMode === 'personal';
+    const canEdit = permissions?.canEdit;
 
     return html`
         <div class="d-flex justify-content-between align-items-center mb-4">
@@ -38,10 +37,10 @@ export const DashboardHeader = ({ onOpenWidgetLibrary, onToggleEditMode, onOpenS
                         onClick=${onOpenSharedDashboard}
                     >
                         <i class="fas fa-share-alt me-1"></i>
-                        ${__('Load Shared Dashboard', 'dashboardng')}
+                        ${__('Switch Dashboard', 'dashboardng')}
                     </button>
                 `}
-                ${(!dashboard?.is_global || CONFIG.canEditGlobalDashboard) && html`
+                ${canEdit && html`
                     <button
                         class="btn btn-outline-success btn-sm"
                         onClick=${onOpenWidgetLibrary}

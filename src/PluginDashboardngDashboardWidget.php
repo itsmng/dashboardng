@@ -218,8 +218,8 @@ class PluginDashboardngDashboardWidget extends CommonDBTM
             return false;
         }
 
-        // Only allow removing from personal dashboards (not global)
-        if ($dashboard['users_id'] == 0) {
+        // Allow removing from global dashboards only with global dashboard rights
+        if ($dashboard['users_id'] == 0 && !Session::haveRight('plugin_dashboardng_globaldashboard', UPDATE)) {
             return false;
         }
 
@@ -310,6 +310,28 @@ class PluginDashboardngDashboardWidget extends CommonDBTM
             'updated' => $updatedCount,
             'skipped' => $skippedCount,
         ];
+    }
+
+    /**
+     * Update widget configuration override for a placement
+     *
+     * @param int $placementId
+     * @param int $dashboardId
+     * @param array $config
+     * @return bool
+     */
+    public static function updateConfigOverride(int $placementId, int $dashboardId, array $config): bool
+    {
+        global $DB;
+
+        $table = self::getTable();
+
+        return (bool) $DB->update($table, [
+            'config_override' => json_encode($config),
+        ], [
+            'id' => $placementId,
+            'dashboards_id' => $dashboardId,
+        ]);
     }
 
     /**

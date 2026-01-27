@@ -18,22 +18,31 @@ const DashboardAppInner = () => {
         widgets,
         editMode,
         loadDashboard,
+        loadDashboardById,
+        getSelectedDashboardId,
         saveWidgetPositions,
         toggleEditMode,
         openWidgetLibrary,
         openWidgetConfig,
         updateWidget: _updateWidget,
         deleteWidget,
-        resetChanges,
         openSharedDashboard
     } = useDashboard();
 
     const gridRef = useRef(null);
 
     useEffect(() => {
+        const storedId = getSelectedDashboardId();
+        if (storedId) {
+            loadDashboardById(storedId).then((success) => {
+                if (!success) {
+                    loadDashboard();
+                }
+            });
+            return;
+        }
         loadDashboard();
-        resetChanges();
-    }, [loadDashboard, resetChanges]);
+    }, [getSelectedDashboardId, loadDashboard, loadDashboardById]);
 
     useEffect(() => {
         if (!gridRef.current?.gridstack) {
@@ -139,7 +148,7 @@ const DashboardAppInner = () => {
             <${DashboardHeader}
                 onOpenWidgetLibrary=${openWidgetLibrary}
                 onToggleEditMode=${handleToggleEditMode}
-                onOpenSharedDashboard=${openSharedDashboard}
+                onOpenSharedDashboard=${() => openSharedDashboard('load')}
             />
             <${DashboardGrid} gridRef=${gridRef} onDeleteWidget=${handleDeleteWidget} onEditWidget=${handleEditWidget} />
             <${DashboardModals} />

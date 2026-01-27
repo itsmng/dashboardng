@@ -2,48 +2,55 @@ import { html, useState, useEffect } from '../../lib/preact.js';
 import { useDashboard } from '../../context/DashboardContext.js';
 import { __ } from '../../lib/i18n.js';
 
-const parseDashboardConfig = (config) => {
-    if (!config) {
-        return {};
-    }
-    if (typeof config === 'string') {
-        try {
-            return JSON.parse(config);
-        } catch {
-            return {};
-        }
-    }
-    return config;
-};
-
-export const SharedDashboardModal = ({ isOpen, onClose }) => {
+export const SharedDashboardModal = ({ isOpen, onClose, initialMode = 'load' }) => {
     if (!isOpen) {return null;}
 
-    const { loadDashboards, createPersonalDashboard, createSharedDashboard, dashboard } = useDashboard();
+    const {
+        loadDashboards,
+        createPersonalDashboard,
+        createSharedDashboard,
+        setDefaultDashboard,
+        loadDashboardById,
+        dashboard
+    } = useDashboard();
     const [dashboards, setDashboards] = useState([]);
     const [isLoading, setIsLoading] = useState(true);
-    const [mode, setMode] = useState('load');
+    const [mode, setMode] = useState(initialMode);
     const [newDashboardName, setNewDashboardName] = useState('');
     const [sourceDashboardId, setSourceDashboardId] = useState('');
     const canEditGlobal = window.DASHBOARDNG_CONFIG?.canEditGlobalDashboard;
+    const userId = window.DASHBOARDNG_CONFIG?.userId;
 
     useEffect(() => {
         if (isOpen) {
+            setMode(initialMode);
             loadAvailableDashboards();
         }
-    }, [isOpen]);
+    }, [isOpen, initialMode]);
+
+    useEffect(() => {
+        if (isOpen) {
+            setNewDashboardName('');
+            setSourceDashboardId('');
+        }
+    }, [isOpen, mode]);
 
     const loadAvailableDashboards = async () => {
         setIsLoading(true);
         const availableDashboards = await loadDashboards();
-        const globalDashboards = availableDashboards.filter(d => d.is_global);
-        setDashboards(globalDashboards);
+        setDashboards(availableDashboards);
         setIsLoading(false);
     };
 
-    const handleUseTemplate = async (selectedDashboardId) => {
-        const success = await createPersonalDashboard(selectedDashboardId);
+    const handleSwitchShared = async (selectedDashboardId) => {
+        await loadDashboardById(selectedDashboardId);
+        onClose();
+    };
+
+    const handleSwitchPersonal = async (selectedDashboardId) => {
+        const success = await setDefaultDashboard(selectedDashboardId);
         if (success) {
+            await loadDashboardById(selectedDashboardId);
             onClose();
         }
     };
@@ -61,13 +68,24 @@ export const SharedDashboardModal = ({ isOpen, onClose }) => {
         }
     };
 
-    const dashboardConfig = parseDashboardConfig(dashboard?.config);
-    const isGlobalDashboard = dashboard?.is_global ?? (Number(dashboard?.users_id) === 0);
-    const sourceDashboardIdFromConfig = dashboardConfig?.source_dashboard_id ?? dashboardConfig?.sourceDashboardId;
-    const currentSharedDashboardId = isGlobalDashboard ? dashboard?.id : sourceDashboardIdFromConfig;
-    const currentSharedDashboardIdString = currentSharedDashboardId ? String(currentSharedDashboardId) : '';
-    const globalDashboards = dashboards;
+    const handleCreatePersonal = async (e) => {
+        e.preventDefault();
+        if (!newDashboardName.trim()) {return;}
+
+        const created = await createPersonalDashboard(newDashboardName, sourceDashboardId || dashboard?.id);
+        if (created?.id) {
+            setNewDashboardName('');
+            setSourceDashboardId('');
+            await loadDashboardById(created.id);
+            onClose();
+        }
+    };
+
+    const currentDashboardIdString = dashboard?.id ? String(dashboard.id) : '';
+    const personalDashboards = dashboards.filter(d => !d.is_global && String(d.users_id) === String(userId));
+    const globalDashboards = dashboards.filter(d => d.is_global);
     const canCreateShared = canEditGlobal;
+    const sourceDashboards = mode === 'create-personal' ? dashboards : globalDashboards;
 
     return html`
         <div class="modal fade show d-block" tabindex="-1" style="background-color: rgba(0,0,0,0.5);">
@@ -75,65 +93,116 @@ export const SharedDashboardModal = ({ isOpen, onClose }) => {
                 <div class="modal-content">
                     <div class="modal-header">
                         <h5 class="modal-title">
-                            ${mode === 'load' 
-                                ? __('Load Shared Dashboard', 'dashboardng') 
-                                : __('Create Shared Dashboard', 'dashboardng')}
+                            ${mode === 'load'
+                                ? __('Switch Dashboard', 'dashboardng')
+                                : (mode === 'create-personal'
+                                    ? __('Create Personal Dashboard', 'dashboardng')
+                                    : __('Create Shared Dashboard', 'dashboardng'))}
                         </h5>
                         <button type="button" class="btn-close" onClick=${onClose}></button>
                     </div>
                     <div class="modal-body">
                         ${mode === 'load' ? html`
-                            ${canCreateShared && html`
+                            <div class="d-flex flex-wrap gap-2 mb-3">
                                 <button 
-                                    class="btn btn-outline-primary mb-3"
-                                    onClick=${() => setMode('create')}
+                                    class="btn btn-outline-primary"
+                                    onClick=${() => setMode('create-personal')}
                                 >
-                                    ${__('Create New Shared Dashboard', 'dashboardng')}
+                                    ${__('Create Personal Dashboard', 'dashboardng')}
                                 </button>
-                            `}
+                                ${canCreateShared && html`
+                                    <button 
+                                        class="btn btn-outline-primary"
+                                        onClick=${() => setMode('create-shared')}
+                                    >
+                                        ${__('Create New Shared Dashboard', 'dashboardng')}
+                                    </button>
+                                `}
+                            </div>
                             ${isLoading ? html`
                                 <div class="text-center py-5">
                                     <div class="spinner-border" role="status"></div>
                                 </div>
-                            ` : (globalDashboards.length === 0 ? html`
-                                <div class="alert alert-info">
-                                    ${__('No shared dashboards available', 'dashboardng')}
-                                </div>
                             ` : html`
-                                <div class="list-group dashboardng-shared-list">
-                                    ${globalDashboards.map(d => {
-                                        const isCurrent = String(d.id) === currentSharedDashboardIdString;
-                                        return html`
-                                        <button
-                                            type="button"
-                                            class="list-group-item list-group-item-action text-start ${isCurrent ? 'active is-current' : ''}"
-                                            aria-current=${isCurrent ? 'true' : 'false'}
-                                            onClick=${() => handleUseTemplate(d.id)}
-                                        >
-                                            <div class="d-flex justify-content-between align-items-center">
-                                                <div>
-                                                    <h6 class="mb-1 d-flex align-items-center gap-2">
-                                                        <span>${d.name}</span>
-                                                        ${d.is_default ? html`
-                                                            <span class="badge ${isCurrent ? 'bg-light text-dark' : 'bg-secondary'}">${__('Default', 'dashboardng')}</span>
-                                                        ` : ''}
-                                                        ${isCurrent ? html`
-                                                            <span class="badge bg-success">${__('Current', 'dashboardng')}</span>
-                                                        ` : ''}
-                                                    </h6>
-                                                    <small class="text-muted">
-                                                        ${d.is_default
-                                                            ? __('Global default dashboard', 'dashboardng')
-                                                            : __('Shared dashboard template', 'dashboardng')}
-                                                    </small>
-                                                </div>
-                                            </div>
-                                        </button>
-                                    `;})}
+                                <div class="mb-4">
+                                    <h6 class="mb-2">${__('Your Dashboards', 'dashboardng')}</h6>
+                                    ${personalDashboards.length === 0 ? html`
+                                        <div class="alert alert-info">
+                                            ${__('No personal dashboards yet', 'dashboardng')}
+                                        </div>
+                                    ` : html`
+                                        <div class="list-group dashboardng-personal-list">
+                                            ${personalDashboards.map(d => {
+                                                const isCurrent = String(d.id) === currentDashboardIdString;
+                                                return html`
+                                                <button
+                                                    type="button"
+                                                    class="list-group-item list-group-item-action text-start ${isCurrent ? 'active is-current' : ''}"
+                                                    aria-current=${isCurrent ? 'true' : 'false'}
+                                                    onClick=${() => handleSwitchPersonal(d.id)}
+                                                    disabled=${isCurrent}
+                                                >
+                                                    <div class="d-flex justify-content-between align-items-center">
+                                                        <div>
+                                                            <h6 class="mb-1 d-flex align-items-center gap-2">
+                                                                <span>${d.name}</span>
+                                                                ${isCurrent ? html`
+                                                                    <span class="badge bg-success">${__('Current', 'dashboardng')}</span>
+                                                                ` : ''}
+                                                            </h6>
+                                                            <small class="text-muted">
+                                                                ${__('Personal dashboard', 'dashboardng')}
+                                                            </small>
+                                                        </div>
+                                                    </div>
+                                                </button>
+                                            `;})}
+                                        </div>
+                                    `}
                                 </div>
-                            `)}
+                                <div>
+                                    <h6 class="mb-2">${__('Shared Templates', 'dashboardng')}</h6>
+                                    ${globalDashboards.length === 0 ? html`
+                                        <div class="alert alert-info">
+                                            ${__('No shared dashboards available', 'dashboardng')}
+                                        </div>
+                                    ` : html`
+                                        <div class="list-group dashboardng-shared-list">
+                                            ${globalDashboards.map(d => {
+                                                const isCurrent = String(d.id) === currentDashboardIdString;
+                                                return html`
+                                                <button
+                                                    type="button"
+                                                    class="list-group-item list-group-item-action text-start ${isCurrent ? 'active is-current' : ''}"
+                                                    aria-current=${isCurrent ? 'true' : 'false'}
+                                                    onClick=${() => handleSwitchShared(d.id)}
+                                                >
+                                                    <div class="d-flex justify-content-between align-items-center">
+                                                        <div>
+                                                            <h6 class="mb-1 d-flex align-items-center gap-2">
+                                                                <span>${d.name}</span>
+                                                                ${d.is_default ? html`
+                                                                    <span class="badge ${isCurrent ? 'bg-light text-dark' : 'bg-secondary'}">${__('Default', 'dashboardng')}</span>
+                                                                ` : ''}
+                                                                ${isCurrent ? html`
+                                                                    <span class="badge bg-success">${__('Current', 'dashboardng')}</span>
+                                                                ` : ''}
+                                                            </h6>
+                                                            <small class="text-muted">
+                                                                ${d.is_default
+                                                                    ? __('Global default dashboard', 'dashboardng')
+                                                                    : __('Shared dashboard template', 'dashboardng')}
+                                                            </small>
+                                                        </div>
+                                                    </div>
+                                                </button>
+                                            `;})}
+                                        </div>
+                                    `}
+                                </div>
+                            `}
                         ` : html`
-                            <form onSubmit=${handleCreateShared}>
+                            <form onSubmit=${mode === 'create-personal' ? handleCreatePersonal : handleCreateShared}>
                                 <div class="mb-3">
                                     <label class="form-label">
                                         ${__('Dashboard Name', 'dashboardng')}
@@ -157,7 +226,7 @@ export const SharedDashboardModal = ({ isOpen, onClose }) => {
                                         onChange=${(e) => setSourceDashboardId(e.target.value)}
                                     >
                                         <option value="">-- ${__('Copy from current dashboard', 'dashboardng')} --</option>
-                                        ${globalDashboards.map(d => html`
+                                        ${sourceDashboards.map(d => html`
                                             <option value=${d.id}>${d.name}</option>
                                         `)}
                                     </select>
@@ -169,14 +238,14 @@ export const SharedDashboardModal = ({ isOpen, onClose }) => {
                         `}
                     </div>
                     <div class="modal-footer">
-                        ${mode === 'create' ? html`
+                        ${mode !== 'load' ? html`
                             <button type="button" class="btn btn-secondary" onClick=${() => setMode('load')}>
                                 ${__('Back', 'dashboardng')}
                             </button>
                             <button 
                                 type="submit" 
                                 class="btn btn-primary" 
-                                onClick=${handleCreateShared}
+                                onClick=${mode === 'create-personal' ? handleCreatePersonal : handleCreateShared}
                                 disabled=${!newDashboardName.trim()}
                             >
                                 ${__('Create', 'dashboardng')}

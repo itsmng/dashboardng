@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: DashboardNG\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-01-26 16:29+0100\n"
+"POT-Creation-Date: 2026-01-27 14:43+0100\n"
 "PO-Revision-Date: 2026-01-23 11:17+0100\n"
 "Last-Translator: Théodore Clément\n"
 "Language-Team: none\n"
@@ -402,8 +402,7 @@ msgstr "K premiers éléments"
 #: src/Pages/TasksPage.php:91 src/Pages/TicketsPage.php:111
 #: src/Pages/AssetsPage.php:96 js/components/ui/SettingsModal.js:58
 msgid "Show only the top K elements; group the rest as Others"
-msgstr ""
-"Afficher uniquement les K premiers éléments; regrouper le reste sous 'Autres'"
+msgstr "Afficher uniquement les K premiers éléments; regrouper le reste sous 'Autres'"
 
 #: src/Pages/TasksPage.php:92 src/Pages/TicketsPage.php:112
 #: src/Pages/AssetsPage.php:97 js/components/ui/SettingsModal.js:69
@@ -870,7 +869,7 @@ msgstr "Personnalisé (%s à %s)"
 msgid "N/A"
 msgstr "N/A"
 
-#: src/Handlers/ExportReport.php:346 js/components/ui/WidgetLibrary.js:161
+#: src/Handlers/ExportReport.php:346 js/components/ui/WidgetLibrary.js:175
 msgid "Custom"
 msgstr "Personnalisé"
 
@@ -892,8 +891,7 @@ msgstr "Limite de lignes par défaut"
 
 #: src/PluginDashboardngConfig.php:252
 msgid "Default number of rows returned by custom widget queries"
-msgstr ""
-"Nombre de lignes par défaut renvoyé par les requêtes de widgets personnalisés"
+msgstr "Nombre de lignes par défaut renvoyé par les requêtes de widgets personnalisés"
 
 #: src/PluginDashboardngConfig.php:256
 msgid "Maximum Row Limit"
@@ -921,8 +919,7 @@ msgstr "Activer la mise en cache"
 
 #: src/PluginDashboardngConfig.php:279
 msgid "Cache query results to improve performance"
-msgstr ""
-"Mettre en cache les résultats de requête pour améliorer les performances"
+msgstr "Mettre en cache les résultats de requête pour améliorer les performances"
 
 #: src/PluginDashboardngConfig.php:284
 msgid "Cache TTL (seconds)"
@@ -930,9 +927,7 @@ msgstr "TTL du cache (secondes)"
 
 #: src/PluginDashboardngConfig.php:287
 msgid "Default cache duration for query results (recommended: 300-600s)"
-msgstr ""
-"Durée de cache par défaut pour les résultats de requête (recommandé: "
-"300-600s)"
+msgstr "Durée de cache par défaut pour les résultats de requête (recommandé: 300-600s)"
 
 #: src/PluginDashboardngConfig.php:291
 msgid "Long Cache TTL (seconds)"
@@ -1005,12 +1000,12 @@ msgstr "Modifier le widget"
 
 #: js/components/ui/WidgetConfigModal.js:333
 #: js/components/ui/WidgetConfigModal.js:367
-#: js/components/ui/WidgetLibrary.js:238
+#: js/components/ui/WidgetLibrary.js:252
 msgid "Create Widget"
 msgstr "Créer un widget"
 
 #: js/components/ui/WidgetConfigModal.js:348
-#: js/components/ui/SharedDashboardModal.js:145
+#: js/components/ui/SharedDashboardModal.js:243
 msgid "Back"
 msgstr "Retour"
 
@@ -1342,9 +1337,7 @@ msgstr "Périodes"
 
 #: js/components/ui/widgetconfig/DataSourceStep.js:499
 msgid "Time comparisons require a date-based group by field."
-msgstr ""
-"Les comparaisons temporelles nécessitent un champ de regroupement basé sur "
-"la date."
+msgstr "Les comparaisons temporelles nécessitent un champ de regroupement basé sur la date."
 
 #: js/components/ui/widgetconfig/DataSourceStep.js:514
 #: js/components/ui/widgetconfig/DataSourceStep.js:566
@@ -1437,43 +1430,43 @@ msgstr "Minute"
 msgid "Minutes"
 msgstr "Minutes"
 
-#: js/components/ui/WidgetLibrary.js:65
+#: js/components/ui/WidgetLibrary.js:79
 msgid "KPI Cards"
 msgstr "Cartes KPI"
 
-#: js/components/ui/WidgetLibrary.js:66
+#: js/components/ui/WidgetLibrary.js:80
 msgid "Charts"
 msgstr "Graphiques"
 
-#: js/components/ui/WidgetLibrary.js:67
+#: js/components/ui/WidgetLibrary.js:81
 msgid "Tables"
 msgstr "Tableaux"
 
-#: js/components/ui/WidgetLibrary.js:68
+#: js/components/ui/WidgetLibrary.js:82
 msgid "Other"
 msgstr "Autre"
 
-#: js/components/ui/WidgetLibrary.js:124
+#: js/components/ui/WidgetLibrary.js:138
 msgid "Widget Library"
 msgstr "Bibliothèque de widgets"
 
-#: js/components/ui/WidgetLibrary.js:137
+#: js/components/ui/WidgetLibrary.js:151
 msgid "Search widgets..."
 msgstr "Rechercher des widgets..."
 
-#: js/components/ui/WidgetLibrary.js:152
+#: js/components/ui/WidgetLibrary.js:166
 msgid "Available"
 msgstr "Disponible"
 
-#: js/components/ui/WidgetLibrary.js:220
+#: js/components/ui/WidgetLibrary.js:234
 msgid "No widgets found"
 msgstr "Aucun widget trouvé"
 
-#: js/components/ui/WidgetLibrary.js:229
+#: js/components/ui/WidgetLibrary.js:243
 msgid "Create a Custom Widget"
 msgstr "Créer un widget personnalisé"
 
-#: js/components/ui/WidgetLibrary.js:231
+#: js/components/ui/WidgetLibrary.js:245
 msgid ""
 "Build a widget from any GLPI collection with custom filters, grouping, and "
 "visualization."
@@ -1481,24 +1474,24 @@ msgstr ""
 "Créer un widget à partir de n'importe quelle collection GLPI avec des "
 "filtres personnalisés, un regroupement et une visualisation."
 
-#: js/components/ui/DashboardHeader.js:30
+#: js/components/ui/DashboardHeader.js:29
 msgid "Last updated"
 msgstr "Dernière mise à jour"
 
-#: js/components/ui/DashboardHeader.js:41
-#: js/components/ui/SharedDashboardModal.js:61
-msgid "Load Shared Dashboard"
-msgstr "Charger un tableau de bord partagé"
+#: js/components/ui/DashboardHeader.js:40
+#: js/components/ui/SharedDashboardModal.js:97
+msgid "Switch Dashboard"
+msgstr "Changer de tableau de bord"
 
-#: js/components/ui/DashboardHeader.js:50
+#: js/components/ui/DashboardHeader.js:49
 msgid "Add Widget"
 msgstr "Ajouter un widget"
 
-#: js/components/ui/DashboardHeader.js:57
+#: js/components/ui/DashboardHeader.js:56
 msgid "Done"
 msgstr "Terminé"
 
-#: js/components/ui/DashboardHeader.js:57
+#: js/components/ui/DashboardHeader.js:56
 msgid "Edit Layout"
 msgstr "Modifier la disposition"
 
@@ -1511,55 +1504,81 @@ msgstr "Sélectionner avec les enfants"
 msgid "Search"
 msgstr "Rechercher"
 
-#: js/components/ui/SharedDashboardModal.js:30
-msgid "Replace your personal dashboard with this template?"
-msgstr "Remplacer votre tableau de bord personnel par ce modèle?"
+#: js/components/ui/SharedDashboardModal.js:99
+#: js/components/ui/SharedDashboardModal.js:111
+msgid "Create Personal Dashboard"
+msgstr "Créer un tableau de bord personnel"
 
-#: js/components/ui/SharedDashboardModal.js:62
+#: js/components/ui/SharedDashboardModal.js:100
 msgid "Create Shared Dashboard"
 msgstr "Créer un tableau de bord partagé"
 
-#: js/components/ui/SharedDashboardModal.js:73
+#: js/components/ui/SharedDashboardModal.js:118
 msgid "Create New Shared Dashboard"
 msgstr "Créer un nouveau tableau de bord partagé"
 
-#: js/components/ui/SharedDashboardModal.js:82
+#: js/components/ui/SharedDashboardModal.js:128
+msgid "Your Dashboards"
+msgstr "Vos tableaux de bord"
+
+#: js/components/ui/SharedDashboardModal.js:131
+msgid "No personal dashboards yet"
+msgstr "Aucun tableau de bord personnel pour le moment"
+
+#: js/components/ui/SharedDashboardModal.js:150
+#: js/components/ui/SharedDashboardModal.js:188
+msgid "Current"
+msgstr "Actuel"
+
+#: js/components/ui/SharedDashboardModal.js:154
+msgid "Personal dashboard"
+msgstr "Tableau de bord personnel"
+
+#: js/components/ui/SharedDashboardModal.js:164
+msgid "Shared Templates"
+msgstr "Modèles partagés"
+
+#: js/components/ui/SharedDashboardModal.js:167
 msgid "No shared dashboards available"
 msgstr "Aucun tableau de bord partagé disponible"
 
-#: js/components/ui/SharedDashboardModal.js:92
-msgid "Shared Dashboard Template"
+#: js/components/ui/SharedDashboardModal.js:185
+msgid "Default"
+msgstr "Par défaut"
+
+#: js/components/ui/SharedDashboardModal.js:193
+msgid "Global default dashboard"
+msgstr "Tableau de bord global par défaut"
+
+#: js/components/ui/SharedDashboardModal.js:194
+msgid "Shared dashboard template"
 msgstr "Modèle de tableau de bord partagé"
 
-#: js/components/ui/SharedDashboardModal.js:99
-msgid "Use Template"
-msgstr "Utiliser le modèle"
-
-#: js/components/ui/SharedDashboardModal.js:110
+#: js/components/ui/SharedDashboardModal.js:208
 msgid "Dashboard Name"
 msgstr "Nom du tableau de bord"
 
-#: js/components/ui/SharedDashboardModal.js:117
+#: js/components/ui/SharedDashboardModal.js:215
 msgid "Enter dashboard name"
 msgstr "Saisir le nom du tableau de bord"
 
-#: js/components/ui/SharedDashboardModal.js:123
+#: js/components/ui/SharedDashboardModal.js:221
 msgid "Source Dashboard"
 msgstr "Tableau de bord source"
 
-#: js/components/ui/SharedDashboardModal.js:130
-msgid "Copy from global default"
-msgstr "Copier depuis le global par défaut"
+#: js/components/ui/SharedDashboardModal.js:228
+msgid "Copy from current dashboard"
+msgstr "Copier depuis le tableau de bord actuel"
 
-#: js/components/ui/SharedDashboardModal.js:136
-msgid "Leave empty to copy from the default global dashboard"
-msgstr "Laisser vide pour copier depuis le tableau de bord global par défaut"
+#: js/components/ui/SharedDashboardModal.js:234
+msgid "Leave empty to copy from the currently loaded dashboard"
+msgstr "Laisser vide pour copier depuis le tableau de bord actuellement chargé"
 
-#: js/components/ui/SharedDashboardModal.js:153
+#: js/components/ui/SharedDashboardModal.js:251
 msgid "Create"
 msgstr "Créer"
 
-#: js/components/ui/SharedDashboardModal.js:157
+#: js/components/ui/SharedDashboardModal.js:255
 msgid "Close"
 msgstr "Fermer"
 
@@ -1567,34 +1586,47 @@ msgstr "Fermer"
 msgid "tickets"
 msgstr "tickets"
 
-#: js/context/DashboardContext.js:60 js/context/DashboardContext.js:81
-#: js/context/DashboardContext.js:196 js/context/DashboardContext.js:238
-#: js/context/DashboardContext.js:304
-msgid "You are not authorized to perform this action"
-msgstr "Vous n'êtes pas autorisé à effectuer cette action"
-
-#: js/context/DashboardContext.js:166 js/context/DashboardContext.js:171
-msgid "Failed to save dashboard"
-msgstr "Échec de la sauvegarde du tableau de bord"
-
-#: js/context/DashboardContext.js:318
-msgid ""
-"You have unsaved changes. Do you want to save them before entering edit mode?"
-msgstr ""
-"Vous avez des modifications non sauvegardées. Voulez-vous les sauvegarder "
-"avant d'entrer en mode édition?"
-
-#: js/context/DashboardContext.js:324
-msgid "You are not authorized to edit the global dashboard"
-msgstr "Vous n'êtes pas autorisé à modifier le tableau de bord global"
-
-#: js/context/DashboardContext.js:361
+#: js/context/DashboardContext.js:135
 msgid ""
 "You have unsaved changes from a previous session. Would you like to restore "
 "them?"
 msgstr ""
 "Vous avez des modifications non sauvegardées d'une session précédente. "
 "Voulez-vous les restaurer?"
+
+#: js/context/DashboardContext.js:167 js/context/DashboardContext.js:205
+#: js/context/DashboardContext.js:367 js/context/DashboardContext.js:479
+#: js/context/DashboardContext.js:530 js/context/DashboardContext.js:574
+#: js/context/DashboardContext.js:595 js/context/DashboardContext.js:668
+msgid "You are not authorized to perform this action"
+msgstr "Vous n'êtes pas autorisé à effectuer cette action"
+
+#: js/context/DashboardContext.js:301 js/context/DashboardContext.js:306
+msgid "Failed to save dashboard"
+msgstr "Échec de la sauvegarde du tableau de bord"
+
+#: js/context/DashboardContext.js:490
+msgid "Failed to add widget"
+msgstr "Échec de l'ajout du widget"
+
+#: js/context/DashboardContext.js:536
+msgid "Failed to create widget"
+msgstr "Échec de la création du widget"
+
+#: js/context/DashboardContext.js:609
+msgid ""
+"You have unsaved changes. Do you want to save them before entering edit mode?"
+msgstr ""
+"Vous avez des modifications non sauvegardées. Voulez-vous les sauvegarder "
+"avant d'entrer en mode édition?"
+
+#: js/context/DashboardContext.js:616
+msgid "You are not authorized to edit the global dashboard"
+msgstr "Vous n'êtes pas autorisé à modifier le tableau de bord global"
+
+#: js/context/DashboardContext.js:617
+msgid "You are not authorized to edit this dashboard"
+msgstr "Vous n'êtes pas autorisé à modifier ce tableau de bord"
 
 #: js/lib/config.js:99
 msgid "All Time"
@@ -1703,6 +1735,18 @@ msgstr "Taux de résolution par priorité"
 #: js/ticketReports.js:1292
 msgid "By Source"
 msgstr "Par source"
+
+#~ msgid "Load Shared Dashboard"
+#~ msgstr "Charger un tableau de bord partagé"
+
+#~ msgid "Replace your personal dashboard with this template?"
+#~ msgstr "Remplacer votre tableau de bord personnel par ce modèle?"
+
+#~ msgid "Use Template"
+#~ msgstr "Utiliser le modèle"
+
+#~ msgid "Copy from global default"
+#~ msgstr "Copier depuis le global par défaut"
 
 #~ msgid "Last Week"
 #~ msgstr "Semaine dernière"

@@ -16,6 +16,17 @@ class PluginDashboardngDashboard extends CommonDBTM
 {
     public static $rightname = 'plugin_dashboardng_dashboard';
 
+    private static function normalizeDashboardRow(?array $row): ?array
+    {
+        if (!$row) {
+            return null;
+        }
+
+        $row['config'] = json_decode($row['config'] ?? '{}', true);
+        $row['is_global'] = ((int) ($row['users_id'] ?? 0) === 0);
+        return $row;
+    }
+
     public static function getTable($classname = null): string
     {
         return 'glpi_plugin_dashboardng_dashboards';
@@ -107,7 +118,7 @@ class PluginDashboardngDashboard extends CommonDBTM
                 ],
                 'LIMIT' => 1,
             ]) as $row) {
-                return $row;
+                return self::normalizeDashboardRow($row);
             }
         }
 
@@ -121,7 +132,7 @@ class PluginDashboardngDashboard extends CommonDBTM
             ],
             'LIMIT' => 1,
         ]) as $row) {
-            return $row;
+            return self::normalizeDashboardRow($row);
         }
 
         return null;
@@ -153,9 +164,7 @@ class PluginDashboardngDashboard extends CommonDBTM
 
         $dashboards = [];
         foreach ($result as $row) {
-            $row['config'] = json_decode($row['config'] ?? '{}', true);
-            $row['is_global'] = ($row['users_id'] == 0);
-            $dashboards[] = $row;
+            $dashboards[] = self::normalizeDashboardRow($row);
         }
 
         return $dashboards;
@@ -169,7 +178,7 @@ class PluginDashboardngDashboard extends CommonDBTM
      * @param string $name Name for new dashboard
      * @return int|false New dashboard ID or false on failure
      */
-    public static function createPersonalDashboard(int $sourceDashboardId = 0, string $name = 'My Dashboard'): int|false
+     public static function createPersonalDashboard(int $sourceDashboardId = 0, string $name = 'My Dashboard', bool $setAsDefault = true): int|false
     {
         global $DB;
 
@@ -207,14 +216,6 @@ class PluginDashboardngDashboard extends CommonDBTM
             }
         }
 
-        // If we have an existing personal dashboard, delete it first
-        if ($existingDefault) {
-            // Delete its widgets
-            PluginDashboardngDashboardWidget::deleteWidgetsForDashboard($existingDefault['id']);
-            // Delete the dashboard
-            $DB->delete($table, ['id' => $existingDefault['id']]);
-        }
-
         $config = [
             'refreshInterval' => 60000,
             'columnCount' => 12,
@@ -226,7 +227,7 @@ class PluginDashboardngDashboard extends CommonDBTM
         $DB->insert($table, [
             'name' => $name,
             'users_id' => $userId,
-            'is_default' => 1,
+            'is_default' => 0,
             'is_active' => 1,
             'config' => json_encode($config),
         ]);
@@ -239,6 +240,10 @@ class PluginDashboardngDashboard extends CommonDBTM
                 $sourceDashboardId,
                 $newDashboardId
             );
+        }
+
+        if ($newDashboardId && $setAsDefault) {
+            self::setDefaultDashboardForUser((int) $newDashboardId, (int) $userId);
         }
 
         return $newDashboardId ?: false;
@@ -327,11 +332,37 @@ class PluginDashboardngDashboard extends CommonDBTM
         ]);
 
         $row = $result->next();
-        if ($row) {
-            $row['config'] = json_decode($row['config'] ?? '{}', true);
-            $row['is_global'] = ($row['users_id'] == 0);
+        return self::normalizeDashboardRow($row ?: null);
+    }
+
+    /**
+     * Set the default personal dashboard for the current user
+     *
+     * @param int $dashboardId
+     * @param int|null $userId
+     * @return bool
+     */
+    public static function setDefaultDashboardForUser(int $dashboardId, ?int $userId = null): bool
+    {
+        global $DB;
+
+        $table = self::getTable();
+        $userId = $userId ?? Session::getLoginUserID();
+
+        if (!$userId || $userId <= 0) {
+            return false;
         }
 
-        return $row ?: null;
+        $dashboard = self::getDashboardById($dashboardId);
+        if (!$dashboard || (int) $dashboard['users_id'] !== (int) $userId) {
+            return false;
+        }
+
+        $DB->update($table, ['is_default' => 0], ['users_id' => (int) $userId]);
+
+        return (bool) $DB->update($table, ['is_default' => 1], [
+            'id' => (int) $dashboardId,
+            'users_id' => (int) $userId,
+        ]);
     }
 }

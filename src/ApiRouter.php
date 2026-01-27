@@ -18,9 +18,11 @@ use GlpiPlugin\Dashboardng\Handlers\GetWidgetLibrary;
 use GlpiPlugin\Dashboardng\Handlers\AddWidgetToDashboard;
 use GlpiPlugin\Dashboardng\Handlers\RemoveWidgetFromDashboard;
 use GlpiPlugin\Dashboardng\Handlers\UpdateWidgetPositions;
+use GlpiPlugin\Dashboardng\Handlers\UpdateWidgetConfigOverride;
 use GlpiPlugin\Dashboardng\Handlers\CreateWidget;
 use GlpiPlugin\Dashboardng\Handlers\CreatePersonalDashboard;
 use GlpiPlugin\Dashboardng\Handlers\CreateSharedDashboard;
+use GlpiPlugin\Dashboardng\Handlers\SetDefaultDashboard;
 use Session;
 
 /**
@@ -90,6 +92,12 @@ class ApiRouter
                 echo json_encode(($handler)($input));
             });
 
+            $r->addRoute('POST', '/dashboards/default', function () {
+                $handler = new SetDefaultDashboard();
+                $input = json_decode(file_get_contents('php://input'), true) ?? [];
+                echo json_encode(($handler)($input));
+            });
+
             $r->addRoute('POST', '/dashboards/positions', function () {
                 $handler = new UpdateWidgetPositions();
                 $input = json_decode(file_get_contents('php://input'), true) ?? [];
@@ -110,6 +118,12 @@ class ApiRouter
 
             $r->addRoute('POST', '/dashboards/widgets', function () {
                 $handler = new AddWidgetToDashboard();
+                $input = json_decode(file_get_contents('php://input'), true) ?? [];
+                echo json_encode(($handler)($input));
+            });
+
+            $r->addRoute('POST', '/dashboards/widgets/config', function () {
+                $handler = new UpdateWidgetConfigOverride();
                 $input = json_decode(file_get_contents('php://input'), true) ?? [];
                 echo json_encode(($handler)($input));
             });
