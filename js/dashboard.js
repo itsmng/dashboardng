@@ -14,7 +14,7 @@ import './components/ui/ErrorBoundary.js';
 
 const DashboardAppInner = () => {
     const {
-        dashboard,
+        dashboard: _dashboard,
         widgets,
         editMode,
         loadDashboard,
@@ -22,7 +22,7 @@ const DashboardAppInner = () => {
         toggleEditMode,
         openWidgetLibrary,
         openWidgetConfig,
-        updateWidget,
+        updateWidget: _updateWidget,
         deleteWidget,
         resetChanges
     } = useDashboard();
@@ -64,8 +64,8 @@ const DashboardAppInner = () => {
                     id: item.id,
                     x: item.x,
                     y: item.y,
-                    width: item.w,
-                    height: item.h
+                    w: item.w,
+                    h: item.h
                 }));
                 saveWidgetPositions(positions);
             });
@@ -77,6 +77,26 @@ const DashboardAppInner = () => {
             console.error('GridStack initialization error:', error);
         }
     }, [widgets, saveWidgetPositions]);
+
+    useEffect(() => {
+        if (!gridRef.current?.gridstack) {
+            return;
+        }
+
+        const grid = gridRef.current.gridstack;
+        const items = gridRef.current.querySelectorAll('.grid-stack-item');
+        items.forEach((item) => {
+            if (!item.gridstackNode) {
+                grid.makeWidget(item);
+            }
+        });
+
+        if (editMode) {
+            grid.enable();
+        } else {
+            grid.disable();
+        }
+    }, [editMode, widgets]);
 
     const handleToggleEditMode = () => {
         const success = toggleEditMode(!editMode);

@@ -87,7 +87,7 @@ class AddWidgetToDashboard
         if (!$placementId) {
             return [
                 'success' => false,
-                'error' => 'Failed to add widget (may already exist on dashboard)',
+                'error' => 'Failed to add widget',
             ];
         }
 

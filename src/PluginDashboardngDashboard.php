@@ -215,15 +215,20 @@ class PluginDashboardngDashboard extends CommonDBTM
             $DB->delete($table, ['id' => $existingDefault['id']]);
         }
 
+        $config = [
+            'refreshInterval' => 60000,
+            'columnCount' => 12,
+        ];
+        if ($sourceDashboardId > 0) {
+            $config['source_dashboard_id'] = $sourceDashboardId;
+        }
+
         $DB->insert($table, [
             'name' => $name,
             'users_id' => $userId,
             'is_default' => 1,
             'is_active' => 1,
-            'config' => json_encode([
-                'refreshInterval' => 60000,
-                'columnCount' => 12,
-            ]),
+            'config' => json_encode($config),
         ]);
 
         $newDashboardId = $DB->insertId();

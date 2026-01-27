@@ -30,6 +30,14 @@ const clearLocalStorage = () => {
     }
 };
 
+const normalizePositions = (positions = []) => positions.map((pos) => ({
+    id: pos.id,
+    x: pos.x,
+    y: pos.y,
+    w: pos.w ?? pos.width,
+    h: pos.h ?? pos.height
+}));
+
 const DashboardContext = createContext(undefined);
 
 export const DashboardProvider = ({ children }) => {
@@ -91,7 +99,10 @@ export const DashboardProvider = ({ children }) => {
         try {
             const result = await api.fetch('/dashboards');
             if (result.success) {
-                return result.data.dashboards || [];
+                if (Array.isArray(result.data)) {
+                    return result.data;
+                }
+                return result.data?.dashboards || [];
             }
             return [];
         } catch (error) {
@@ -106,16 +117,21 @@ export const DashboardProvider = ({ children }) => {
                 name: 'My Dashboard',
                 source_dashboard_id: sourceDashboardId
             });
-            if (result.success && result.data.dashboard) {
+            if (result.success) {
+                const nextDashboard = result.data?.dashboard || result.data;
+                if (nextDashboard?.id) {
+                    await loadDashboardById(nextDashboard.id);
+                    return nextDashboard;
+                }
                 await loadDashboard();
-                return result.data.dashboard;
+                return nextDashboard;
             }
             return ;
         } catch (error) {
             console.error('Failed to create personal dashboard:', error);
             return ;
         }
-    }, [loadDashboard]);
+    }, [loadDashboard, loadDashboardById]);
 
     const createSharedDashboard = useCallback(async (name, sourceDashboardId) => {
         try {
@@ -123,8 +139,8 @@ export const DashboardProvider = ({ children }) => {
                 name,
                 source_dashboard_id: sourceDashboardId
             });
-            if (result.success && result.data.dashboard) {
-                return result.data.dashboard;
+            if (result.success) {
+                return result.dashboard || result.data?.dashboard || result.data;
             }
             return ;
         } catch (error) {
@@ -174,24 +190,42 @@ export const DashboardProvider = ({ children }) => {
     }, [dashboard, widgets, unsavedChanges]);
 
     const saveWidgetPositions = useCallback(async (positions) => {
+        const normalizedPositions = normalizePositions(positions);
+        const nextWidgets = widgets.map(w => {
+            const pos = normalizedPositions.find(p => String(p.id) === String(w.id));
+            return pos ? {
+                ...w,
+                x: pos.x ?? w.x,
+                y: pos.y ?? w.y,
+                width: pos.w ?? w.width ?? w.w,
+                height: pos.h ?? w.height ?? w.h
+            } : w;
+        });
+
         saveToLocalStorage({
             dashboard,
-            widgets: widgets.map(w => {
-                const pos = positions.find(p => p.id === w.id);
-                return pos ? { ...w, x: pos.x, y: pos.y, width: pos.w, height: pos.h } : w;
-            }),
+            widgets: nextWidgets,
             timestamp: new Date().toISOString()
         });
 
         try {
             const result = await api.post('/dashboards/positions', {
-                positions: positions.map(p => ({
-                    ...p,
-                    width: p.w,
-                    height: p.h
+                positions: normalizedPositions.map(p => ({
+                    id: p.id,
+                    x: p.x,
+                    y: p.y,
+                    w: p.w,
+                    h: p.h
                 })),
                 dashboard_id: dashboard?.id
             });
+            if (result.success) {
+                setWidgets(nextWidgets);
+                if (!unsavedChanges) {
+                    clearLocalStorage();
+                }
+                return;
+            }
             if (result.error === 'Unauthorized') {
                 setAuthzError(__('You are not authorized to perform this action', 'dashboardng'));
                 setEditMode(false);
@@ -199,15 +233,37 @@ export const DashboardProvider = ({ children }) => {
         } catch (error) {
             console.error('Failed to save widget positions:', error);
         }
-    }, [dashboard, widgets]);
+    }, [dashboard, unsavedChanges, widgets]);
 
     const addWidget = useCallback(async (widgetData) => {
-        const newWidgets = [...widgets];
+        const previousWidgets = widgets;
+        const wasUnsaved = unsavedChanges;
+        const defaultWidth = widgetData.default_width ?? widgetData.width ?? 4;
+        const defaultHeight = widgetData.default_height ?? widgetData.height ?? 4;
+        const x = widgetData.x ?? 0;
+        const nextY = widgetData.y ?? previousWidgets.reduce((maxY, widget) => {
+            const widgetY = widget.y ?? 0;
+            const widgetHeight = widget.height ?? widget.h ?? 0;
+            const bottom = widgetY + widgetHeight;
+            return bottom > maxY ? bottom : maxY;
+        }, 0);
+        const config = widgetData.config ? { ...widgetData.config } : {};
+        if (!config.itemtype && widgetData.itemtype) {
+            config.itemtype = widgetData.itemtype;
+        }
+        if (!config.visualization && widgetData.visualization) {
+            config.visualization = widgetData.visualization;
+        }
+
+        const newWidgets = [...previousWidgets];
         newWidgets.push({
             ...widgetData,
             id: `temp_${Date.now()}`,
-            width: widgetData.default_width || 4,
-            height: widgetData.default_height || 4
+            x,
+            y: nextY,
+            width: widgetData.width ?? defaultWidth,
+            height: widgetData.height ?? defaultHeight,
+            config,
         });
         setWidgets(newWidgets);
         setUnsavedChanges(true);
@@ -216,10 +272,10 @@ export const DashboardProvider = ({ children }) => {
             const result = await api.post('/dashboards/widgets', {
                 widget_definition_id: widgetData.id || widgetData.widget_definition_id,
                 dashboard_id: dashboard?.id,
-                x: widgetData.x ?? 0,
-                y: widgetData.y,
-                width: widgetData.default_width || 4,
-                height: widgetData.default_height || 4,
+                x,
+                y: nextY,
+                width: defaultWidth,
+                height: defaultHeight,
             });
 
             if (result.success) {
@@ -234,18 +290,68 @@ export const DashboardProvider = ({ children }) => {
                     }
                 }
                 return true;
-            } else if (result.error === 'Unauthorized') {
-                setAuthzError(__('You are not authorized to perform this action', 'dashboardng'));
-                setWidgets(widgets);
-                return false;
             }
+
+            if (result.error === 'Unauthorized') {
+                setAuthzError(__('You are not authorized to perform this action', 'dashboardng'));
+            } else if (result.error) {
+                setAuthzError(result.error);
+            }
+
+            setWidgets(previousWidgets);
+            setUnsavedChanges(wasUnsaved);
+            return false;
         } catch (error) {
             console.error('Failed to add widget:', error);
-            setWidgets(widgets);
+            setAuthzError(__('Failed to add widget', 'dashboardng'));
+            setWidgets(previousWidgets);
+            setUnsavedChanges(wasUnsaved);
             return false;
         }
+    }, [dashboard, unsavedChanges, widgets]);
+
+    const createCustomWidget = useCallback(async (widgetData) => {
+        const config = widgetData?.config ?? widgetData;
+        if (!config) {
+            return false;
+        }
+
+        const defaultWidth = widgetData?.default_width ?? widgetData?.width ?? 4;
+        const defaultHeight = widgetData?.default_height ?? widgetData?.height ?? 4;
+
+        try {
+            const result = await api.post('/widgets/create', {
+                config,
+                widget_type: widgetData?.widget_type ?? 'custom',
+                add_to_dashboard: false,
+                default_width: defaultWidth,
+                default_height: defaultHeight
+            });
+
+            if (result.success) {
+                return await addWidget({
+                    id: result.data.widget_id,
+                    widget_definition_id: result.data.widget_id,
+                    default_width: defaultWidth,
+                    default_height: defaultHeight,
+                    widget_type: widgetData?.widget_type ?? 'custom',
+                    visualization: config?.visualization,
+                    itemtype: config?.itemtype,
+                    config
+                });
+            }
+
+            if (result.error === 'Unauthorized') {
+                setAuthzError(__('You are not authorized to perform this action', 'dashboardng'));
+            } else if (result.error) {
+                setAuthzError(result.error);
+            }
+        } catch (error) {
+            console.error('Failed to create widget:', error);
+            setAuthzError(__('Failed to create widget', 'dashboardng'));
+        }
         return false;
-    }, [dashboard, widgets]);
+    }, [addWidget]);
 
     const updateWidget = useCallback(async (widgetId, updates) => {
         const configUpdates = updates?.config ?? updates;
@@ -389,6 +495,7 @@ export const DashboardProvider = ({ children }) => {
         saveDashboard,
         saveWidgetPositions,
         addWidget,
+        createCustomWidget,
         updateWidget,
         deleteWidget,
         toggleEditMode,

@@ -52,10 +52,24 @@ export const WidgetLibrary = ({ isOpen, onClose, onAddWidget }) => {
     }, {});
 
     const handleAddWidget = (widget) => {
+        const config = widget.config ? { ...widget.config } : {};
+        if (!config.itemtype && widget.itemtype) {
+            config.itemtype = widget.itemtype;
+        }
+        if (!config.visualization && widget.visualization) {
+            config.visualization = widget.visualization;
+        }
+
         // Pass the widget definition ID to the parent
         onAddWidget({
             id: widget.id,
             widget_definition_id: widget.id,
+            name: widget.name,
+            itemtype: widget.itemtype,
+            visualization: widget.visualization,
+            config,
+            default_width: widget.default_width,
+            default_height: widget.default_height,
             width: widget.default_width,
             height: widget.default_height,
         });

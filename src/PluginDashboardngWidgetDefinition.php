@@ -99,7 +99,7 @@ class PluginDashboardngWidgetDefinition extends CommonDBTM
             'LIMIT' => 1,
         ]);
 
-        $row = $result->current();
+        $row = $result->next();
         if ($row) {
             $row['config'] = json_decode($row['config'] ?? '{}', true);
         }

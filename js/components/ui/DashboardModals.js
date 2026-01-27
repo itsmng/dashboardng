@@ -9,7 +9,9 @@ export const DashboardModals = () => {
         showWidgetLibrary,
         closeWidgetLibrary,
         addWidget,
+        createCustomWidget,
         showWidgetConfig,
+        openWidgetConfig,
         closeWidgetConfig,
         editingWidget,
         dashboard,
@@ -21,6 +23,7 @@ export const DashboardModals = () => {
     const handleAddWidget = async (widgetData) => {
         if (widgetData.openConfig) {
             closeWidgetLibrary();
+            openWidgetConfig();
             return;
         }
         await addWidget(widgetData);
@@ -31,7 +34,7 @@ export const DashboardModals = () => {
         if (editingWidget) {
             await updateWidget(editingWidget.widget_definition_id ?? editingWidget.id, widgetData.config || widgetData);
         } else {
-            await addWidget(widgetData);
+            await createCustomWidget(widgetData);
         }
         closeWidgetConfig();
     };

@@ -13,7 +13,7 @@ final class DashboardngMigrationRunner
      *
      * This must match the highest migration VERSION.
      */
-    public const LATEST_SCHEMA_VERSION = '0003';
+    public const LATEST_SCHEMA_VERSION = '0004';
 
     public static function getInstalledSchemaVersion(): string
     {

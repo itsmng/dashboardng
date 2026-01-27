@@ -22,7 +22,7 @@ const DashboardAppInner = () => {
         toggleEditMode,
         openWidgetLibrary,
         openWidgetConfig,
-        updateWidget,
+        updateWidget: _updateWidget,
         deleteWidget,
         resetChanges,
         openSharedDashboard
@@ -34,6 +34,16 @@ const DashboardAppInner = () => {
         loadDashboard();
         resetChanges();
     }, [loadDashboard, resetChanges]);
+
+    useEffect(() => {
+        if (!gridRef.current?.gridstack) {
+            return;
+        }
+
+        gridRef.current.gridstack.destroy(false);
+        gridRef.current.gridstack = null;
+        gridRef.current.grid = null;
+    }, [dashboard?.id]);
 
     useEffect(() => {
         if (!gridRef.current || widgets.length === 0) {
@@ -65,8 +75,8 @@ const DashboardAppInner = () => {
                     id: item.id,
                     x: item.x,
                     y: item.y,
-                    width: item.w,
-                    height: item.h
+                    w: item.w,
+                    h: item.h
                 }));
                 saveWidgetPositions(positions);
             });
@@ -78,6 +88,26 @@ const DashboardAppInner = () => {
             console.error('GridStack initialization error:', error);
         }
     }, [widgets, saveWidgetPositions]);
+
+    useEffect(() => {
+        if (!gridRef.current?.gridstack) {
+            return;
+        }
+
+        const grid = gridRef.current.gridstack;
+        const items = gridRef.current.querySelectorAll('.grid-stack-item');
+        items.forEach((item) => {
+            if (!item.gridstackNode) {
+                grid.makeWidget(item);
+            }
+        });
+
+        if (editMode) {
+            grid.enable();
+        } else {
+            grid.disable();
+        }
+    }, [editMode, widgets]);
 
     const handleToggleEditMode = () => {
         const success = toggleEditMode(!editMode);

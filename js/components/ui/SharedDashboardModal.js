@@ -2,6 +2,20 @@ import { html, useState, useEffect } from '../../lib/preact.js';
 import { useDashboard } from '../../context/DashboardContext.js';
 import { __ } from '../../lib/i18n.js';
 
+const parseDashboardConfig = (config) => {
+    if (!config) {
+        return {};
+    }
+    if (typeof config === 'string') {
+        try {
+            return JSON.parse(config);
+        } catch {
+            return {};
+        }
+    }
+    return config;
+};
+
 export const SharedDashboardModal = ({ isOpen, onClose }) => {
     if (!isOpen) {return null;}
 
@@ -22,16 +36,15 @@ export const SharedDashboardModal = ({ isOpen, onClose }) => {
     const loadAvailableDashboards = async () => {
         setIsLoading(true);
         const availableDashboards = await loadDashboards();
-        setDashboards(availableDashboards.filter(d => d.is_global));
+        const globalDashboards = availableDashboards.filter(d => d.is_global);
+        setDashboards(globalDashboards);
         setIsLoading(false);
     };
 
     const handleUseTemplate = async (selectedDashboardId) => {
-        if (confirm(__('Replace your personal dashboard with this template?', 'dashboardng'))) {
-            const success = await createPersonalDashboard(selectedDashboardId);
-            if (success) {
-                onClose();
-            }
+        const success = await createPersonalDashboard(selectedDashboardId);
+        if (success) {
+            onClose();
         }
     };
 
@@ -48,7 +61,12 @@ export const SharedDashboardModal = ({ isOpen, onClose }) => {
         }
     };
 
-    const sharedDashboards = dashboards.filter(d => !d.is_default);
+    const dashboardConfig = parseDashboardConfig(dashboard?.config);
+    const isGlobalDashboard = dashboard?.is_global ?? (Number(dashboard?.users_id) === 0);
+    const sourceDashboardIdFromConfig = dashboardConfig?.source_dashboard_id ?? dashboardConfig?.sourceDashboardId;
+    const currentSharedDashboardId = isGlobalDashboard ? dashboard?.id : sourceDashboardIdFromConfig;
+    const currentSharedDashboardIdString = currentSharedDashboardId ? String(currentSharedDashboardId) : '';
+    const globalDashboards = dashboards;
     const canCreateShared = canEditGlobal;
 
     return html`
@@ -77,30 +95,41 @@ export const SharedDashboardModal = ({ isOpen, onClose }) => {
                                 <div class="text-center py-5">
                                     <div class="spinner-border" role="status"></div>
                                 </div>
-                            ` : (sharedDashboards.length === 0 ? html`
+                            ` : (globalDashboards.length === 0 ? html`
                                 <div class="alert alert-info">
                                     ${__('No shared dashboards available', 'dashboardng')}
                                 </div>
                             ` : html`
-                                <div class="list-group">
-                                    ${sharedDashboards.map(d => html`
-                                        <div class="list-group-item list-group-item-action">
+                                <div class="list-group dashboardng-shared-list">
+                                    ${globalDashboards.map(d => {
+                                        const isCurrent = String(d.id) === currentSharedDashboardIdString;
+                                        return html`
+                                        <button
+                                            type="button"
+                                            class="list-group-item list-group-item-action text-start ${isCurrent ? 'active is-current' : ''}"
+                                            aria-current=${isCurrent ? 'true' : 'false'}
+                                            onClick=${() => handleUseTemplate(d.id)}
+                                        >
                                             <div class="d-flex justify-content-between align-items-center">
                                                 <div>
-                                                    <h6 class="mb-1">${d.name}</h6>
+                                                    <h6 class="mb-1 d-flex align-items-center gap-2">
+                                                        <span>${d.name}</span>
+                                                        ${d.is_default ? html`
+                                                            <span class="badge ${isCurrent ? 'bg-light text-dark' : 'bg-secondary'}">${__('Default', 'dashboardng')}</span>
+                                                        ` : ''}
+                                                        ${isCurrent ? html`
+                                                            <span class="badge bg-success">${__('Current', 'dashboardng')}</span>
+                                                        ` : ''}
+                                                    </h6>
                                                     <small class="text-muted">
-                                                        ${__('Shared Dashboard Template', 'dashboardng')}
+                                                        ${d.is_default
+                                                            ? __('Global default dashboard', 'dashboardng')
+                                                            : __('Shared dashboard template', 'dashboardng')}
                                                     </small>
                                                 </div>
-                                                <button 
-                                                    class="btn btn-sm btn-primary"
-                                                    onClick=${() => handleUseTemplate(d.id)}
-                                                >
-                                                    ${__('Use Template', 'dashboardng')}
-                                                </button>
                                             </div>
-                                        </div>
-                                    `)}
+                                        </button>
+                                    `;})}
                                 </div>
                             `)}
                         ` : html`
@@ -127,13 +156,13 @@ export const SharedDashboardModal = ({ isOpen, onClose }) => {
                                         value=${sourceDashboardId}
                                         onChange=${(e) => setSourceDashboardId(e.target.value)}
                                     >
-                                        <option value="">-- ${__('Copy from global default', 'dashboardng')} --</option>
-                                        ${sharedDashboards.map(d => html`
+                                        <option value="">-- ${__('Copy from current dashboard', 'dashboardng')} --</option>
+                                        ${globalDashboards.map(d => html`
                                             <option value=${d.id}>${d.name}</option>
                                         `)}
                                     </select>
                                     <div class="form-text">
-                                        ${__('Leave empty to copy from the default global dashboard', 'dashboardng')}
+                                        ${__('Leave empty to copy from the currently loaded dashboard', 'dashboardng')}
                                     </div>
                                 </div>
                             </form>

@@ -173,21 +173,6 @@ class PluginDashboardngDashboardWidget extends CommonDBTM
             return false;
         }
 
-        // Check if already on dashboard
-        $existing = $DB->request([
-            'FROM' => $table,
-            'WHERE' => [
-                'dashboards_id' => $dashboardId,
-                'widget_definitions_id' => $widgetDefinitionId,
-            ],
-            'LIMIT' => 1,
-        ]);
-
-        if ($existing->current()) {
-            // Widget already on dashboard
-            return false;
-        }
-
         // Find next Y position
         $maxY = 0;
         $existingWidgets = self::getWidgetsForDashboard($dashboardId);
@@ -379,106 +364,5 @@ class PluginDashboardngDashboardWidget extends CommonDBTM
         ]);
 
         return $DB->affectedRows();
-    }
-
-    /**
-     * Populate default dashboard with default widgets
-     *
-     * @param int $dashboardId
-     * @return int Number of widgets added
-     */
-    public static function populateDefaultWidgets(int $dashboardId): int
-    {
-        global $DB;
-
-        // Use session-safe method to get global widgets
-        $widgets = self::getGlobalWidgetDefinitions();
-
-        if (empty($widgets)) {
-            // No widgets available - this is an error condition
-            trigger_error(
-                'Plugin dashboardng: Cannot populate dashboard - no widget definitions found. ' .
-                'Ensure PluginDashboardngWidgetDefinition::install() completed successfully.',
-                E_USER_WARNING
-            );
-            return 0;
-        }
-
-        $added = 0;
-        $table = self::getTable();
-
-        // Define custom layout matching user's design
-        // Key: widget ID, Value: [x, y, width, height]
-        $customLayout = [
-            3 => ['x' => 0, 'y' => 0, 'width' => 2, 'height' => 2],
-            1 => ['x' => 2, 'y' => 0, 'width' => 2, 'height' => 2],
-            4 => ['x' => 4, 'y' => 0, 'width' => 2, 'height' => 2],
-            5 => ['x' => 6, 'y' => 0, 'width' => 2, 'height' => 2],
-            2 => ['x' => 8, 'y' => 0, 'width' => 2, 'height' => 2],
-            6 => ['x' => 10, 'y' => 0, 'width' => 2, 'height' => 2],
-            7 => ['x' => 0, 'y' => 2, 'width' => 6, 'height' => 4],
-            10 => ['x' => 6, 'y' => 2, 'width' => 6, 'height' => 4],
-            9 => ['x' => 0, 'y' => 6, 'width' => 6, 'height' => 4],
-            8 => ['x' => 6, 'y' => 6, 'width' => 6, 'height' => 4],
-            12 => ['x' => 0, 'y' => 10, 'width' => 6, 'height' => 4],
-            11 => ['x' => 6, 'y' => 10, 'width' => 6, 'height' => 4],
-        ];
-
-        // Calculate position order based on layout (y then x)
-        $widgetOrder = [];
-        foreach ($customLayout as $widgetId => $layout) {
-            $widgetOrder[$widgetId] = $layout['y'] * 100 + $layout['x'];
-        }
-        asort($widgetOrder);
-
-        $positionIndex = 0;
-        foreach ($widgets as $widget) {
-            if (!isset($widget['id'])) continue;
-
-            $widgetId = $widget['id'];
-
-            // Check if this widget has a custom layout defined
-            if (isset($customLayout[$widgetId])) {
-                $position = $customLayout[$widgetId];
-            } else {
-                // Widget not in custom layout - place below main layout
-                $position = ['x' => 0, 'y' => 14 + ($positionIndex * 4)];
-            }
-
-            // Use widget's default dimensions if not specified in layout
-            $position['width'] = $position['width'] ?? $widget['default_width'];
-            $position['height'] = $position['height'] ?? $widget['default_height'];
-
-            // Check if widget already exists for this dashboard (idempotency)
-            $existing = $DB->request([
-                'FROM' => $table,
-                'WHERE' => [
-                    'dashboards_id' => $dashboardId,
-                    'widget_definitions_id' => $widget['id'],
-                ],
-                'LIMIT' => 1,
-            ]);
-
-            if (!$existing->current()) {
-                $insertData = [
-                    'dashboards_id' => $dashboardId,
-                    'widget_definitions_id' => $widget['id'],
-                    'x' => $position['x'],
-                    'y' => $position['y'],
-                    'width' => $position['width'],
-                    'height' => $position['height'],
-                    'is_visible' => 1,
-                    'position' => isset($widgetOrder[$widgetId]) ? array_search($widgetId, array_keys($widgetOrder)) : $positionIndex,
-                ];
-
-                if ($DB->insert($table, $insertData)) {
-                    $added++;
-                }
-            }
-
-            $positionIndex++;
-        }
-
-        return $added;
     }
 }

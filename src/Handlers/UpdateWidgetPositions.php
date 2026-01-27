@@ -53,22 +53,6 @@ class UpdateWidgetPositions
             ];
         }
 
-        // Before updating, verify widgets exist for this dashboard
-        $existingWidgets = PluginDashboardngDashboardWidget::getWidgetsForDashboard((int) $dashboardId);
-        $widgetIds = array_column($existingWidgets, 'id');
-
-        // Check which requested widget IDs actually exist
-        $notFound = [];
-        $found = [];
-        foreach ($positions as $pos) {
-            $wid = (int) $pos['id'];
-            if (in_array($wid, $widgetIds)) {
-                $found[] = $wid;
-            } else {
-                $notFound[] = $wid;
-            }
-        }
-
         $result = PluginDashboardngDashboardWidget::updatePositions(
             (int) $dashboardId,
             $positions
@@ -81,11 +65,6 @@ class UpdateWidgetPositions
                 'updated' => $result['updated'],
                 'skipped' => $result['skipped'],
                 'total' => count($positions),
-                'debug' => [
-                    'found_widget_ids' => $found,
-                    'not_found_widget_ids' => $notFound,
-                    'existing_widget_ids' => $widgetIds,
-                ],
             ],
         ];
 

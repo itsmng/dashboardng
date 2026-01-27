@@ -275,6 +275,49 @@
     cursor: pointer;
 }
 
+.dashboard-ng .dashboardng-shared-list .list-group-item {
+    position: relative;
+    border: 1px solid transparent;
+    border-radius: 8px;
+    padding: 0.75rem 1rem 0.75rem 1.5rem;
+    margin-bottom: 0.5rem;
+    background: #fff;
+}
+
+.dashboard-ng .dashboardng-shared-list .list-group-item:last-child {
+    margin-bottom: 0;
+}
+
+.dashboard-ng .dashboardng-shared-list .list-group-item:hover {
+    background-color: rgba(13, 110, 253, 0.04);
+    border-color: rgba(13, 110, 253, 0.2);
+}
+
+.dashboard-ng .dashboardng-shared-list .list-group-item.active,
+.dashboard-ng .dashboardng-shared-list .list-group-item.is-current {
+    color: #212529;
+    background: rgba(13, 110, 253, 0.08);
+    border-color: rgba(13, 110, 253, 0.45);
+    box-shadow: 0 0 0 2px rgba(13, 110, 253, 0.12);
+}
+
+.dashboard-ng .dashboardng-shared-list .list-group-item.active::before,
+.dashboard-ng .dashboardng-shared-list .list-group-item.is-current::before {
+    content: '';
+    position: absolute;
+    left: 0.5rem;
+    top: 0.5rem;
+    bottom: 0.5rem;
+    width: 4px;
+    border-radius: 999px;
+    background: var(--dashboardng-primary);
+}
+
+.dashboard-ng .dashboardng-shared-list .list-group-item:focus-visible {
+    outline: none;
+    box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.2);
+}
+
 /* ============================================================================
    Badges
    ============================================================================ */
