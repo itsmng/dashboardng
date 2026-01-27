@@ -49,7 +49,6 @@ class ItemtypeRegistry
         'PDU',
         'PassiveDCEquipment',
         'Cable',
-        'Socket',
     ];
 
     /** @var array|null Cached itemtypes with metadata */
@@ -89,7 +88,7 @@ class ItemtypeRegistry
                     'category' => self::getItemtypeCategory($itemtype),
                     'table' => $item->getTable(),
                 ];
-            } catch (\Exception $e) {
+            } catch (\Throwable $e) {
                 continue;
             }
         }
