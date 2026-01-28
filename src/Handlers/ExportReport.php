@@ -9,6 +9,14 @@ use PhpOffice\PhpSpreadsheet\Writer\Csv;
 use PhpOffice\PhpSpreadsheet\Style\Alignment;
 use PhpOffice\PhpSpreadsheet\Style\Fill;
 use PhpOffice\PhpSpreadsheet\Style\Border;
+use PhpOffice\PhpSpreadsheet\Cell\Coordinate;
+use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
+use PhpOffice\PhpSpreadsheet\Chart\Chart;
+use PhpOffice\PhpSpreadsheet\Chart\Legend;
+use PhpOffice\PhpSpreadsheet\Chart\PlotArea;
+use PhpOffice\PhpSpreadsheet\Chart\Title;
+use PhpOffice\PhpSpreadsheet\Chart\DataSeries;
+use PhpOffice\PhpSpreadsheet\Chart\DataSeriesValues;
 use TCPDF;
 
 /**
@@ -21,6 +29,15 @@ class ExportReport
 
     /** @var array Report type configurations */
     private array $reportConfigs = [];
+
+    private const CHART_TOPK_DEFAULT = 8;
+    private const CHART_DATA_START_COL_INDEX = 27; // Column AA
+    private const CHART_WIDTH_COLUMNS = 8;
+    private const CHART_HEIGHT_ROWS = 15;
+    private const CHART_ROW_GAP = 2;
+    private const ASSET_TOP_LIMIT = 10;
+    private const ASSET_MODEL_LIMIT = 15;
+    private const TASK_TOP_LIMIT = 10;
 
     public function __construct()
     {
@@ -471,6 +488,721 @@ class ExportReport
         return $prepared;
     }
 
+    private function escapeSheetTitle(string $title): string
+    {
+        $escaped = str_replace("'", "''", $title);
+        return "'" . $escaped . "'";
+    }
+
+    private function buildTopKRows(array $rows, string $valueKey, string $labelKey, int $limit, array $extraKeys = []): array
+    {
+        if ($limit <= 0 || count($rows) <= $limit) {
+            return $rows;
+        }
+
+        usort($rows, function (array $a, array $b) use ($valueKey): int {
+            $aValue = (float)($a[$valueKey] ?? 0);
+            $bValue = (float)($b[$valueKey] ?? 0);
+            return $bValue <=> $aValue;
+        });
+
+        $topRows = array_slice($rows, 0, $limit);
+        $rest = array_slice($rows, $limit);
+
+        $restValue = 0.0;
+        foreach ($rest as $row) {
+            $restValue += (float)($row[$valueKey] ?? 0);
+        }
+
+        if ($restValue <= 0) {
+            return $topRows;
+        }
+
+        $summary = [$labelKey => __('Others', 'dashboardng')];
+        foreach (array_merge([$valueKey], $extraKeys) as $key) {
+            $sum = 0.0;
+            foreach ($rest as $row) {
+                $sum += (float)($row[$key] ?? 0);
+            }
+            $summary[$key] = $sum;
+        }
+
+        $topRows[] = $summary;
+        return $topRows;
+    }
+
+    private function extractLabels(array $rows, array $keys): array
+    {
+        $labels = [];
+        foreach ($rows as $row) {
+            $label = '';
+            foreach ($keys as $key) {
+                if (!empty($row[$key])) {
+                    $label = (string) $row[$key];
+                    break;
+                }
+            }
+            if ($label === '') {
+                $label = __('Unknown', 'dashboardng');
+            }
+            $labels[] = $label;
+        }
+        return $labels;
+    }
+
+    private function extractNumericValues(array $rows, string $key): array
+    {
+        $values = [];
+        foreach ($rows as $row) {
+            $values[] = (float)($row[$key] ?? 0);
+        }
+        return $values;
+    }
+
+    private function buildChartCellRef(Worksheet $sheet, int $colIndex, int $row): string
+    {
+        $column = Coordinate::stringFromColumnIndex($colIndex);
+        return $this->escapeSheetTitle($sheet->getTitle()) . '!$' . $column . '$' . $row;
+    }
+
+    private function buildChartRange(Worksheet $sheet, int $colIndex, int $rowStart, int $rowEnd): string
+    {
+        $column = Coordinate::stringFromColumnIndex($colIndex);
+        $sheetTitle = $this->escapeSheetTitle($sheet->getTitle());
+        return $sheetTitle . '!$' . $column . '$' . $rowStart . ':$' . $column . '$' . $rowEnd;
+    }
+
+    private function writeChartDataBlock(
+        Worksheet $sheet,
+        int &$row,
+        int $startColIndex,
+        string $labelHeader,
+        array $labels,
+        array $series
+    ): ?array {
+        if (empty($labels) || empty($series)) {
+            return null;
+        }
+
+        $startRow = $row;
+        $sheet->setCellValue($this->cellAddress($startColIndex, $row), $labelHeader);
+        foreach ($series as $index => $serie) {
+            $sheet->setCellValue(
+                $this->cellAddress($startColIndex + $index + 1, $row),
+                $serie['name'] ?? ''
+            );
+        }
+        $row++;
+
+        $rowCount = count($labels);
+        for ($i = 0; $i < $rowCount; $i++) {
+            $sheet->setCellValue($this->cellAddress($startColIndex, $row + $i), $labels[$i]);
+            foreach ($series as $index => $serie) {
+                $value = $serie['values'][$i] ?? 0;
+                $sheet->setCellValue($this->cellAddress($startColIndex + $index + 1, $row + $i), $value);
+            }
+        }
+
+        $endRow = $row + $rowCount - 1;
+        $seriesRanges = [];
+        foreach ($series as $index => $serie) {
+            $seriesRanges[] = [
+                'nameRange' => $this->buildChartCellRef($sheet, $startColIndex + $index + 1, $startRow),
+                'valuesRange' => $this->buildChartRange($sheet, $startColIndex + $index + 1, $row, $endRow),
+            ];
+        }
+
+        $block = [
+            'rowCount' => $rowCount,
+            'labelRange' => $this->buildChartRange($sheet, $startColIndex, $row, $endRow),
+            'seriesRanges' => $seriesRanges,
+            'endColumnIndex' => $startColIndex + count($series),
+        ];
+
+        $row = $endRow + 2;
+        return $block;
+    }
+
+    private function cellAddress(int $colIndex, int $row): string
+    {
+        return Coordinate::stringFromColumnIndex($colIndex) . $row;
+    }
+
+    private function addChartFromSeries(
+        Worksheet $sheet,
+        string $chartTitle,
+        string $chartType,
+        string $labelHeader,
+        array $labels,
+        array $series,
+        int &$chartRow,
+        int &$chartDataRow,
+        int $chartDataStartColIndex,
+        int &$chartDataMaxColIndex,
+        ?string $grouping = null,
+        ?string $direction = null,
+        bool $showLegend = true
+    ): void {
+        $block = $this->writeChartDataBlock($sheet, $chartDataRow, $chartDataStartColIndex, $labelHeader, $labels, $series);
+        if ($block === null) {
+            return;
+        }
+
+        $chartDataMaxColIndex = max($chartDataMaxColIndex, $block['endColumnIndex']);
+
+        $dataSeriesLabels = [];
+        $dataSeriesValues = [];
+        foreach ($block['seriesRanges'] as $seriesRange) {
+            $dataSeriesLabels[] = new DataSeriesValues('String', $seriesRange['nameRange'], null, 1);
+            $dataSeriesValues[] = new DataSeriesValues('Number', $seriesRange['valuesRange'], null, $block['rowCount']);
+        }
+
+        $xAxisTickValues = [
+            new DataSeriesValues('String', $block['labelRange'], null, $block['rowCount']),
+        ];
+
+        $grouping = $grouping ?? DataSeries::GROUPING_STANDARD;
+        $series = new DataSeries(
+            $chartType,
+            $grouping,
+            range(0, count($dataSeriesValues) - 1),
+            $dataSeriesLabels,
+            $xAxisTickValues,
+            $dataSeriesValues
+        );
+
+        if ($direction) {
+            $series->setPlotDirection($direction);
+        }
+
+        $plotArea = new PlotArea(null, [$series]);
+        $legend = $showLegend ? new Legend(Legend::POSITION_RIGHT, null, false) : null;
+
+        $chartId = 'chart_' . md5($chartTitle . '_' . $chartRow . '_' . microtime(true));
+        $chart = new Chart(
+            $chartId,
+            new Title($chartTitle),
+            $legend,
+            $plotArea,
+            true,
+            0,
+            null,
+            null
+        );
+
+        $topLeft = $this->cellAddress(1, $chartRow);
+        $bottomRight = $this->cellAddress(self::CHART_WIDTH_COLUMNS, $chartRow + self::CHART_HEIGHT_ROWS);
+        $chart->setTopLeftPosition($topLeft);
+        $chart->setBottomRightPosition($bottomRight);
+
+        $sheet->addChart($chart);
+        $chartRow += self::CHART_HEIGHT_ROWS + self::CHART_ROW_GAP;
+    }
+
+    private function addXlsxCharts(Worksheet $sheet, string $type, array $data, int $startRow): void
+    {
+        $chartDataRow = 1;
+        $chartDataStartColIndex = self::CHART_DATA_START_COL_INDEX;
+        $chartDataMaxColIndex = $chartDataStartColIndex;
+        $chartRow = max(5, $startRow);
+        $chartsAdded = false;
+
+        $addChart = function (
+            string $chartTitle,
+            string $chartType,
+            string $labelHeader,
+            array $labels,
+            array $series,
+            ?string $grouping = null,
+            ?string $direction = null,
+            bool $showLegend = true
+        ) use (
+            $sheet,
+            &$chartRow,
+            &$chartDataRow,
+            $chartDataStartColIndex,
+            &$chartDataMaxColIndex,
+            &$chartsAdded
+        ): void {
+            if (empty($labels)) {
+                return;
+            }
+            $this->addChartFromSeries(
+                $sheet,
+                $chartTitle,
+                $chartType,
+                $labelHeader,
+                $labels,
+                $series,
+                $chartRow,
+                $chartDataRow,
+                $chartDataStartColIndex,
+                $chartDataMaxColIndex,
+                $grouping,
+                $direction,
+                $showLegend
+            );
+            $chartsAdded = true;
+        };
+
+        switch ($type) {
+            case 'overview': {
+                $byType = $this->buildTopKRows($data['by_type'] ?? [], 'count', 'label', self::CHART_TOPK_DEFAULT);
+                $addChart(
+                    __('By Type', 'dashboardng'),
+                    DataSeries::TYPE_PIECHART,
+                    __('Type', 'dashboardng'),
+                    $this->extractLabels($byType, ['label']),
+                    [[
+                        'name' => __('Count', 'dashboardng'),
+                        'values' => $this->extractNumericValues($byType, 'count'),
+                    ]]
+                );
+
+                $byStatus = $this->buildTopKRows($data['by_status'] ?? [], 'count', 'label', self::CHART_TOPK_DEFAULT);
+                $addChart(
+                    __('By Status', 'dashboardng'),
+                    DataSeries::TYPE_PIECHART,
+                    __('Status', 'dashboardng'),
+                    $this->extractLabels($byStatus, ['label']),
+                    [[
+                        'name' => __('Count', 'dashboardng'),
+                        'values' => $this->extractNumericValues($byStatus, 'count'),
+                    ]]
+                );
+                break;
+            }
+            case 'entity': {
+                $topRows = $this->buildTopKRows(
+                    $data,
+                    'total_tickets',
+                    'completename',
+                    self::CHART_TOPK_DEFAULT,
+                    ['resolved_tickets', 'open_tickets']
+                );
+                $labels = $this->extractLabels($topRows, ['completename', 'name']);
+
+                $addChart(
+                    __('Ticket Volume by Entity', 'dashboardng'),
+                    DataSeries::TYPE_BARCHART,
+                    __('Entity', 'dashboardng'),
+                    $labels,
+                    [[
+                        'name' => __('Total', 'dashboardng'),
+                        'values' => $this->extractNumericValues($topRows, 'total_tickets'),
+                    ]],
+                    DataSeries::GROUPING_CLUSTERED
+                );
+
+                $addChart(
+                    __('Entity Resolution Mix', 'dashboardng'),
+                    DataSeries::TYPE_BARCHART,
+                    __('Entity', 'dashboardng'),
+                    $labels,
+                    [
+                        [
+                            'name' => __('Resolved', 'dashboardng'),
+                            'values' => $this->extractNumericValues($topRows, 'resolved_tickets'),
+                        ],
+                        [
+                            'name' => __('Open', 'dashboardng'),
+                            'values' => $this->extractNumericValues($topRows, 'open_tickets'),
+                        ],
+                    ],
+                    DataSeries::GROUPING_STACKED
+                );
+                break;
+            }
+            case 'technician': {
+                $topRows = $this->buildTopKRows(
+                    $data,
+                    'total_tickets',
+                    'name',
+                    self::CHART_TOPK_DEFAULT,
+                    ['resolved_tickets', 'open_tickets']
+                );
+                $labels = $this->extractLabels($topRows, ['name']);
+
+                $addChart(
+                    __('Tickets by Technician', 'dashboardng'),
+                    DataSeries::TYPE_BARCHART,
+                    __('Technician', 'dashboardng'),
+                    $labels,
+                    [[
+                        'name' => __('Assigned', 'dashboardng'),
+                        'values' => $this->extractNumericValues($topRows, 'total_tickets'),
+                    ]],
+                    DataSeries::GROUPING_CLUSTERED
+                );
+
+                $addChart(
+                    __('Resolution Mix', 'dashboardng'),
+                    DataSeries::TYPE_BARCHART,
+                    __('Technician', 'dashboardng'),
+                    $labels,
+                    [
+                        [
+                            'name' => __('Resolved', 'dashboardng'),
+                            'values' => $this->extractNumericValues($topRows, 'resolved_tickets'),
+                        ],
+                        [
+                            'name' => __('Open', 'dashboardng'),
+                            'values' => $this->extractNumericValues($topRows, 'open_tickets'),
+                        ],
+                    ],
+                    DataSeries::GROUPING_STACKED
+                );
+                break;
+            }
+            case 'category': {
+                $topRows = $this->buildTopKRows(
+                    $data,
+                    'total_tickets',
+                    'completename',
+                    self::CHART_TOPK_DEFAULT,
+                    ['resolved_tickets', 'avg_resolution_hours']
+                );
+                $labels = $this->extractLabels($topRows, ['completename', 'name']);
+
+                $addChart(
+                    __('Category Share', 'dashboardng'),
+                    DataSeries::TYPE_PIECHART,
+                    __('Category', 'dashboardng'),
+                    $labels,
+                    [[
+                        'name' => __('Tickets', 'dashboardng'),
+                        'values' => $this->extractNumericValues($topRows, 'total_tickets'),
+                    ]]
+                );
+
+                $addChart(
+                    __('Avg Resolution Time', 'dashboardng'),
+                    DataSeries::TYPE_BARCHART,
+                    __('Category', 'dashboardng'),
+                    $labels,
+                    [[
+                        'name' => __('Avg Resolution (h)', 'dashboardng'),
+                        'values' => $this->extractNumericValues($topRows, 'avg_resolution_hours'),
+                    ]],
+                    DataSeries::GROUPING_CLUSTERED
+                );
+                break;
+            }
+            case 'group': {
+                $topRows = $this->buildTopKRows(
+                    $data,
+                    'total_tickets',
+                    'completename',
+                    self::CHART_TOPK_DEFAULT,
+                    ['resolved_tickets', 'open_tickets']
+                );
+                $labels = $this->extractLabels($topRows, ['completename', 'name']);
+
+                $addChart(
+                    __('Ticket Volume by Group', 'dashboardng'),
+                    DataSeries::TYPE_BARCHART,
+                    __('Group', 'dashboardng'),
+                    $labels,
+                    [[
+                        'name' => __('Total', 'dashboardng'),
+                        'values' => $this->extractNumericValues($topRows, 'total_tickets'),
+                    ]],
+                    DataSeries::GROUPING_CLUSTERED
+                );
+
+                $addChart(
+                    __('Resolution Mix', 'dashboardng'),
+                    DataSeries::TYPE_BARCHART,
+                    __('Group', 'dashboardng'),
+                    $labels,
+                    [
+                        [
+                            'name' => __('Resolved', 'dashboardng'),
+                            'values' => $this->extractNumericValues($topRows, 'resolved_tickets'),
+                        ],
+                        [
+                            'name' => __('Open', 'dashboardng'),
+                            'values' => $this->extractNumericValues($topRows, 'open_tickets'),
+                        ],
+                    ],
+                    DataSeries::GROUPING_STACKED
+                );
+                break;
+            }
+            case 'priority': {
+                $topRows = $this->buildTopKRows(
+                    $data,
+                    'total_tickets',
+                    'label',
+                    self::CHART_TOPK_DEFAULT,
+                    ['resolved_tickets']
+                );
+                $labels = $this->extractLabels($topRows, ['label']);
+
+                $addChart(
+                    __('Tickets by Priority', 'dashboardng'),
+                    DataSeries::TYPE_BARCHART,
+                    __('Priority', 'dashboardng'),
+                    $labels,
+                    [[
+                        'name' => __('Total', 'dashboardng'),
+                        'values' => $this->extractNumericValues($topRows, 'total_tickets'),
+                    ]],
+                    DataSeries::GROUPING_CLUSTERED
+                );
+
+                $addChart(
+                    __('Resolution Rate by Priority', 'dashboardng'),
+                    DataSeries::TYPE_BARCHART,
+                    __('Priority', 'dashboardng'),
+                    $labels,
+                    [[
+                        'name' => __('Resolution Rate', 'dashboardng'),
+                        'values' => $this->extractNumericValues($topRows, 'resolution_rate'),
+                    ]],
+                    DataSeries::GROUPING_CLUSTERED
+                );
+                break;
+            }
+            case 'source': {
+                $topRows = $this->buildTopKRows($data, 'total_tickets', 'name', self::CHART_TOPK_DEFAULT);
+                $labels = $this->extractLabels($topRows, ['name']);
+
+                $addChart(
+                    __('Ticket Sources', 'dashboardng'),
+                    DataSeries::TYPE_PIECHART,
+                    __('Source', 'dashboardng'),
+                    $labels,
+                    [[
+                        'name' => __('Tickets', 'dashboardng'),
+                        'values' => $this->extractNumericValues($topRows, 'total_tickets'),
+                    ]]
+                );
+
+                $addChart(
+                    __('Source Volume', 'dashboardng'),
+                    DataSeries::TYPE_BARCHART,
+                    __('Source', 'dashboardng'),
+                    $labels,
+                    [[
+                        'name' => __('Tickets', 'dashboardng'),
+                        'values' => $this->extractNumericValues($topRows, 'total_tickets'),
+                    ]],
+                    DataSeries::GROUPING_CLUSTERED
+                );
+                break;
+            }
+            case 'monthly': {
+                $labels = $this->extractLabels($data, ['label', 'month']);
+
+                $addChart(
+                    __('Monthly Ticket Volume', 'dashboardng'),
+                    DataSeries::TYPE_LINECHART,
+                    __('Month', 'dashboardng'),
+                    $labels,
+                    [
+                        [
+                            'name' => __('Total', 'dashboardng'),
+                            'values' => $this->extractNumericValues($data, 'total_tickets'),
+                        ],
+                        [
+                            'name' => __('Resolved', 'dashboardng'),
+                            'values' => $this->extractNumericValues($data, 'resolved_tickets'),
+                        ],
+                    ],
+                    DataSeries::GROUPING_STANDARD
+                );
+
+                $addChart(
+                    __('Resolution Rate Trend', 'dashboardng'),
+                    DataSeries::TYPE_BARCHART,
+                    __('Month', 'dashboardng'),
+                    $labels,
+                    [[
+                        'name' => __('Resolution Rate', 'dashboardng'),
+                        'values' => $this->extractNumericValues($data, 'resolution_rate'),
+                    ]],
+                    DataSeries::GROUPING_CLUSTERED
+                );
+                break;
+            }
+            case 'task-overview': {
+                $byCategory = $this->buildTopKRows($data['by_category'] ?? [], 'count', 'label', self::CHART_TOPK_DEFAULT, ['total_time']);
+                $addChart(
+                    __('Tasks by Category', 'dashboardng'),
+                    DataSeries::TYPE_PIECHART,
+                    __('Category', 'dashboardng'),
+                    $this->extractLabels($byCategory, ['label']),
+                    [[
+                        'name' => __('Tasks', 'dashboardng'),
+                        'values' => $this->extractNumericValues($byCategory, 'count'),
+                    ]]
+                );
+                break;
+            }
+            case 'task-by-technician': {
+                $rows = array_slice($data, 0, self::TASK_TOP_LIMIT);
+                $labels = $this->extractLabels($rows, ['name']);
+                $addChart(
+                    __('Tasks by Technician', 'dashboardng'),
+                    DataSeries::TYPE_BARCHART,
+                    __('Technician', 'dashboardng'),
+                    $labels,
+                    [[
+                        'name' => __('Tasks', 'dashboardng'),
+                        'values' => $this->extractNumericValues($rows, 'task_count'),
+                    ]],
+                    DataSeries::GROUPING_CLUSTERED,
+                    DataSeries::DIRECTION_BAR
+                );
+                break;
+            }
+            case 'task-by-entity': {
+                $labels = $this->extractLabels($data, ['name', 'completename']);
+                $addChart(
+                    __('Tasks by Entity', 'dashboardng'),
+                    DataSeries::TYPE_PIECHART,
+                    __('Entity', 'dashboardng'),
+                    $labels,
+                    [[
+                        'name' => __('Tasks', 'dashboardng'),
+                        'values' => $this->extractNumericValues($data, 'task_count'),
+                    ]]
+                );
+                break;
+            }
+            case 'asset-by-itemtype': {
+                if (!empty($data['error'])) {
+                    break;
+                }
+
+                $byManufacturer = $this->buildTopKRows($data['by_manufacturer'] ?? [], 'count', 'label', self::CHART_TOPK_DEFAULT);
+                $addChart(
+                    __('By Manufacturer', 'dashboardng'),
+                    DataSeries::TYPE_PIECHART,
+                    __('Manufacturer', 'dashboardng'),
+                    $this->extractLabels($byManufacturer, ['label']),
+                    [[
+                        'name' => __('Count', 'dashboardng'),
+                        'values' => $this->extractNumericValues($byManufacturer, 'count'),
+                    ]]
+                );
+
+                $byStatus = $this->buildTopKRows($data['by_status'] ?? [], 'count', 'label', self::CHART_TOPK_DEFAULT);
+                $addChart(
+                    __('By Status', 'dashboardng'),
+                    DataSeries::TYPE_PIECHART,
+                    __('Status', 'dashboardng'),
+                    $this->extractLabels($byStatus, ['label']),
+                    [[
+                        'name' => __('Count', 'dashboardng'),
+                        'values' => $this->extractNumericValues($byStatus, 'count'),
+                    ]]
+                );
+
+                if (!empty($data['by_location'])) {
+                    $rows = array_slice($data['by_location'], 0, self::ASSET_TOP_LIMIT);
+                    $addChart(
+                        __('By Location', 'dashboardng'),
+                        DataSeries::TYPE_BARCHART,
+                        __('Location', 'dashboardng'),
+                        $this->extractLabels($rows, ['label']),
+                        [[
+                            'name' => __('Count', 'dashboardng'),
+                            'values' => $this->extractNumericValues($rows, 'count'),
+                        ]],
+                        DataSeries::GROUPING_CLUSTERED,
+                        DataSeries::DIRECTION_BAR
+                    );
+                }
+
+                if (!empty($data['by_entity'])) {
+                    $rows = array_slice($data['by_entity'], 0, self::ASSET_TOP_LIMIT);
+                    $addChart(
+                        __('By Entity', 'dashboardng'),
+                        DataSeries::TYPE_BARCHART,
+                        __('Entity', 'dashboardng'),
+                        $this->extractLabels($rows, ['label']),
+                        [[
+                            'name' => __('Count', 'dashboardng'),
+                            'values' => $this->extractNumericValues($rows, 'count'),
+                        ]],
+                        DataSeries::GROUPING_CLUSTERED,
+                        DataSeries::DIRECTION_BAR
+                    );
+                }
+
+                if (!empty($data['by_os'])) {
+                    $byOs = $this->buildTopKRows($data['by_os'], 'count', 'label', self::CHART_TOPK_DEFAULT);
+                    $addChart(
+                        __('By Operating System', 'dashboardng'),
+                        DataSeries::TYPE_PIECHART,
+                        __('Operating System', 'dashboardng'),
+                        $this->extractLabels($byOs, ['label']),
+                        [[
+                            'name' => __('Count', 'dashboardng'),
+                            'values' => $this->extractNumericValues($byOs, 'count'),
+                        ]]
+                    );
+                }
+
+                if (!empty($data['by_type'])) {
+                    $byType = $this->buildTopKRows($data['by_type'], 'count', 'label', self::CHART_TOPK_DEFAULT);
+                    $addChart(
+                        __('By Type', 'dashboardng'),
+                        DataSeries::TYPE_PIECHART,
+                        __('Type', 'dashboardng'),
+                        $this->extractLabels($byType, ['label']),
+                        [[
+                            'name' => __('Count', 'dashboardng'),
+                            'values' => $this->extractNumericValues($byType, 'count'),
+                        ]]
+                    );
+                }
+
+                if (!empty($data['by_category'])) {
+                    $byCategory = $this->buildTopKRows($data['by_category'], 'count', 'label', self::CHART_TOPK_DEFAULT);
+                    $addChart(
+                        __('By Category', 'dashboardng'),
+                        DataSeries::TYPE_PIECHART,
+                        __('Category', 'dashboardng'),
+                        $this->extractLabels($byCategory, ['label']),
+                        [[
+                            'name' => __('Count', 'dashboardng'),
+                            'values' => $this->extractNumericValues($byCategory, 'count'),
+                        ]]
+                    );
+                }
+
+                if (!empty($data['by_model'])) {
+                    $rows = array_slice($data['by_model'], 0, self::ASSET_MODEL_LIMIT);
+                    $addChart(
+                        __('By Model', 'dashboardng'),
+                        DataSeries::TYPE_BARCHART,
+                        __('Model', 'dashboardng'),
+                        $this->extractLabels($rows, ['label']),
+                        [[
+                            'name' => __('Count', 'dashboardng'),
+                            'values' => $this->extractNumericValues($rows, 'count'),
+                        ]],
+                        DataSeries::GROUPING_CLUSTERED,
+                        DataSeries::DIRECTION_BAR
+                    );
+                }
+                break;
+            }
+            default:
+                break;
+        }
+
+        if ($chartsAdded) {
+            for ($colIndex = $chartDataStartColIndex; $colIndex <= $chartDataMaxColIndex; $colIndex++) {
+                $column = Coordinate::stringFromColumnIndex($colIndex);
+                $sheet->getColumnDimension($column)->setVisible(false);
+            }
+        }
+    }
+
     /**
      * Export to CSV format
      */
@@ -684,6 +1416,7 @@ class ExportReport
         header('Cache-Control: max-age=0');
 
         $writer = new Xlsx($spreadsheet);
+        $writer->setIncludeCharts(true);
         $writer->save('php://output');
         exit;
     }
@@ -733,7 +1466,12 @@ class ExportReport
             $this->exportTableXlsx($sheet, $type, $data, $config['columns'], $row, $headerStyle);
         }
 
-        foreach (range('A', $sheet->getHighestColumn()) as $col) {
+        $this->addXlsxCharts($sheet, $type, $data, $row + 1);
+
+        $highestColumn = $sheet->getHighestColumn();
+        $highestColumnIndex = Coordinate::columnIndexFromString($highestColumn);
+        for ($colIndex = 1; $colIndex <= $highestColumnIndex; $colIndex++) {
+            $col = Coordinate::stringFromColumnIndex($colIndex);
             $sheet->getColumnDimension($col)->setAutoSize(true);
         }
     }
@@ -1097,32 +1835,70 @@ class ExportReport
     }
 
     /**
+     * Calculate column widths based on column type
+     */
+    private function calculateColumnWidths(array $columns): array
+    {
+        $widths = [];
+        $weights = [];
+
+        foreach (array_keys($columns) as $key) {
+            if (in_array($key, ['completename', 'name', 'label'], true)) {
+                $weights[$key] = 3;
+            } elseif (in_array($key, ['share_display', 'resolution_rate_display', 'avg_resolution_display'], true)) {
+                $weights[$key] = 1;
+            } else {
+                $weights[$key] = 2;
+            }
+        }
+
+        $totalWeight = array_sum($weights);
+        if ($totalWeight === 0) {
+            foreach (array_keys($columns) as $key) {
+                $widths[$key] = floor(100 / count($columns));
+            }
+            return $widths;
+        }
+
+        foreach ($weights as $key => $weight) {
+            $widths[$key] = round(($weight / $totalWeight) * 100, 1);
+        }
+
+        $totalWidth = array_sum($widths);
+        $diff = 100 - $totalWidth;
+        if ($diff !== 0 && !empty($widths)) {
+            $firstKey = array_key_first($widths);
+            $widths[$firstKey] += $diff;
+        }
+
+        return $widths;
+    }
+
+    /**
      * Export table-type report to PDF
      */
     private function exportTablePdf(TCPDF $pdf, string $type, array $data, array $columns): void
     {
         $prepared = $this->prepareTableRows($type, $data);
-        $colCount = count($columns);
-        $colWidth = floor(277 / $colCount); // A4 landscape width minus margins
+        $columnWidths = $this->calculateColumnWidths($columns);
 
-        // Build HTML table
-        $html = '<table border="1" cellpadding="4">';
-        
-        // Header
+        $html = '<table border="1" cellpadding="4" width="100%">';
+
         $html .= '<tr style="background-color: #4472C4; color: white; font-weight: bold;">';
-        foreach ($columns as $label) {
-            $html .= '<th width="' . $colWidth . '">' . htmlspecialchars($label) . '</th>';
+        foreach ($columns as $key => $label) {
+            $width = $columnWidths[$key] ?? 10;
+            $html .= '<th width="' . $width . '%">' . htmlspecialchars($label) . '</th>';
         }
         $html .= '</tr>';
 
-        // Data rows
         $rowNum = 0;
         foreach ($prepared as $row) {
             $bgColor = ($rowNum % 2 === 0) ? '#FFFFFF' : '#F2F2F2';
             $html .= '<tr style="background-color: ' . $bgColor . ';">';
             foreach (array_keys($columns) as $key) {
+                $width = $columnWidths[$key] ?? 10;
                 $value = $row[$key] ?? '';
-                $html .= '<td>' . htmlspecialchars((string)$value) . '</td>';
+                $html .= '<td width="' . $width . '%">' . htmlspecialchars((string)$value) . '</td>';
             }
             $html .= '</tr>';
             $rowNum++;
@@ -1148,21 +1924,22 @@ class ExportReport
                 $pdf->Cell(0, 8, $title, 0, 1, 'L');
                 $pdf->SetFont('helvetica', '', 9);
 
-                $colCount = count($columns);
-                $colWidth = $colCount > 0 ? floor(100 / $colCount) : 100;
+                $columnWidths = $this->calculateColumnWidths($columns);
 
-                $html = '<table border="1" cellpadding="4">
+                $html = '<table border="1" cellpadding="4" width="100%">
                     <tr style="background-color: #4472C4; color: white; font-weight: bold;">';
-                foreach ($columns as $label) {
-                    $html .= '<th width="' . $colWidth . '%">' . htmlspecialchars($label) . '</th>';
+                foreach ($columns as $key => $label) {
+                    $width = $columnWidths[$key] ?? 10;
+                    $html .= '<th width="' . $width . '%">' . htmlspecialchars($label) . '</th>';
                 }
                 $html .= '</tr>';
 
                 foreach ($rows as $row) {
                     $html .= '<tr>';
                     foreach (array_keys($columns) as $key) {
+                        $width = $columnWidths[$key] ?? 10;
                         $value = $row[$key] ?? '';
-                        $html .= '<td>' . htmlspecialchars((string)$value) . '</td>';
+                        $html .= '<td width="' . $width . '%">' . htmlspecialchars((string)$value) . '</td>';
                     }
                     $html .= '</tr>';
                 }
@@ -1332,6 +2109,7 @@ class ExportReport
         header('Cache-Control: max-age=0');
 
         $writer = new Xlsx($spreadsheet);
+        $writer->setIncludeCharts(true);
         $writer->save('php://output');
         exit;
     }

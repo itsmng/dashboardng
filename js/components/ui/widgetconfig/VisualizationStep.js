@@ -1,5 +1,6 @@
 import { html } from '../../../lib/preact.js';
 import { __ } from '../../../lib/i18n.js';
+import { COLORS } from '../../../lib/config.js';
 
 const COLOR_PALETTES = {
     default: ['#0d6efd', '#198754', '#dc3545', '#ffc107', '#0dcaf0', '#6610f2', '#d63384', '#fd7e14'],
@@ -9,6 +10,22 @@ const COLOR_PALETTES = {
     warm: ['#FF6B6B', '#FFA07A', '#FFD700', '#FF8C00', '#DC143C', '#B22222'],
     cool: ['#00CED1', '#1E90FF', '#4169E1', '#6495ED', '#87CEEB', '#B0E0E6'],
 };
+
+const BOOTSTRAP_COLORS = {
+    primary: '#0d6efd',
+    success: '#198754',
+    info: '#0dcaf0',
+    warning: '#ffc107',
+    danger: '#dc3545',
+    secondary: '#6c757d'
+};
+
+const CARD_ICONS = [
+    'fa-ticket-alt', 'fa-chart-line', 'fa-users',
+    'fa-cube', 'fa-desktop', 'fa-server',
+    'fa-bug', 'fa-check-circle', 'fa-clock',
+    'fa-exclamation-triangle', 'fa-envelope', 'fa-calendar'
+];
 
 export const VisualizationStep = ({ config, setConfig }) => {
     return html`
@@ -123,6 +140,59 @@ export const VisualizationStep = ({ config, setConfig }) => {
                     <option value="600000">10 ${__('Minutes', 'dashboardng')}</option>
                 </select>
             </div>
+
+            ${config.visualization === 'card' && html`
+                <div class="mb-4">
+                    <label class="form-label">${__('Card Color', 'dashboardng')}</label>
+                    <div class="row g-2 mb-2">
+                        ${Object.entries(BOOTSTRAP_COLORS).map(([name, hex]) => html`
+                            <div class="col-2">
+                                <button
+                                    class="color-swatch btn ${config.color === hex ? 'btn-primary' : 'btn-outline-secondary'} p-2 w-100"
+                                    style="background-color: ${hex}; border-color: ${hex};"
+                                    onClick=${() => setConfig({ ...config, color: hex })}
+                                    title=${name}
+                                ></button>
+                            </div>
+                        `)}
+                    </div>
+                    <div class="input-group">
+                        <span class="input-group-text">${__('Custom', 'dashboardng')}</span>
+                        <input
+                            type="color"
+                            class="form-control form-control-color"
+                            value=${config.color || COLORS.primary}
+                            onInput=${(e) => setConfig({ ...config, color: e.target.value })}
+                        />
+                    </div>
+                </div>
+
+                <div class="mb-4">
+                    <label class="form-label">${__('Card Icon', 'dashboardng')}</label>
+                    <div class="row g-2 mb-2">
+                        ${CARD_ICONS.map(icon => html`
+                            <div class="col-2">
+                                <button
+                                    class="icon-option btn ${config.icon === icon ? 'btn-primary' : 'btn-outline-secondary'} p-2 w-100"
+                                    onClick=${() => setConfig({ ...config, icon })}
+                                    title=${icon}
+                                >
+                                    <i class="fas ${icon}"></i>
+                                </button>
+                            </div>
+                        `)}
+                    </div>
+                    <div class="input-group">
+                        <input
+                            type="text"
+                            class="form-control"
+                            value=${config.icon}
+                            onInput=${(e) => setConfig({ ...config, icon: e.target.value })}
+                            placeholder="fa-star"
+                        />
+                    </div>
+                </div>
+            `}
         </div>
     `;
 };

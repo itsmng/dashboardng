@@ -520,7 +520,7 @@ msgstr "Taux"
 #: js/ticketReports.js:565 js/ticketReports.js:689 js/ticketReports.js:904
 #: js/ticketReports.js:1013 js/ticketReports.js:1127
 msgid "Share"
-msgstr "Partager"
+msgstr "Part"
 
 #: src/Pages/TicketsPage.php:71 src/Handlers/ExportReport.php:50
 #: src/Handlers/ExportReport.php:62 src/Handlers/ExportReport.php:77

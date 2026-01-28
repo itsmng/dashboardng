@@ -30,6 +30,11 @@ const DashboardAppInner = () => {
     } = useDashboard();
 
     const gridRef = useRef(null);
+    const saveWidgetPositionsRef = useRef(saveWidgetPositions);
+
+    useEffect(() => {
+        saveWidgetPositionsRef.current = saveWidgetPositions;
+    }, [saveWidgetPositions]);
 
     useEffect(() => {
         const storedId = getSelectedDashboardId();
@@ -87,7 +92,7 @@ const DashboardAppInner = () => {
                     w: item.w,
                     h: item.h
                 }));
-                saveWidgetPositions(positions);
+                saveWidgetPositionsRef.current(positions);
             });
 
             gridRef.current.grid = grid;
