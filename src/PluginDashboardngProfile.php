@@ -132,7 +132,7 @@ class PluginDashboardngProfile extends CommonDBTM
      */
     public function getTabNameForItem(CommonGLPI $item, $withtemplate = 0): string
     {
-        if (Session::haveRight('profile', UPDATE) && $item->getType() === 'Profile') {
+        if (Session::haveRight('profile', READ) && $item->getType() === 'Profile') {
             return __('Dashboard NG', 'dashboardng');
         }
 

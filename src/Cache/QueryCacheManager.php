@@ -30,7 +30,20 @@ class QueryCacheManager
     public function getQueryCacheKey(array $queryConfig): string
     {
         $normalized = $this->normalizeQueryConfig($queryConfig);
-        return self::PREFIX . 'query:' . sha1(serialize($normalized));
+
+        $entities = $_SESSION['glpiactiveentities'] ?? [];
+        $isRecursive = $_SESSION['glpisettings']['recursive'] ?? false;
+        $userId = $_SESSION['glpiID'] ?? 0;
+        $profileId = $_SESSION['glpiactiveprofile']['id'] ?? 0;
+
+        // Sort entities for consistent cache keys
+        sort($entities);
+        $entityKey = implode(',', $entities);
+        $recursiveFlag = $isRecursive ? 'r' : '';
+
+        $entityContext = ":entity={$entityKey}({$recursiveFlag}):user={$userId}:profile={$profileId}";
+
+        return self::PREFIX . 'query:' . sha1(serialize($normalized)) . $entityContext;
     }
 
     /**
