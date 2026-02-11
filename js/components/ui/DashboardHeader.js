@@ -22,7 +22,7 @@ export const DashboardHeader = ({ onOpenWidgetLibrary, onToggleEditMode, onOpenS
     return html`
         <div class="d-flex justify-content-between align-items-center mb-4">
             <div class="d-flex align-items-center gap-3">
-                <${PeriodSelector} />
+                <!--- <${PeriodSelector} /> --->
                 ${lastUpdate && html`
                     <small class="text-muted">
                         <i class="fas fa-sync-alt me-1"></i>
