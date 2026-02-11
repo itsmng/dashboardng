@@ -220,6 +220,48 @@ export const DashboardProvider = ({ children }) => {
         return false;
     }, [resetChanges]);
 
+    const loadGlobalDashboard = useCallback(async () => {
+        setIsLoading(true);
+        try {
+            const result = await api.fetch('/dashboards/global/widgets');
+            if (result.success) {
+                const nextDashboard = result.data.dashboard;
+                const nextWidgets = result.data.widgets || [];
+
+                setDashboard(nextDashboard);
+                setWidgets(nextWidgets);
+                setAuthzError(undefined);
+                setEditMode(false);
+                setUnsavedChanges(false);
+                setPermissions({
+                    canEdit: Boolean(result.data.can_edit),
+                    canEditGlobal: Boolean(result.data.can_edit_global),
+                    isPersonal: Boolean(result.data.is_personal),
+                    isGlobal: Boolean(result.data.is_global ?? nextDashboard?.is_global),
+                    canViewWidgets: Boolean(result.data.can_view_widgets),
+                    canUpdateWidgets: Boolean(result.data.can_update_widgets),
+                    canCreateWidgets: Boolean(result.data.can_create_widgets),
+                });
+                resetChanges(nextDashboard?.id);
+            } else if (result.error === 'Unauthorized') {
+                setAuthzError(__('You are not authorized to perform this action', 'dashboardng'));
+                setPermissions({
+                    canEdit: false,
+                    canEditGlobal: false,
+                    isPersonal: false,
+                    isGlobal: false,
+                    canViewWidgets: false,
+                    canUpdateWidgets: false,
+                    canCreateWidgets: false,
+                });
+            }
+        } catch (error) {
+            console.error('Failed to load global dashboard:', error);
+        } finally {
+            setIsLoading(false);
+        }
+    }, [resetChanges]);
+
     const loadDashboards = useCallback(async () => {
         try {
             const result = await api.fetch('/dashboards');
@@ -691,6 +733,7 @@ export const DashboardProvider = ({ children }) => {
         unsavedChanges,
         isLoading,
         loadDashboard,
+        loadGlobalDashboard,
         loadDashboardById,
         getSelectedDashboardId,
         loadDashboards,

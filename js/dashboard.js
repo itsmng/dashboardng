@@ -17,7 +17,7 @@ const DashboardAppInner = () => {
         dashboard,
         widgets,
         editMode,
-        loadDashboard,
+        loadGlobalDashboard,
         saveWidgetPositions,
         toggleEditMode,
         openWidgetLibrary,
@@ -34,8 +34,8 @@ const DashboardAppInner = () => {
     }, [saveWidgetPositions]);
 
     useEffect(() => {
-        loadDashboard();
-    }, [loadDashboard]);
+        loadGlobalDashboard();
+    }, [loadGlobalDashboard]);
 
     useEffect(() => {
         if (!gridRef.current?.gridstack) {

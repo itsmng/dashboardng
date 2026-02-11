@@ -14,6 +14,7 @@ use GlpiPlugin\Dashboardng\Handlers\ExecuteQuery;
 use GlpiPlugin\Dashboardng\Handlers\ClearCache;
 use GlpiPlugin\Dashboardng\Handlers\GetDashboards;
 use GlpiPlugin\Dashboardng\Handlers\GetDashboardWidgets;
+use GlpiPlugin\Dashboardng\Handlers\GetGlobalDashboardWidgets;
 use GlpiPlugin\Dashboardng\Handlers\GetWidgetLibrary;
 use GlpiPlugin\Dashboardng\Handlers\AddWidgetToDashboard;
 use GlpiPlugin\Dashboardng\Handlers\RemoveWidgetFromDashboard;
@@ -73,6 +74,11 @@ class ApiRouter
             $r->addRoute('GET', '/dashboards/widgets', function () {
                 $handler = new GetDashboardWidgets();
                 echo json_encode(($handler)($_GET));
+            });
+
+            $r->addRoute('GET', '/dashboards/global/widgets', function () {
+                $handler = new GetGlobalDashboardWidgets();
+                echo json_encode(($handler)());
             });
 
             $r->addRoute('GET', '/dashboards/{id:\d+}/widgets', function ($id) {

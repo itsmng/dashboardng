@@ -1734,3 +1734,71 @@ msgstr ""
 #: js/ticketReports.js:1292
 msgid "By Source"
 msgstr ""
+
+#: install/migrations/0002_initial_data.php:100 install/migrations/0002_initial_data.php:107
+msgid "Tickets Daily"
+msgstr ""
+
+#: install/migrations/0002_initial_data.php:120 install/migrations/0002_initial_data.php:127
+msgid "Monthly Tickets"
+msgstr ""
+
+#: install/migrations/0002_initial_data.php:140 install/migrations/0002_initial_data.php:147
+msgid "Late Tickets"
+msgstr ""
+
+#: install/migrations/0002_initial_data.php:161 install/migrations/0002_initial_data.php:168
+msgid "Backlog"
+msgstr ""
+
+#: install/migrations/0002_initial_data.php:182 install/migrations/0002_initial_data.php:189
+#: js/ticketReports.js:281 js/ticketReports.js:341 js/ticketReports.js:429
+#: js/ticketReports.js:562 js/ticketReports.js:614 js/ticketReports.js:860
+#: js/ticketReports.js:901 js/ticketReports.js:1010 js/ticketReports.js:1056
+#: js/ticketReports.js:1124 js/ticketReports.js:1175
+#: src/Pages/ConfigPage.php:60 src/Pages/TicketsPage.php:66
+#: src/Pages/AssetsPage.php:48 src/Handlers/ExportReport.php:45
+#: src/Handlers/ExportReport.php:73 src/Handlers/ExportReport.php:84
+#: src/Handlers/ExportReport.php:95 src/Handlers/ExportReport.php:106
+#: src/Handlers/ExportReport.php:114 src/Handlers/ExportReport.php:557
+#: src/Handlers/ExportReport.php:827 src/Handlers/ExportReport.php:1079
+#: src/PluginDashboardngConfig.php:228
+msgid "Total Tickets"
+msgstr ""
+
+#: install/migrations/0002_initial_data.php:200 install/migrations/0002_initial_data.php:207
+msgid "Users"
+msgstr ""
+
+#: install/migrations/0002_initial_data.php:218
+msgid "Tickets by Status"
+msgstr ""
+
+#: install/migrations/0002_initial_data.php:225
+msgid "Tickets by Status (Open)"
+msgstr ""
+
+#: install/migrations/0002_initial_data.php:239
+msgid "Ticket Evolution"
+msgstr ""
+
+#: install/migrations/0002_initial_data.php:246
+msgid "Ticket Evolution (Year-over-Year)"
+msgstr ""
+
+#: install/migrations/0002_initial_data.php:261 install/migrations/0002_initial_data.php:268
+msgid "Tickets - Last 7 Days"
+msgstr ""
+
+#: install/migrations/0002_initial_data.php:281 install/migrations/0002_initial_data.php:288
+#: js/ticketReports.js:1289
+msgid "Tickets by Priority"
+msgstr ""
+
+#: install/migrations/0002_initial_data.php:301 install/migrations/0002_initial_data.php:308
+msgid "My Assigned Tickets"
+msgstr ""
+
+#: install/migrations/0002_initial_data.php:322 install/migrations/0002_initial_data.php:329
+msgid "Recent Tickets"
+msgstr ""

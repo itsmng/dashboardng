@@ -357,6 +357,7 @@ class PluginDashboardngDashboardWidget extends CommonDBTM
                 'y' => $widget['y'],
                 'width' => $widget['width'],
                 'height' => $widget['height'],
+                'config_override' => $widget['config'] ? json_encode($widget['config']) : null,
                 'is_visible' => 1,
                 'position' => $widget['position'],
             ];

@@ -460,6 +460,18 @@ msgid "By Priority"
 msgstr "By Priority"
 
 #: src/Pages/TicketsPage.php:55 js/ticketReports.js:458
+#: install/migrations/0002_initial_data.php:182 install/migrations/0002_initial_data.php:189
+#: js/ticketReports.js:281 js/ticketReports.js:341 js/ticketReports.js:429
+#: js/ticketReports.js:562 js/ticketReports.js:614 js/ticketReports.js:860
+#: js/ticketReports.js:901 js/ticketReports.js:1010 js/ticketReports.js:1056
+#: js/ticketReports.js:1124 js/ticketReports.js:1175
+#: src/Pages/ConfigPage.php:60 src/Pages/TicketsPage.php:66
+#: src/Pages/AssetsPage.php:48 src/Handlers/ExportReport.php:45
+#: src/Handlers/ExportReport.php:73 src/Handlers/ExportReport.php:84
+#: src/Handlers/ExportReport.php:95 src/Handlers/ExportReport.php:106
+#: src/Handlers/ExportReport.php:114 src/Handlers/ExportReport.php:557
+#: src/Handlers/ExportReport.php:827 src/Handlers/ExportReport.php:1079
+#: src/PluginDashboardngConfig.php:228
 msgid "Total Tickets"
 msgstr "Total Tickets"
 
@@ -815,6 +827,22 @@ msgstr "Read"
 #: src/PluginDashboardngProfile.php:74
 msgid "Global Dashboard Edit"
 msgstr "Global Dashboard Edit"
+
+#: src/PluginDashboardngProfile.php:83
+msgid "Widgets"
+msgstr "Widgets"
+
+#: src/PluginDashboardngProfile.php:88
+msgid "View widgets"
+msgstr "View widgets"
+
+#: src/PluginDashboardngProfile.php:89
+msgid "Update widgets"
+msgstr "Update widgets"
+
+#: src/PluginDashboardngProfile.php:90
+msgid "Create widgets"
+msgstr "Create widgets"
 
 #: src/Handlers/ExportReport.php:38
 #, fuzzy
@@ -1487,6 +1515,10 @@ msgstr ""
 "Build a widget from any GLPI collection with custom filters, grouping, and "
 "visualization."
 
+#: js/components/ui/WidgetLibrary.js:248
+msgid "You do not have permission to create custom widgets."
+msgstr "You do not have permission to create custom widgets."
+
 #: js/components/ui/DashboardHeader.js:29
 msgid "Last updated"
 msgstr "Last updated"
@@ -1752,6 +1784,8 @@ msgid "Ticket Volume by Group"
 msgstr "Ticket Volume by Group"
 
 #: js/ticketReports.js:1162
+#: install/migrations/0002_initial_data.php:281 install/migrations/0002_initial_data.php:288
+#: js/ticketReports.js:1289
 msgid "Tickets by Priority"
 msgstr "Tickets by Priority"
 
@@ -1762,6 +1796,54 @@ msgstr "Resolution Rate by Priority"
 #: js/ticketReports.js:1292
 msgid "By Source"
 msgstr "By Source"
+
+#: install/migrations/0002_initial_data.php:100 install/migrations/0002_initial_data.php:107
+msgid "Tickets Daily"
+msgstr "Tickets Daily"
+
+#: install/migrations/0002_initial_data.php:120 install/migrations/0002_initial_data.php:127
+msgid "Monthly Tickets"
+msgstr "Monthly Tickets"
+
+#: install/migrations/0002_initial_data.php:140 install/migrations/0002_initial_data.php:147
+msgid "Late Tickets"
+msgstr "Late Tickets"
+
+#: install/migrations/0002_initial_data.php:161 install/migrations/0002_initial_data.php:168
+msgid "Backlog"
+msgstr "Backlog"
+
+#: install/migrations/0002_initial_data.php:200 install/migrations/0002_initial_data.php:207
+msgid "Users"
+msgstr "Users"
+
+#: install/migrations/0002_initial_data.php:218
+msgid "Tickets by Status"
+msgstr "Tickets by Status"
+
+#: install/migrations/0002_initial_data.php:225
+msgid "Tickets by Status (Open)"
+msgstr "Tickets by Status (Open)"
+
+#: install/migrations/0002_initial_data.php:239
+msgid "Ticket Evolution"
+msgstr "Ticket Evolution"
+
+#: install/migrations/0002_initial_data.php:246
+msgid "Ticket Evolution (Year-over-Year)"
+msgstr "Ticket Evolution (Year-over-Year)"
+
+#: install/migrations/0002_initial_data.php:261 install/migrations/0002_initial_data.php:268
+msgid "Tickets - Last 7 Days"
+msgstr "Tickets - Last 7 Days"
+
+#: install/migrations/0002_initial_data.php:301 install/migrations/0002_initial_data.php:308
+msgid "My Assigned Tickets"
+msgstr "My Assigned Tickets"
+
+#: install/migrations/0002_initial_data.php:322 install/migrations/0002_initial_data.php:329
+msgid "Recent Tickets"
+msgstr "Recent Tickets"
 
 #~ msgid "Load Shared Dashboard"
 #~ msgstr "Load Shared Dashboard"

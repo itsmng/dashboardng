@@ -139,6 +139,38 @@ class PluginDashboardngDashboard extends CommonDBTM
     }
 
     /**
+     * Get the global dashboard (always returns global, never personal)
+     *
+     * @return array|null
+     */
+    public static function getGlobalDashboard(): ?array
+    {
+        global $DB;
+
+        $table = self::getTable();
+
+        // Check if table exists
+        if (!$DB->tableExists($table)) {
+            return null;
+        }
+
+        // Return global default dashboard only
+        foreach ($DB->request([
+            'FROM' => $table,
+            'WHERE' => [
+                'users_id' => 0,
+                'is_default' => 1,
+                'is_active' => 1,
+            ],
+            'LIMIT' => 1,
+        ]) as $row) {
+            return self::normalizeDashboardRow($row);
+        }
+
+        return null;
+    }
+
+    /**
      * Get all dashboards available to current user
      *
      * @return array

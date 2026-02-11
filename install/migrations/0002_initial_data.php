@@ -97,14 +97,14 @@ final class PluginDashboardngMigration0002InitialData extends \GlpiPlugin\Dashbo
 
         return [
             [
-                'name' => 'Tickets Daily',
+                'name' => __('Tickets Daily', 'dashboardng'),
                 'widget_type' => 'custom',
                 'visualization' => 'card',
                 'itemtype' => 'Ticket',
                 'default_width' => 2,
                 'default_height' => 2,
                 'config' => [
-                    'title' => 'Tickets Daily',
+                    'title' => __('Tickets Daily', 'dashboardng'),
                     'itemtype' => 'Ticket',
                     'visualization' => 'card',
                     'icon' => 'fas fa-calendar-day',
@@ -117,14 +117,14 @@ final class PluginDashboardngMigration0002InitialData extends \GlpiPlugin\Dashbo
                 ]
             ],
             [
-                'name' => 'Monthly Tickets',
+                'name' => __('Monthly Tickets', 'dashboardng'),
                 'widget_type' => 'custom',
                 'visualization' => 'card',
                 'itemtype' => 'Ticket',
                 'default_width' => 2,
                 'default_height' => 2,
                 'config' => [
-                    'title' => 'Monthly Tickets',
+                    'title' => __('Monthly Tickets', 'dashboardng'),
                     'itemtype' => 'Ticket',
                     'visualization' => 'card',
                     'icon' => 'fas fa-calendar-alt',
@@ -137,14 +137,14 @@ final class PluginDashboardngMigration0002InitialData extends \GlpiPlugin\Dashbo
                 ]
             ],
             [
-                'name' => 'Late Tickets',
+                'name' => __('Late Tickets', 'dashboardng'),
                 'widget_type' => 'custom',
                 'visualization' => 'card',
                 'itemtype' => 'Ticket',
                 'default_width' => 2,
                 'default_height' => 2,
                 'config' => [
-                    'title' => 'Late Tickets',
+                    'title' => __('Late Tickets', 'dashboardng'),
                     'itemtype' => 'Ticket',
                     'visualization' => 'card',
                     'icon' => 'fas fa-exclamation-triangle',
@@ -158,14 +158,14 @@ final class PluginDashboardngMigration0002InitialData extends \GlpiPlugin\Dashbo
                 ]
             ],
             [
-                'name' => 'Backlog',
+                'name' => __('Backlog', 'dashboardng'),
                 'widget_type' => 'custom',
                 'visualization' => 'card',
                 'itemtype' => 'Ticket',
                 'default_width' => 2,
                 'default_height' => 2,
                 'config' => [
-                    'title' => 'Backlog',
+                    'title' => __('Backlog', 'dashboardng'),
                     'itemtype' => 'Ticket',
                     'visualization' => 'card',
                     'icon' => 'fas fa-tag',
@@ -179,14 +179,14 @@ final class PluginDashboardngMigration0002InitialData extends \GlpiPlugin\Dashbo
                 ]
             ],
             [
-                'name' => 'Total Tickets',
+                'name' => __('Total Tickets', 'dashboardng'),
                 'widget_type' => 'custom',
                 'visualization' => 'card',
                 'itemtype' => 'Ticket',
                 'default_width' => 2,
                 'default_height' => 2,
                 'config' => [
-                    'title' => 'Total Tickets',
+                    'title' => __('Total Tickets', 'dashboardng'),
                     'itemtype' => 'Ticket',
                     'visualization' => 'card',
                     'icon' => 'fas fa-plus-square',
@@ -197,14 +197,14 @@ final class PluginDashboardngMigration0002InitialData extends \GlpiPlugin\Dashbo
                 ]
             ],
             [
-                'name' => 'Users',
+                'name' => __('Users', 'dashboardng'),
                 'widget_type' => 'custom',
                 'visualization' => 'card',
                 'itemtype' => 'User',
                 'default_width' => 2,
                 'default_height' => 2,
                 'config' => [
-                    'title' => 'Users',
+                    'title' => __('Users', 'dashboardng'),
                     'itemtype' => 'User',
                     'visualization' => 'card',
                     'icon' => 'fas fa-users',
@@ -215,14 +215,14 @@ final class PluginDashboardngMigration0002InitialData extends \GlpiPlugin\Dashbo
                 ]
             ],
             [
-                'name' => 'Tickets by Status',
+                'name' => __('Tickets by Status', 'dashboardng'),
                 'widget_type' => 'custom',
                 'visualization' => 'chart',
                 'itemtype' => 'Ticket',
                 'default_width' => 6,
                 'default_height' => 4,
                 'config' => [
-                    'title' => 'Tickets by Status (Open)',
+                    'title' => __('Tickets by Status (Open)', 'dashboardng'),
                     'itemtype' => 'Ticket',
                     'visualization' => 'chart',
                     'chartType' => 'doughnut',
@@ -236,14 +236,14 @@ final class PluginDashboardngMigration0002InitialData extends \GlpiPlugin\Dashbo
                 ]
             ],
             [
-                'name' => 'Ticket Evolution',
+                'name' => __('Ticket Evolution', 'dashboardng'),
                 'widget_type' => 'custom',
                 'visualization' => 'chart',
                 'itemtype' => 'Ticket',
                 'default_width' => 6,
                 'default_height' => 4,
                 'config' => [
-                    'title' => 'Ticket Evolution (Year-over-Year)',
+                    'title' => __('Ticket Evolution (Year-over-Year)', 'dashboardng'),
                     'itemtype' => 'Ticket',
                     'visualization' => 'chart',
                     'chartType' => 'line',
@@ -258,14 +258,14 @@ final class PluginDashboardngMigration0002InitialData extends \GlpiPlugin\Dashbo
                 ]
             ],
             [
-                'name' => 'Tickets - Last 7 Days',
+                'name' => __('Tickets - Last 7 Days', 'dashboardng'),
                 'widget_type' => 'custom',
                 'visualization' => 'chart',
                 'itemtype' => 'Ticket',
                 'default_width' => 6,
                 'default_height' => 4,
                 'config' => [
-                    'title' => 'Tickets - Last 7 Days',
+                    'title' => __('Tickets - Last 7 Days', 'dashboardng'),
                     'itemtype' => 'Ticket',
                     'visualization' => 'chart',
                     'chartType' => 'line',
@@ -278,14 +278,14 @@ final class PluginDashboardngMigration0002InitialData extends \GlpiPlugin\Dashbo
                 ]
             ],
             [
-                'name' => 'Tickets by Priority',
+                'name' => __('Tickets by Priority', 'dashboardng'),
                 'widget_type' => 'custom',
                 'visualization' => 'chart',
                 'itemtype' => 'Ticket',
                 'default_width' => 6,
                 'default_height' => 4,
                 'config' => [
-                    'title' => 'Tickets by Priority',
+                    'title' => __('Tickets by Priority', 'dashboardng'),
                     'itemtype' => 'Ticket',
                     'visualization' => 'chart',
                     'chartType' => 'bar',
@@ -298,14 +298,14 @@ final class PluginDashboardngMigration0002InitialData extends \GlpiPlugin\Dashbo
                 ]
             ],
             [
-                'name' => 'My Assigned Tickets',
+                'name' => __('My Assigned Tickets', 'dashboardng'),
                 'widget_type' => 'custom',
                 'visualization' => 'table',
                 'itemtype' => 'Ticket',
                 'default_width' => 6,
                 'default_height' => 4,
                 'config' => [
-                    'title' => 'My Assigned Tickets',
+                    'title' => __('My Assigned Tickets', 'dashboardng'),
                     'itemtype' => 'Ticket',
                     'visualization' => 'table',
                     'filters' => [
@@ -319,14 +319,14 @@ final class PluginDashboardngMigration0002InitialData extends \GlpiPlugin\Dashbo
                 ]
             ],
             [
-                'name' => 'Recent Tickets',
+                'name' => __('Recent Tickets', 'dashboardng'),
                 'widget_type' => 'custom',
                 'visualization' => 'table',
                 'itemtype' => 'Ticket',
                 'default_width' => 6,
                 'default_height' => 4,
                 'config' => [
-                    'title' => 'Recent Tickets',
+                    'title' => __('Recent Tickets', 'dashboardng'),
                     'itemtype' => 'Ticket',
                     'visualization' => 'table',
                     'filters' => [
