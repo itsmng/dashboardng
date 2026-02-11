@@ -8,11 +8,11 @@ export const DashboardHeader = ({ onOpenWidgetLibrary, onToggleEditMode, onOpenS
     const { editMode, lastUpdate, permissions } = useDashboard();
 
     const formatTimeAgo = (date) => {
-        if (!date) {return '';}
+        if (!date) { return ''; }
         const seconds = Math.floor((new Date() - date) / 1000);
-        if (seconds < 60) {return `${seconds}s ago`;}
+        if (seconds < 60) { return `${seconds}s ago`; }
         const minutes = Math.floor(seconds / 60);
-        if (minutes < 60) {return `${minutes}m ago`;}
+        if (minutes < 60) { return `${minutes}m ago`; }
         return date.toLocaleTimeString();
     };
 

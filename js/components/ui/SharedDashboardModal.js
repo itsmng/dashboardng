@@ -11,6 +11,8 @@ export const SharedDashboardModal = ({ isOpen, onClose, initialMode = 'load' }) 
         createSharedDashboard,
         setDefaultDashboard,
         loadDashboardById,
+        loadDashboard,
+        deleteDashboard,
         dashboard
     } = useDashboard();
     const [dashboards, setDashboards] = useState([]);
@@ -18,6 +20,8 @@ export const SharedDashboardModal = ({ isOpen, onClose, initialMode = 'load' }) 
     const [mode, setMode] = useState(initialMode);
     const [newDashboardName, setNewDashboardName] = useState('');
     const [sourceDashboardId, setSourceDashboardId] = useState('');
+    const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+    const [dashboardToDelete, setDashboardToDelete] = useState(null);
     const canEditGlobal = window.DASHBOARDNG_CONFIG?.canEditGlobalDashboard;
     const userId = window.DASHBOARDNG_CONFIG?.userId;
 
@@ -79,6 +83,32 @@ export const SharedDashboardModal = ({ isOpen, onClose, initialMode = 'load' }) 
             await loadDashboardById(created.id);
             onClose();
         }
+    };
+
+    const handleDeleteDashboard = (e, dashboardId) => {
+        e.stopPropagation();
+        const dashboardToDelete = dashboards.find(d => d.id === dashboardId);
+        setDashboardToDelete(dashboardToDelete);
+        setShowDeleteConfirm(true);
+    };
+
+    const handleConfirmDelete = async () => {
+        if (!dashboardToDelete) {return;}
+
+        const success = await deleteDashboard(dashboardToDelete.id);
+        if (success) {
+            await loadAvailableDashboards();
+            if (dashboard?.id === dashboardToDelete.id) {
+                await loadDashboard();
+            }
+            setShowDeleteConfirm(false);
+            setDashboardToDelete(null);
+        }
+    };
+
+    const handleCancelDelete = () => {
+        setShowDeleteConfirm(false);
+        setDashboardToDelete(null);
     };
 
     const currentDashboardIdString = dashboard?.id ? String(dashboard.id) : '';
@@ -154,6 +184,14 @@ export const SharedDashboardModal = ({ isOpen, onClose, initialMode = 'load' }) 
                                                                 ${__('Personal dashboard', 'dashboardng')}
                                                             </small>
                                                         </div>
+                                                        <button
+                                                            type="button"
+                                                            class="btn btn-sm btn-outline-danger dashboardng-delete-btn"
+                                                            onClick=${(e) => handleDeleteDashboard(e, d.id)}
+                                                            title=${__('Delete', 'dashboardng')}
+                                                        >
+                                                            <i class="fas fa-trash-alt"></i>
+                                                        </button>
                                                     </div>
                                                 </button>
                                             `;})}
@@ -170,6 +208,7 @@ export const SharedDashboardModal = ({ isOpen, onClose, initialMode = 'load' }) 
                                         <div class="list-group dashboardng-shared-list">
                                             ${globalDashboards.map(d => {
                                                 const isCurrent = String(d.id) === currentDashboardIdString;
+                                                const canDeleteGlobal = canEditGlobal && !d.is_default;
                                                 return html`
                                                 <button
                                                     type="button"
@@ -194,6 +233,16 @@ export const SharedDashboardModal = ({ isOpen, onClose, initialMode = 'load' }) 
                                                                     : __('Shared dashboard template', 'dashboardng')}
                                                             </small>
                                                         </div>
+                                                        ${canDeleteGlobal && html`
+                                                            <button
+                                                                type="button"
+                                                                class="btn btn-sm btn-outline-danger dashboardng-delete-btn"
+                                                                onClick=${(e) => handleDeleteDashboard(e, d.id)}
+                                                                title=${__('Delete', 'dashboardng')}
+                                                            >
+                                                                <i class="fas fa-trash-alt"></i>
+                                                            </button>
+                                                        `}
                                                     </div>
                                                 </button>
                                             `;})}
@@ -259,5 +308,35 @@ export const SharedDashboardModal = ({ isOpen, onClose, initialMode = 'load' }) 
                 </div>
             </div>
         </div>
+        ${showDeleteConfirm && html`
+            <div class="modal fade show d-block" tabindex="-1" style="background-color: rgba(0,0,0,0.5);">
+                <div class="modal-dialog modal-sm">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title">${__('Delete Dashboard', 'dashboardng')}</h5>
+                            <button type="button" class="btn-close" onClick=${handleCancelDelete}></button>
+                        </div>
+                        <div class="modal-body">
+                            <p>${__('Are you sure you want to delete this dashboard?', 'dashboardng')}</p>
+                            ${dashboardToDelete && html`
+                                <p class="text-muted"><strong>${dashboardToDelete.name}</strong></p>
+                            `}
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" onClick=${handleCancelDelete}>
+                                ${__('Cancel', 'dashboardng')}
+                            </button>
+                            <button
+                                type="button"
+                                class="btn btn-danger"
+                                onClick=${handleConfirmDelete}
+                            >
+                                ${__('Delete', 'dashboardng')}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `}
     `;
 };

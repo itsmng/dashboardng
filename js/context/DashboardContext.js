@@ -717,6 +717,26 @@ export const DashboardProvider = ({ children }) => {
         return false;
     }, []);
 
+    const deleteDashboard = useCallback(async (dashboardId) => {
+        try {
+            const result = await api.delete(`/dashboards/${dashboardId}`);
+            if (result.success) {
+                if (dashboard?.id === dashboardId) {
+                    localStorage.removeItem(getSelectedDashboardKey());
+                }
+                return true;
+            }
+            if (result.error === 'Unauthorized') {
+                setAuthzError(__('You are not authorized to perform this action', 'dashboardng'));
+            } else if (result.error) {
+                setAuthzError(result.error);
+            }
+        } catch (error) {
+            console.error('Failed to delete dashboard:', error);
+        }
+        return false;
+    }, [dashboard]);
+
     const value = {
         dashboard,
         widgets,
@@ -740,6 +760,7 @@ export const DashboardProvider = ({ children }) => {
         createPersonalDashboard,
         createSharedDashboard,
         setDefaultDashboard,
+        deleteDashboard,
         saveDashboard,
         saveWidgetPositions,
         addWidget,

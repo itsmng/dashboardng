@@ -397,4 +397,59 @@ class PluginDashboardngDashboard extends CommonDBTM
             'users_id' => (int) $userId,
         ]);
     }
+
+    public static function deleteDashboard(int $dashboardId): bool
+    {
+        global $DB;
+
+        $table = self::getTable();
+        $userId = Session::getLoginUserID();
+
+        $dashboard = self::getDashboardById($dashboardId);
+        if (!$dashboard) {
+            return false;
+        }
+
+        if ((int) $dashboard['users_id'] === 0 && (int) $dashboard['is_default'] === 1) {
+            return false;
+        }
+
+        if ($userId !== false && $userId > 0 && (int) $dashboard['users_id'] !== (int) $userId) {
+            return false;
+        }
+
+        PluginDashboardngDashboardWidget::deleteWidgetsForDashboard($dashboardId);
+
+        $result = $DB->delete($table, ['id' => (int) $dashboardId]);
+
+        return $result !== false;
+    }
+
+    public static function canDeleteDashboard(int $dashboardId, ?int $userId = null): array
+    {
+        $dashboard = self::getDashboardById($dashboardId);
+        if (!$dashboard) {
+            return ['can_delete' => false, 'reason' => 'Dashboard not found'];
+        }
+
+        if ((int) $dashboard['users_id'] === 0) {
+            if (!Session::haveRight('plugin_dashboardng_globaldashboard', UPDATE)) {
+                return ['can_delete' => false, 'reason' => 'Unauthorized'];
+            }
+            if ((int) $dashboard['is_default'] === 1) {
+                return ['can_delete' => false, 'reason' => 'Cannot delete the default dashboard'];
+            }
+        } else {
+            if (!Session::haveRight('plugin_dashboardng_mydashboard', UPDATE)) {
+                return ['can_delete' => false, 'reason' => 'Unauthorized'];
+            }
+
+            $userId = $userId ?? Session::getLoginUserID();
+            if ($userId !== false && $userId > 0 && (int) $dashboard['users_id'] !== (int) $userId) {
+                return ['can_delete' => false, 'reason' => 'Unauthorized'];
+            }
+        }
+
+        return ['can_delete' => true, 'reason' => null];
+    }
 }

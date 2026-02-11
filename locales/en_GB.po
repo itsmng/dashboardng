@@ -1859,3 +1859,19 @@ msgstr "Recent Tickets"
 
 #~ msgid "Last Week"
 #~ msgstr "Last Week"
+
+#: js/components/ui/SharedDashboardModal.js:89
+msgid "Are you sure you want to delete this dashboard?"
+msgstr "Are you sure you want to delete this dashboard?"
+
+#: js/components/ui/SharedDashboardModal.js:96
+msgid "Delete"
+msgstr "Delete"
+
+#: src/PluginDashboardngDashboard.php:410
+msgid "Cannot delete the default dashboard"
+msgstr "Cannot delete the default dashboard"
+
+#: js/components/ui/SharedDashboardModal.js:267
+msgid "Delete Dashboard"
+msgstr "Delete Dashboard"

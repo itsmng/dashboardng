@@ -326,6 +326,18 @@
     box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.2);
 }
 
+.dashboard-ng .dashboardng-delete-btn {
+    padding: 0.25rem 0.5rem;
+    font-size: 0.75rem;
+    opacity: 0;
+    transition: opacity 0.2s ease;
+}
+
+.dashboard-ng .dashboardng-personal-list .list-group-item:hover .dashboardng-delete-btn,
+.dashboard-ng .dashboardng-shared-list .list-group-item:hover .dashboardng-delete-btn {
+    opacity: 1;
+}
+
 /* ============================================================================
    Badges
    ============================================================================ */

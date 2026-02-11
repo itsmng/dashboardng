@@ -24,6 +24,7 @@ use GlpiPlugin\Dashboardng\Handlers\CreateWidget;
 use GlpiPlugin\Dashboardng\Handlers\CreatePersonalDashboard;
 use GlpiPlugin\Dashboardng\Handlers\CreateSharedDashboard;
 use GlpiPlugin\Dashboardng\Handlers\SetDefaultDashboard;
+use GlpiPlugin\Dashboardng\Handlers\DeleteDashboard;
 use Session;
 
 /**
@@ -102,6 +103,11 @@ class ApiRouter
                 $handler = new SetDefaultDashboard();
                 $input = json_decode(file_get_contents('php://input'), true) ?? [];
                 echo json_encode(($handler)($input));
+            });
+
+            $r->addRoute('DELETE', '/dashboards/{id:\d+}', function ($id) {
+                $handler = new DeleteDashboard();
+                echo json_encode(($handler)(['id' => (int)$id]));
             });
 
             $r->addRoute('POST', '/dashboards/positions', function () {

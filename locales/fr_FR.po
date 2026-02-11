@@ -1832,3 +1832,19 @@ msgstr "Tickets récents"
 
 #~ msgid "Last Week"
 #~ msgstr "Semaine dernière"
+
+#: js/components/ui/SharedDashboardModal.js:89
+msgid "Are you sure you want to delete this dashboard?"
+msgstr "Êtes-vous sûr de vouloir supprimer ce tableau de bord?"
+
+#: js/components/ui/SharedDashboardModal.js:96
+msgid "Delete"
+msgstr "Supprimer"
+
+#: src/PluginDashboardngDashboard.php:410
+msgid "Cannot delete the default dashboard"
+msgstr "Impossible de supprimer le tableau de bord par défaut"
+
+#: js/components/ui/SharedDashboardModal.js:267
+msgid "Delete Dashboard"
+msgstr "Supprimer le tableau de bord"
