@@ -65,7 +65,7 @@
 }
 
 .dashboardng-navbar .dropdown-item {
-    color: var(--bs-nav-text);
+    color: var(--bs-nav-submenu-text, var(--bs-nav-text));
     padding: 0.5rem 1rem;
     font-size: 0.9rem;
     transition: all 0.15s ease-in-out;
@@ -73,12 +73,12 @@
 
 .dashboardng-navbar .dropdown-item:hover {
     background-color: var(--bs-nav-hover);
-    color: var(--bs-nav-text);
+    color: var(--bs-nav-submenu-text, var(--bs-nav-text));
 }
 
 .dashboardng-navbar .dropdown-item.active {
     background-color: var(--bs-nav-hover);
-    color: var(--bs-nav-text);
+    color: var(--bs-nav-submenu-text, var(--bs-nav-text));
 }
 
 .dashboardng-navbar .dropdown-item i {
@@ -86,7 +86,7 @@
 }
 
 .dashboardng-navbar .dropdown-header {
-    color: var(--bs-nav-text);
+    color: var(--bs-nav-submenu-text, var(--bs-nav-text));
     font-size: 0.75rem;
     font-weight: 600;
     text-transform: uppercase;
