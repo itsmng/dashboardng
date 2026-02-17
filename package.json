@@ -4,10 +4,10 @@
     "description": "Dashboard Plugin for ITSM-NG",
     "private": true,
     "scripts": {
-        "build": "esbuild js/dashboard.js js/mydashboard.js js/assetReports.js js/taskReports.js js/ticketReports.js js/entitySelector.js --bundle --minify --format=esm --sourcemap --outdir=js/dist --target=es2020",
+        "build": "esbuild js/dashboard.tsx js/mydashboard.tsx js/assetReports.tsx js/taskReports.tsx js/ticketReports.tsx js/entitySelector.tsx --bundle --minify --format=esm --sourcemap --outdir=js/dist --target=es2020 --resolve-extensions=.ts,.tsx,.js,.jsx --external:preact --external:preact/hooks --external:htm --external:gridstack",
         "lint": "oxlint js/",
         "lint:fix": "oxlint js/ --fix",
-        "typecheck": "tsc --noEmit --allowJs --checkJs js/**/*.js"
+        "typecheck": "tsc --noEmit"
     },
     "dependencies": {
         "chart.js": "^4.5.1",
