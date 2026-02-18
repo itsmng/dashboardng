@@ -1379,13 +1379,13 @@ class ExportReport
 
             if (!empty($data['recent_items'])) {
                 $recentRows = [];
-                foreach ($data['recent_items'] as $row) {
+                foreach ($data['recent_items'] as $recentItem) {
                     $recentRows[] = [
-                        'name' => $row['name'] ?? '',
-                        'serial' => $row['serial'] ?? '',
-                        'location' => $row['location'] ?? '',
-                        'status' => $row['status'] ?? '',
-                        'date_creation' => $row['date_creation'] ?? '',
+                        'name' => $recentItem['name'] ?? '',
+                        'serial' => $recentItem['serial'] ?? '',
+                        'location' => $recentItem['location'] ?? '',
+                        'status' => $recentItem['status'] ?? '',
+                        'date_creation' => $recentItem['date_creation'] ?? '',
                     ];
                 }
 
@@ -1685,13 +1685,13 @@ class ExportReport
 
             if (!empty($data['recent_items'])) {
                 $recentRows = [];
-                foreach ($data['recent_items'] as $row) {
+                foreach ($data['recent_items'] as $recentItem) {
                     $recentRows[] = [
-                        'name' => $row['name'] ?? '',
-                        'serial' => $row['serial'] ?? '',
-                        'location' => $row['location'] ?? '',
-                        'status' => $row['status'] ?? '',
-                        'date_creation' => $row['date_creation'] ?? '',
+                        'name' => $recentItem['name'] ?? '',
+                        'serial' => $recentItem['serial'] ?? '',
+                        'location' => $recentItem['location'] ?? '',
+                        'status' => $recentItem['status'] ?? '',
+                        'date_creation' => $recentItem['date_creation'] ?? '',
                     ];
                 }
 
@@ -1986,13 +1986,13 @@ class ExportReport
 
             if (!empty($data['recent_items'])) {
                 $recentRows = [];
-                foreach ($data['recent_items'] as $row) {
+                foreach ($data['recent_items'] as $recentItem) {
                     $recentRows[] = [
-                        'name' => $row['name'] ?? '',
-                        'serial' => $row['serial'] ?? '',
-                        'location' => $row['location'] ?? '',
-                        'status' => $row['status'] ?? '',
-                        'date_creation' => $row['date_creation'] ?? '',
+                        'name' => $recentItem['name'] ?? '',
+                        'serial' => $recentItem['serial'] ?? '',
+                        'location' => $recentItem['location'] ?? '',
+                        'status' => $recentItem['status'] ?? '',
+                        'date_creation' => $recentItem['date_creation'] ?? '',
                     ];
                 }
 
