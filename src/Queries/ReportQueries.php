@@ -870,7 +870,7 @@ class ReportQueries
             ],
             'WHERE' => $where,
         ]);
-        $row = $result->current();
+        $row = $result->next();
         $totalTasks = (int)($row['total'] ?? 0);
 
         // Total time spent
@@ -889,7 +889,7 @@ class ReportQueries
             ],
             'WHERE' => $where,
         ]);
-        $row = $result->current();
+        $row = $result->next();
         $totalTime = (int)($row['total_time'] ?? 0);
 
         // Tasks by category
