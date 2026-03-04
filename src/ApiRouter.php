@@ -41,13 +41,13 @@ class ApiRouter
         $this->dispatcher = FastRoute\simpleDispatcher(function (FastRoute\RouteCollector $r) {
             $r->addRoute('GET', '/config', function () {
                 $handler = new GetConfig();
-                echo json_encode($handler->handle());
+                echo json_encode($handler->handle(), JSON_UNESCAPED_UNICODE);
             });
 
             $r->addRoute('POST', '/config', function () {
                 $handler = new UpdateConfig();
                 $input = json_decode(file_get_contents('php://input'), true) ?? [];
-                echo json_encode($handler->handle($input));
+                echo json_encode($handler->handle($input), JSON_UNESCAPED_UNICODE);
             });
 
             $r->addRoute('GET', '/reports/export-bulk', function () {
@@ -58,7 +58,7 @@ class ApiRouter
 
             $r->addRoute('GET', '/reports/{type}', function ($type) {
                 $handler = new GetReports();
-                echo json_encode($handler->handle($type, $_GET));
+                echo json_encode($handler->handle($type, $_GET), JSON_UNESCAPED_UNICODE);
             });
 
             $r->addRoute('GET', '/reports/{type}/export', function ($type) {
@@ -69,114 +69,114 @@ class ApiRouter
 
             $r->addRoute('GET', '/dashboards', function () {
                 $handler = new GetDashboards();
-                echo json_encode(($handler)($_GET));
+                echo json_encode(($handler)($_GET), JSON_UNESCAPED_UNICODE);
             });
 
             $r->addRoute('GET', '/dashboards/widgets', function () {
                 $handler = new GetDashboardWidgets();
-                echo json_encode(($handler)($_GET));
+                echo json_encode(($handler)($_GET), JSON_UNESCAPED_UNICODE);
             });
 
             $r->addRoute('GET', '/dashboards/global/widgets', function () {
                 $handler = new GetGlobalDashboardWidgets();
-                echo json_encode(($handler)());
+                echo json_encode(($handler)(), JSON_UNESCAPED_UNICODE);
             });
 
             $r->addRoute('GET', '/dashboards/{id:\d+}/widgets', function ($id) {
                 $handler = new GetDashboardWidgets();
-                echo json_encode(($handler)(['dashboard_id' => (int)$id]));
+                echo json_encode(($handler)(['dashboard_id' => (int)$id]), JSON_UNESCAPED_UNICODE);
             });
 
             $r->addRoute('POST', '/dashboards/personal', function () {
                 $handler = new CreatePersonalDashboard();
                 $input = json_decode(file_get_contents('php://input'), true) ?? [];
-                echo json_encode(($handler)($input));
+                echo json_encode(($handler)($input), JSON_UNESCAPED_UNICODE);
             });
 
             $r->addRoute('POST', '/dashboards/shared', function () {
                 $handler = new CreateSharedDashboard();
                 $input = json_decode(file_get_contents('php://input'), true) ?? [];
-                echo json_encode(($handler)($input));
+                echo json_encode(($handler)($input), JSON_UNESCAPED_UNICODE);
             });
 
             $r->addRoute('POST', '/dashboards/default', function () {
                 $handler = new SetDefaultDashboard();
                 $input = json_decode(file_get_contents('php://input'), true) ?? [];
-                echo json_encode(($handler)($input));
+                echo json_encode(($handler)($input), JSON_UNESCAPED_UNICODE);
             });
 
             $r->addRoute('DELETE', '/dashboards/{id:\d+}', function ($id) {
                 $handler = new DeleteDashboard();
-                echo json_encode(($handler)(['id' => (int)$id]));
+                echo json_encode(($handler)(['id' => (int)$id]), JSON_UNESCAPED_UNICODE);
             });
 
             $r->addRoute('POST', '/dashboards/positions', function () {
                 $handler = new UpdateWidgetPositions();
                 $input = json_decode(file_get_contents('php://input'), true) ?? [];
-                echo json_encode(($handler)($input));
+                echo json_encode(($handler)($input), JSON_UNESCAPED_UNICODE);
             });
 
             $r->addRoute('POST', '/dashboards/{id:\d+}/positions', function ($id) {
                 $handler = new UpdateWidgetPositions();
                 $input = json_decode(file_get_contents('php://input'), true) ?? [];
                 $input['dashboard_id'] = (int)$id;
-                echo json_encode(($handler)($input));
+                echo json_encode(($handler)($input), JSON_UNESCAPED_UNICODE);
             });
 
             $r->addRoute('GET', '/widgets/library', function () {
                 $handler = new GetWidgetLibrary();
-                echo json_encode(($handler)($_GET));
+                echo json_encode(($handler)($_GET), JSON_UNESCAPED_UNICODE);
             });
 
             $r->addRoute('POST', '/dashboards/widgets', function () {
                 $handler = new AddWidgetToDashboard();
                 $input = json_decode(file_get_contents('php://input'), true) ?? [];
-                echo json_encode(($handler)($input));
+                echo json_encode(($handler)($input), JSON_UNESCAPED_UNICODE);
             });
 
             $r->addRoute('POST', '/dashboards/widgets/config', function () {
                 $handler = new UpdateWidgetConfigOverride();
                 $input = json_decode(file_get_contents('php://input'), true) ?? [];
-                echo json_encode(($handler)($input));
+                echo json_encode(($handler)($input), JSON_UNESCAPED_UNICODE);
             });
 
             $r->addRoute('DELETE', '/dashboards/widgets/{id:\d+}', function ($id) {
                 $handler = new RemoveWidgetFromDashboard();
-                echo json_encode(($handler)(['placement_id' => (int)$id] + $_GET));
+                echo json_encode(($handler)(['placement_id' => (int)$id] + $_GET), JSON_UNESCAPED_UNICODE);
             });
 
             $r->addRoute('POST', '/widgets/create', function () {
                 $handler = new CreateWidget();
                 $input = json_decode(file_get_contents('php://input'), true) ?? [];
-                echo json_encode(($handler)($input));
+                echo json_encode(($handler)($input), JSON_UNESCAPED_UNICODE);
             });
 
             $r->addRoute('GET', '/datasources', function () {
                 $handler = new GetDataSources();
-                echo json_encode($handler->handle($_GET));
+                echo json_encode($handler->handle($_GET), JSON_UNESCAPED_UNICODE);
             });
 
             $r->addRoute('GET', '/datasources/{itemtype}/fields', function ($itemtype) {
                 $handler = new GetDataSourceFields();
-                echo json_encode($handler->handle($itemtype, $_GET));
+                echo json_encode($handler->handle($itemtype, $_GET), JSON_UNESCAPED_UNICODE);
             });
 
             $r->addRoute('POST', '/query', function () {
                 $handler = new ExecuteQuery();
                 $input = json_decode(file_get_contents('php://input'), true) ?? [];
-                echo json_encode($handler->handle($input));
+                echo json_encode($handler->handle($input), JSON_UNESCAPED_UNICODE);
             });
 
             $r->addRoute('DELETE', '/cache', function () {
                 $handler = new ClearCache();
                 $input = json_decode(file_get_contents('php://input'), true) ?? [];
-                echo json_encode($handler->handle($input));
+                echo json_encode($handler->handle($input), JSON_UNESCAPED_UNICODE);
             });
 
             $r->addRoute('POST', '/cache/clear', function () {
                 $handler = new ClearCache();
                 $input = json_decode(file_get_contents('php://input'), true) ?? [];
-                echo json_encode($handler->handle($input));
+                echo json_encode($handler->handle($input), JSON_UNESCAPED_UNICODE);
             });
         });
     }
@@ -267,7 +267,7 @@ class ApiRouter
             $sessionToken = $this->retrieveSession();
             if ($sessionToken === null) {
                 http_response_code(401);
-                echo json_encode(['error' => 'Unauthorized']);
+                echo json_encode(['error' => 'Unauthorized'], JSON_UNESCAPED_UNICODE);
                 return;
             }
         }
@@ -275,7 +275,7 @@ class ApiRouter
         $apiInit = $this->initApi();
         if ($apiInit !== null) {
             http_response_code(403);
-            echo json_encode($apiInit);
+            echo json_encode($apiInit, JSON_UNESCAPED_UNICODE);
             return;
         }
 
@@ -284,12 +284,12 @@ class ApiRouter
         switch ($routeInfo[0]) {
             case Dispatcher::NOT_FOUND:
                 http_response_code(404);
-                echo json_encode(['error' => 'Not Found']);
+                echo json_encode(['error' => 'Not Found'], JSON_UNESCAPED_UNICODE);
                 break;
 
             case Dispatcher::METHOD_NOT_ALLOWED:
                 http_response_code(405);
-                echo json_encode(['error' => 'Method Not Allowed']);
+                echo json_encode(['error' => 'Method Not Allowed'], JSON_UNESCAPED_UNICODE);
                 break;
 
             case Dispatcher::FOUND:
@@ -301,11 +301,11 @@ class ApiRouter
                         call_user_func_array($handler, $vars);
                     } catch (\Exception $e) {
                         http_response_code(500);
-                        echo json_encode(['error' => 'Internal Server Error']);
+                        echo json_encode(['error' => 'Internal Server Error'], JSON_UNESCAPED_UNICODE);
                     }
                 } else {
                     http_response_code(500);
-                    echo json_encode(['error' => 'Internal Server Error']);
+                    echo json_encode(['error' => 'Internal Server Error'], JSON_UNESCAPED_UNICODE);
                 }
                 break;
         }

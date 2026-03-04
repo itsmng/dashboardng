@@ -8,7 +8,7 @@ header('Cache-Control: no-cache, no-store, must-revalidate');
 
 if (!(new Plugin())->isActivated('dashboardng')) {
     http_response_code(404);
-    echo json_encode(['error' => 'Plugin not activated']);
+    echo json_encode(['error' => 'Plugin not activated'], JSON_UNESCAPED_UNICODE);
     exit;
 }
 
@@ -34,5 +34,5 @@ try {
     http_response_code(500);
     echo json_encode([
         'error' => 'Internal Server Error'
-    ]);
+    ], JSON_UNESCAPED_UNICODE);
 }

@@ -184,7 +184,7 @@ class ExportReport
     {
         if (!isset($this->reportConfigs[$type])) {
             http_response_code(400);
-            echo json_encode(['error' => 'Invalid report type']);
+            echo json_encode(['error' => 'Invalid report type'], JSON_UNESCAPED_UNICODE);
             return;
         }
         $context = $this->buildQueryContext($params);
@@ -208,7 +208,7 @@ class ExportReport
                 break;
             default:
                 http_response_code(400);
-                echo json_encode(['error' => 'Invalid export format']);
+                echo json_encode(['error' => 'Invalid export format'], JSON_UNESCAPED_UNICODE);
         }
     }
 
@@ -224,14 +224,14 @@ class ExportReport
 
         if (empty($types)) {
             http_response_code(400);
-            echo json_encode(['error' => 'No report types selected']);
+            echo json_encode(['error' => 'No report types selected'], JSON_UNESCAPED_UNICODE);
             return;
         }
 
         $invalidTypes = array_diff($types, array_keys($this->reportConfigs));
         if (!empty($invalidTypes)) {
             http_response_code(400);
-            echo json_encode(['error' => 'Invalid report types']);
+            echo json_encode(['error' => 'Invalid report types'], JSON_UNESCAPED_UNICODE);
             return;
         }
 
@@ -251,7 +251,7 @@ class ExportReport
                 break;
             default:
                 http_response_code(400);
-                echo json_encode(['error' => 'Invalid export format']);
+                echo json_encode(['error' => 'Invalid export format'], JSON_UNESCAPED_UNICODE);
         }
     }
 
@@ -1720,7 +1720,7 @@ class ExportReport
                 require_once $tcpdfPath;
             } else {
                 http_response_code(500);
-                echo json_encode(['error' => 'PDF library not available']);
+                echo json_encode(['error' => 'PDF library not available'], JSON_UNESCAPED_UNICODE);
                 return;
             }
         }
@@ -2055,14 +2055,14 @@ class ExportReport
         $tmpFile = tempnam(sys_get_temp_dir(), 'dashboardng_export_');
         if ($tmpFile === false) {
             http_response_code(500);
-            echo json_encode(['error' => 'Unable to create export archive']);
+            echo json_encode(['error' => 'Unable to create export archive'], JSON_UNESCAPED_UNICODE);
             return;
         }
 
         $zip = new \ZipArchive();
         if ($zip->open($tmpFile, \ZipArchive::CREATE | \ZipArchive::OVERWRITE) !== true) {
             http_response_code(500);
-            echo json_encode(['error' => 'Unable to create export archive']);
+            echo json_encode(['error' => 'Unable to create export archive'], JSON_UNESCAPED_UNICODE);
             unlink($tmpFile);
             return;
         }
@@ -2125,7 +2125,7 @@ class ExportReport
                 require_once $tcpdfPath;
             } else {
                 http_response_code(500);
-                echo json_encode(['error' => 'PDF library not available']);
+                echo json_encode(['error' => 'PDF library not available'], JSON_UNESCAPED_UNICODE);
                 return;
             }
         }
