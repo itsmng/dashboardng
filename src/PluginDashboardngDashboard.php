@@ -77,7 +77,7 @@ class PluginDashboardngDashboard extends CommonDBTM
         $config = $DB->escape(json_encode([
             'refreshInterval' => 60000,
             'columnCount' => 12,
-        ]));
+        ], JSON_UNESCAPED_UNICODE));
         
         $query = "INSERT INTO `$table` (`name`, `users_id`, `is_default`, `is_active`, `config`) 
                   VALUES ('Global Dashboard', 0, 1, 1, '$config')";
@@ -261,7 +261,7 @@ class PluginDashboardngDashboard extends CommonDBTM
             'users_id' => $userId,
             'is_default' => 0,
             'is_active' => 1,
-            'config' => json_encode($config),
+            'config' => json_encode($config, JSON_UNESCAPED_UNICODE),
         ]);
 
         $newDashboardId = $DB->insertId();
@@ -310,7 +310,7 @@ class PluginDashboardngDashboard extends CommonDBTM
             'config' => json_encode([
                 'refreshInterval' => 60000,
                 'columnCount' => 12,
-            ]),
+            ], JSON_UNESCAPED_UNICODE),
         ]);
 
         $newDashboardId = $DB->insertId();

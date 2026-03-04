@@ -327,7 +327,7 @@ class PluginDashboardngDashboardWidget extends CommonDBTM
         $table = self::getTable();
 
         return (bool) $DB->update($table, [
-            'config_override' => json_encode($config),
+            'config_override' => json_encode($config, JSON_UNESCAPED_UNICODE),
         ], [
             'id' => $placementId,
             'dashboards_id' => $dashboardId,
@@ -357,7 +357,7 @@ class PluginDashboardngDashboardWidget extends CommonDBTM
                 'y' => $widget['y'],
                 'width' => $widget['width'],
                 'height' => $widget['height'],
-                'config_override' => $widget['config'] ? json_encode($widget['config']) : null,
+                'config_override' => $widget['config'] ? json_encode($widget['config'], JSON_UNESCAPED_UNICODE) : null,
                 'is_visible' => 1,
                 'position' => $widget['position'],
             ];

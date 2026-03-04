@@ -128,7 +128,7 @@ class PluginDashboardngWidgetDefinition extends CommonDBTM
             'widget_type' => $data['widget_type'] ?? 'custom',
             'visualization' => $config['visualization'] ?? 'card',
             'itemtype' => $config['itemtype'] ?? null,
-            'config' => json_encode($config),
+            'config' => json_encode($config, JSON_UNESCAPED_UNICODE),
             'default_width' => $data['default_width'] ?? 4,
             'default_height' => $data['default_height'] ?? 4,
             'is_active' => 1,
@@ -170,7 +170,7 @@ class PluginDashboardngWidgetDefinition extends CommonDBTM
             'name' => $data['name'] ?? $config['title'] ?? $widget['name'],
             'visualization' => $config['visualization'] ?? $widget['visualization'],
             'itemtype' => $config['itemtype'] ?? $widget['itemtype'],
-            'config' => json_encode($config),
+            'config' => json_encode($config, JSON_UNESCAPED_UNICODE),
             'default_width' => $data['default_width'] ?? $widget['default_width'],
             'default_height' => $data['default_height'] ?? $widget['default_height'],
         ];
