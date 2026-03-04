@@ -43,7 +43,7 @@ final class PluginDashboardngMigration0002InitialData extends \GlpiPlugin\Dashbo
         $config = json_encode([
             'refreshInterval' => 60000,
             'columnCount' => 12,
-        ]);
+        ], JSON_UNESCAPED_UNICODE);
 
         $DB->insert($table, [
             'name' => 'Global Dashboard',
@@ -63,7 +63,7 @@ final class PluginDashboardngMigration0002InitialData extends \GlpiPlugin\Dashbo
         $widgets = $this->getDefaultWidgetDefinitions();
 
         foreach ($widgets as $widget) {
-            $widget['config'] = json_encode($widget['config']);
+            $widget['config'] = json_encode($widget['config'], JSON_UNESCAPED_UNICODE);
             $widget['users_id'] = 0;
 
             $DB->insert($table, $widget);
