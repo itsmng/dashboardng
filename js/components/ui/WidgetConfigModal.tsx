@@ -82,6 +82,20 @@ interface WidgetConfigModalProps {
     editMode?: boolean;
 }
 
+const LEGACY_CHART_VISUALIZATIONS = new Set(['bar', 'line', 'pie', 'doughnut']);
+
+const normalizeVisualizationConfig = <T extends Partial<WidgetConfig>>(widgetConfig: T): T => {
+    const normalizedConfig = { ...widgetConfig };
+    const visualization = normalizedConfig.visualization;
+
+    if (visualization && LEGACY_CHART_VISUALIZATIONS.has(visualization)) {
+        normalizedConfig.visualization = 'chart';
+        normalizedConfig.chartType = normalizedConfig.chartType || visualization;
+    }
+
+    return normalizedConfig;
+};
+
 const migrateFilterData = (filter: Filter): Filter => {
     const migrated = { ...filter };
     if (migrated.searchtype && !migrated.operator) {
@@ -233,7 +247,7 @@ export const WidgetConfigModal = ({ isOpen, onClose, onSave, initialConfig = und
         if (isOpen) {
                 if (initialConfig) {
                     const migratedFilters = (initialConfig.filters || []).map(migrateFilterData);
-                    const normalizedConfig = { ...initialConfig, filters: migratedFilters };
+                    const normalizedConfig = normalizeVisualizationConfig({ ...initialConfig, filters: migratedFilters });
                     normalizedConfig.groupBy = migrateGroupBy(normalizedConfig.groupBy);
                 if (!normalizedConfig.orderBy) {
                     normalizedConfig.orderBy = { field: undefined, direction: 'DESC' };
@@ -374,13 +388,15 @@ export const WidgetConfigModal = ({ isOpen, onClose, onSave, initialConfig = und
             ? []
             : normalizeSeriesFilters(config.series);
 
+        const normalizedVisualizationConfig = normalizeVisualizationConfig({
+            ...config,
+            filters: normalizedFilters,
+            series: normalizedSeries,
+        }) as WidgetConfig;
+
         onSave({
             widget_type: 'custom',
-            config: {
-                ...config,
-                filters: normalizedFilters,
-                series: normalizedSeries,
-            }
+            config: normalizedVisualizationConfig
         });
         onClose();
     };

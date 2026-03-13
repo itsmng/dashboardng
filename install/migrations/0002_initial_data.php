@@ -270,7 +270,7 @@ final class PluginDashboardngMigration0002InitialData extends \GlpiPlugin\Dashbo
                     'visualization' => 'chart',
                     'chartType' => 'line',
                     'filters' => [
-                        ['field' => 15, 'searchtype' => 'morethan', 'value' => '$$TODAY-7DAY$$']
+                        ['field' => 15, 'searchtype' => 'greater_than', 'value' => '$$TODAY-7DAY$$']
                     ],
                     'groupBy' => ['field' => 15, 'interval' => 'day'],
                     'aggregation' => ['function' => 'COUNT', 'field' => null],
@@ -290,7 +290,7 @@ final class PluginDashboardngMigration0002InitialData extends \GlpiPlugin\Dashbo
                     'visualization' => 'chart',
                     'chartType' => 'bar',
                     'filters' => [
-                        ['field' => 15, 'searchtype' => 'morethan', 'value' => '$$THISMONTH$$']
+                        ['field' => 15, 'searchtype' => 'greater_than', 'value' => '$$THISMONTH$$']
                     ],
                     'groupBy' => ['field' => 3],
                     'aggregation' => ['function' => 'COUNT', 'field' => null],

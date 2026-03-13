@@ -8,6 +8,8 @@ import { GenericChartWidget } from './GenericChartWidget.js';
 import { GenericCardWidget } from './GenericCardWidget.js';
 import { GenericTableWidget } from './GenericTableWidget.js';
 
+const CHART_VISUALIZATIONS = new Set(['chart', 'bar', 'line', 'pie', 'doughnut']);
+
 /** Re-export generic chart widget component */
 export { GenericChartWidget, GenericCardWidget, GenericTableWidget };
 
@@ -17,12 +19,13 @@ export { GenericChartWidget, GenericCardWidget, GenericTableWidget };
  * @returns {import('preact').FunctionComponent} The widget component
  */
 export const getGenericWidgetComponent = (visualization) => {
+    if (CHART_VISUALIZATIONS.has(visualization)) {
+        return GenericChartWidget;
+    }
+
     switch (visualization) {
         case 'card': {
             return GenericCardWidget;
-        }
-        case 'chart': {
-            return GenericChartWidget;
         }
         case 'table': {
             return GenericTableWidget;
