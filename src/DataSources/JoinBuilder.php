@@ -22,7 +22,7 @@ class JoinBuilder
         $addedTables = [$table => true];
 
         foreach ($fieldIds as $fieldId) {
-            if (!$fieldId) {
+            if (!$fieldId || !is_scalar($fieldId)) {
                 continue;
             }
 
@@ -70,74 +70,99 @@ class JoinBuilder
         string $joinTable,
         string $linkfield
     ): void {
-        if ($opt['joinparams'] ?? null) {
-            $this->addJoinWithExplicitParams(
+        $joinParams = $opt['joinparams'] ?? [];
+        $referenceTable = $mainTable;
+
+        foreach ($this->normalizeBeforeJoin($joinParams['beforejoin'] ?? null) as $beforeJoin) {
+            $beforeJoinTable = $beforeJoin['table'] ?? null;
+            if (!$beforeJoinTable) {
+                continue;
+            }
+
+            $beforeJoinParams = $beforeJoin['joinparams'] ?? [];
+            $beforeJoinLinkfield = $beforeJoin['linkfield'] ?? $this->getForeignKeyField($beforeJoinTable);
+
+            $this->addJoinClause(
                 $joins,
                 $addedTables,
-                $opt['joinparams'],
-                $mainTable,
-                $joinTable,
-                $linkfield
+                $referenceTable,
+                $beforeJoinTable,
+                $beforeJoinLinkfield,
+                $beforeJoinParams
             );
-        } else {
-            $this->addDefaultJoin($joins, $mainTable, $joinTable, $linkfield);
-        }
 
-        $addedTables[$joinTable] = true;
-    }
-
-    /**
-     * Add join using explicit join parameters
-     *
-     * @param array $joins Array to append join clauses to
-     * @param array $addedTables Array to track added tables
-     * @param array $joinParams Join parameters from search option
-     * @param string $mainTable Main table name
-     * @param string $joinTable Table to join
-     * @param string $linkfield Field to join on
-     * @return void
-     */
-    private function addJoinWithExplicitParams(
-        array &$joins,
-        array &$addedTables,
-        array $joinParams,
-        string $mainTable,
-        string $joinTable,
-        string $linkfield
-    ): void {
-        $beforejoin = $joinParams['beforejoin'] ?? null;
-
-        if ($beforejoin) {
-            foreach ((array) $beforejoin as $bj) {
-                $bjTable = $bj['table'] ?? null;
-                if ($bjTable && !isset($addedTables[$bjTable])) {
-                    $bjLink = $bj['linkfield'] ?? 'id';
-                    $bjJoinOn = $bj['joinparams']['joinon'] ?? "`$mainTable`.`$bjLink` = `$bjTable`.`id`";
-                    $joins[] = "LEFT JOIN `$bjTable` ON $bjJoinOn";
-                    $addedTables[$bjTable] = true;
-                }
+            if (!($beforeJoinParams['nolink'] ?? false)) {
+                $referenceTable = $beforeJoinTable;
             }
         }
 
-        $joinOn = $joinParams['joinon'] ?? "`$mainTable`.`$linkfield` = `$joinTable`.`id`";
-        $joins[] = "LEFT JOIN `$joinTable` ON $joinOn";
+        $this->addJoinClause($joins, $addedTables, $referenceTable, $joinTable, $linkfield, $joinParams);
     }
 
     /**
-     * Add default join (simple foreign key join)
+     * Normalize beforejoin configuration to an array of join definitions.
+     *
+     * @param mixed $beforejoin Raw beforejoin value
+     * @return array
+     */
+    private function normalizeBeforeJoin($beforejoin): array
+    {
+        if (!is_array($beforejoin)) {
+            return [];
+        }
+
+        if (isset($beforejoin['table'])) {
+            return [$beforejoin];
+        }
+
+        return array_values(array_filter($beforejoin, 'is_array'));
+    }
+
+    private function getForeignKeyField(string $table): string
+    {
+        if (!str_starts_with($table, 'glpi_')) {
+            return '';
+        }
+
+        return substr($table, 5) . '_id';
+    }
+
+    /**
+     * Add join clause for a single table relation.
      *
      * @param array $joins Array to append join clauses to
-     * @param string $mainTable Main table name
+     * @param array $addedTables Array to track added tables
+     * @param string $referenceTable Already joined reference table
      * @param string $joinTable Table to join
-     * @param string $linkfield Field to join on
+     * @param string $linkfield Field used by standard joins
+     * @param array $joinParams Join parameters from search option
      * @return void
      */
-    private function addDefaultJoin(
+    private function addJoinClause(
         array &$joins,
-        string $mainTable,
+        array &$addedTables,
+        string $referenceTable,
         string $joinTable,
-        string $linkfield
+        string $linkfield,
+        array $joinParams = []
     ): void {
-        $joins[] = "LEFT JOIN `$joinTable` ON `$mainTable`.`$linkfield` = `$joinTable`.`id`";
+        if (isset($addedTables[$joinTable])) {
+            return;
+        }
+
+        if (isset($joinParams['joinon']) && $joinParams['joinon']) {
+            $joinOn = $joinParams['joinon'];
+        } else {
+            $jointype = $joinParams['jointype'] ?? 'standard';
+            if ($jointype === 'child') {
+                $childLinkfield = $joinParams['linkfield'] ?? $this->getForeignKeyField($referenceTable);
+                $joinOn = "`$referenceTable`.`id` = `$joinTable`.`$childLinkfield`";
+            } else {
+                $joinOn = "`$referenceTable`.`$linkfield` = `$joinTable`.`id`";
+            }
+        }
+
+        $joins[] = "LEFT JOIN `$joinTable` ON $joinOn";
+        $addedTables[$joinTable] = true;
     }
 }

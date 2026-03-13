@@ -341,8 +341,13 @@ class GenericDataSource
             $where[] = $entityWhere;
         }
 
-        // Build joins for related tables
-        $joins = $this->joinBuilder->buildJoins($itemtype, array_merge($normalizedGroupBy, [$aggField]), $searchOptions, $table);
+        // Build joins for related tables used by grouping, aggregation, and filters
+        $joinFields = array_merge(
+            $normalizedGroupBy,
+            [$aggField],
+            array_column($filters, 'field')
+        );
+        $joins = $this->joinBuilder->buildJoins($itemtype, $joinFields, $searchOptions, $table);
 
         // Build query
         $sql = "SELECT " . implode(", ", $selectFields) . " FROM `$table`";
@@ -370,6 +375,10 @@ class GenericDataSource
         $sql .= " LIMIT $limit";
 
         $result = $DB->query($sql);
+        if (!$result) {
+            throw new \RuntimeException($DB->error() ?: 'Failed to execute aggregated query');
+        }
+
         $rows = [];
 
         while ($row = $DB->fetchAssoc($result)) {
