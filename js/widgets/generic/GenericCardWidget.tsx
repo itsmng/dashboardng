@@ -2,7 +2,7 @@ import { h, useState, useEffect } from '../../lib/preact.js';
 import { api } from '../../lib/config.js';
 import { usePeriod } from '../../context/PeriodContext.js';
 import { useRefresh } from '../../lib/hooks/useRefresh.js';
-import { processFilters } from '../../lib/utils.js';
+import { extractDateRange, processFilters } from '../../lib/utils.js';
 import { __ } from '../../lib/i18n.js';
 
 interface WidgetConfig {
@@ -54,11 +54,19 @@ export const GenericCardWidget = ({ config, widgetId: _widgetId }: GenericCardWi
         setError(undefined);
 
         try {
+            const processedFilters = processFilters(config.filters || [], period);
+            const dateRange = extractDateRange(processedFilters, config.groupBy);
+            const hasGrouping = Boolean(config.groupBy);
             const queryConfig = {
                 itemtype: config.itemtype,
-                filters: processFilters(config.filters || [], period),
+                filters: processedFilters,
+                group_by: hasGrouping ? [config.groupBy] : undefined,
                 aggregation: config.aggregation || { function: 'COUNT', field: undefined },
-                limit: 1,
+                order_by: config.orderBy?.field
+                    ? { field: config.orderBy.field, direction: config.orderBy.direction || 'DESC' }
+                    : undefined,
+                limit: hasGrouping ? (config.limit || 20) : 1,
+                date_range: dateRange,
             };
 
             const result = await api.post('/query', queryConfig);
