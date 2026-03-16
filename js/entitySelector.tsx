@@ -1,4 +1,4 @@
-import { render } from './lib/preact.js';
+import { h, render } from './lib/preact.js';
 import { EntitySelector } from './components/ui/EntitySelector.js';
 
-export { render, EntitySelector };
+export { h, render, EntitySelector };

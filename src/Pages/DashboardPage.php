@@ -25,7 +25,4 @@ class DashboardPage extends AbstractPage
     {
         return 'pages/dashboard.twig';
     }
-
-    // Translations now handled by __() function in JavaScript
-    // The getTranslations() method is no longer needed
 }

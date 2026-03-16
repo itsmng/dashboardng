@@ -128,9 +128,9 @@ document.querySelector("#subheader").style.setProperty("display", "none", "impor
         const rootDoc = container.dataset.rootDoc;
 
         const module = await import('{{ script_paths.entitySelector }}');
-        const { render, html, EntitySelector } = module;
+        const { h, render, EntitySelector } = module;
 
-        render(html`<${EntitySelector} rootDoc="${rootDoc}" />`, container);
+        render(h(EntitySelector, { rootDoc }), container);
     }
 
     modal.addEventListener('shown.bs.modal', mountEntitySelector);

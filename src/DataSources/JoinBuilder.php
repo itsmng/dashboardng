@@ -154,15 +154,84 @@ class JoinBuilder
             $joinOn = $joinParams['joinon'];
         } else {
             $jointype = $joinParams['jointype'] ?? 'standard';
-            if ($jointype === 'child') {
-                $childLinkfield = $joinParams['linkfield'] ?? $this->getForeignKeyField($referenceTable);
-                $joinOn = "`$referenceTable`.`id` = `$joinTable`.`$childLinkfield`";
-            } else {
-                $joinOn = "`$referenceTable`.`$linkfield` = `$joinTable`.`id`";
-            }
+            $joinOn = $this->buildJoinCondition(
+                $jointype,
+                $referenceTable,
+                $joinTable,
+                $linkfield,
+                $joinParams
+            );
         }
 
         $joins[] = "LEFT JOIN `$joinTable` ON $joinOn";
         $addedTables[$joinTable] = true;
+    }
+
+    private function buildJoinCondition(
+        string $jointype,
+        string $referenceTable,
+        string $joinTable,
+        string $linkfield,
+        array $joinParams
+    ): string {
+        return match ($jointype) {
+            'child' => $this->buildChildJoinCondition($referenceTable, $joinTable, $joinParams),
+            'itemtype_item' => $this->buildItemtypeItemJoinCondition($referenceTable, $joinTable, $joinParams),
+            'mainitemtype_mainitem' => $this->buildItemtypeItemJoinCondition($referenceTable, $joinTable, $joinParams, 'main'),
+            'itemtype_item_revert' => $this->buildItemtypeItemRevertJoinCondition($referenceTable, $joinTable, $joinParams),
+            default => "`$referenceTable`.`$linkfield` = `$joinTable`.`id`",
+        };
+    }
+
+    private function buildChildJoinCondition(string $referenceTable, string $joinTable, array $joinParams): string
+    {
+        $childLinkfield = $joinParams['linkfield'] ?? $this->getForeignKeyField($referenceTable);
+        return "`$referenceTable`.`id` = `$joinTable`.`$childLinkfield`";
+    }
+
+    private function buildItemtypeItemJoinCondition(
+        string $referenceTable,
+        string $joinTable,
+        array $joinParams,
+        string $prefix = ''
+    ): string {
+        $itemField = $prefix . 'items_id';
+        $typeField = $prefix . 'itemtype';
+        $itemtype = $joinParams['specific_itemtype'] ?? $this->getItemtypeForTable($referenceTable);
+
+        return "`$referenceTable`.`id` = `$joinTable`.`$itemField`"
+            . " AND `$joinTable`.`$typeField` = '$itemtype'";
+    }
+
+    private function buildItemtypeItemRevertJoinCondition(
+        string $referenceTable,
+        string $joinTable,
+        array $joinParams,
+        string $prefix = ''
+    ): string {
+        $itemField = $prefix . 'items_id';
+        $typeField = $prefix . 'itemtype';
+        $itemtype = $joinParams['specific_itemtype'] ?? $this->getItemtypeForTable($joinTable);
+
+        return "`$joinTable`.`id` = `$referenceTable`.`$itemField`"
+            . " AND `$referenceTable`.`$typeField` = '$itemtype'";
+    }
+
+    private function getItemtypeForTable(string $table): string
+    {
+        $itemtype = \getItemTypeForTable($table);
+        if (is_string($itemtype) && $itemtype !== '') {
+            return $itemtype;
+        }
+
+        if (!str_starts_with($table, 'glpi_')) {
+            return $table;
+        }
+
+        $name = substr($table, 5);
+        $name = preg_replace('/ies$/', 'y', $name);
+        $name = preg_replace('/s$/', '', $name);
+
+        return str_replace(' ', '', ucwords(str_replace('_', ' ', $name)));
     }
 }

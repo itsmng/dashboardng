@@ -13,12 +13,25 @@
  */
 export const processFilters = (filters, period) => {
     const now = new Date();
-    const today = now.toISOString().split('T')[0];
+    const formatDate = (date) => date.toISOString().split('T')[0];
+    const shiftDays = (days) => {
+        const date = new Date(now);
+        date.setDate(date.getDate() + days);
+        return formatDate(date);
+    };
+    const shiftMonths = (months) => {
+        const date = new Date(now);
+        date.setMonth(date.getMonth() + months);
+        return formatDate(date);
+    };
+
+    const today = formatDate(now);
     const thisMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-01`;
     const thisYear = `${now.getFullYear()}-01-01`;
-    const yesterday = new Date(now.getTime() - 24 * 60 * 60 * 1000).toISOString().split('T')[0];
-    const thirtyDaysAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
-    const lastWeek = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
+    const yesterday = shiftDays(-1);
+    const thirtyDaysAgo = shiftDays(-30);
+    const lastWeek = shiftDays(-7);
+    const lastSixMonths = shiftMonths(-6);
 
     return filters.map(filter => {
         let {value} = filter;
@@ -32,6 +45,7 @@ export const processFilters = (filters, period) => {
                 .replace('$$TODAY-7DAY$$', lastWeek)
                 .replace('$$TODAY-30DAY$$', thirtyDaysAgo)
                 .replace('$$LASTWEEK$$', lastWeek)
+                .replace('$$LAST6MONTH$$', lastSixMonths)
                 .replace('$$THISMONTH$$', thisMonth)
                 .replace('$$THISYEAR$$', thisYear)
                 .replace('$$MYSELF$$', String(window.DASHBOARDNG_CONFIG?.userId || 0));
