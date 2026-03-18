@@ -334,6 +334,7 @@ class GenericDataSource
 
         // Build WHERE clause from filters
         $where = $this->filterBuilder->buildWhereClause($itemtype, $filters, $searchOptions, $table);
+        $effectiveDateRange = $dateRange ?? $this->extractDateRangeFromFilters($filters, $groupBy);
 
         // Add entity restriction
         $entityWhere = $this->getEntityRestriction($itemtype, $table);
@@ -364,13 +365,7 @@ class GenericDataSource
             $sql .= " GROUP BY " . implode(", ", $groupByFields);
         }
 
-        // For date-grouped queries, sort chronologically; otherwise by value descending
-        if ($dateIntervalConfig && $dateRange) {
-            $alias = 'group_' . $dateIntervalConfig['field'];
-            $sql .= " ORDER BY `$alias` ASC";
-        } else {
-            $sql .= " ORDER BY `value` DESC";
-        }
+        $sql .= " ORDER BY " . $this->buildAggregatedOrderByClause($groupBy, $orderBy, $dateIntervalConfig, $effectiveDateRange);
 
         $sql .= " LIMIT $limit";
 
@@ -385,9 +380,14 @@ class GenericDataSource
             $rows[] = $row;
         }
 
-        // Fill date gaps if we have date interval config and a date range
-        if ($dateIntervalConfig && $dateRange) {
-            $rows = $this->dateGapFiller->fillDateGaps($rows, $dateRange, $dateIntervalConfig);
+        // Fill date gaps for date-grouped queries using the explicit or inferred date range.
+        if ($dateIntervalConfig) {
+            $rows = $this->dateGapFiller->fillDateGaps($rows, $effectiveDateRange, $dateIntervalConfig);
+            $rows = $this->sortDateGroupedRows(
+                $rows,
+                'group_' . $dateIntervalConfig['field'],
+                $this->getDateGroupedSortDirection($groupBy, $orderBy, $dateIntervalConfig, $effectiveDateRange)
+            );
         }
 
         // Resolve enum/dropdown values to display labels
@@ -401,6 +401,93 @@ class GenericDataSource
                 [['id' => 'value', 'name' => ucfirst($aggFunc)]]
             ),
         ];
+    }
+
+    private function buildAggregatedOrderByClause(
+        array $groupBy,
+        ?array $orderBy,
+        ?array $dateIntervalConfig,
+        ?array $dateRange
+    ): string {
+        $orderField = $orderBy['field'] ?? null;
+        $direction = $this->normalizeSortDirection($orderBy['direction'] ?? null);
+
+        if ($orderField !== null) {
+            $groupAlias = $this->getGroupedFieldAlias($groupBy, $orderField);
+            if ($groupAlias !== null) {
+                return "`$groupAlias` $direction";
+            }
+        }
+
+        // Keep the previous fallback for date ranges when no explicit order is configured.
+        if ($dateIntervalConfig && $dateRange) {
+            $alias = 'group_' . $dateIntervalConfig['field'];
+            return "`$alias` ASC";
+        }
+
+        return "`value` DESC";
+    }
+
+    private function getGroupedFieldAlias(array $groupBy, $orderField): ?string
+    {
+        foreach ($groupBy as $groupItem) {
+            if (is_array($groupItem) && isset($groupItem['field']) && (string) $groupItem['field'] === (string) $orderField) {
+                return 'group_' . $groupItem['field'];
+            }
+
+            if (is_scalar($groupItem) && (string) $groupItem === (string) $orderField) {
+                return 'group_' . $groupItem;
+            }
+        }
+
+        return null;
+    }
+
+    private function normalizeSortDirection(?string $direction): string
+    {
+        return strtoupper($direction ?? '') === 'ASC' ? 'ASC' : 'DESC';
+    }
+
+    private function getDateGroupedSortDirection(
+        array $groupBy,
+        ?array $orderBy,
+        ?array $dateIntervalConfig,
+        ?array $dateRange
+    ): ?string {
+        if ($dateIntervalConfig === null) {
+            return null;
+        }
+
+        $orderField = $orderBy['field'] ?? null;
+        if ($orderField !== null) {
+            $groupAlias = $this->getGroupedFieldAlias($groupBy, $orderField);
+            if ($groupAlias !== null) {
+                return $this->normalizeSortDirection($orderBy['direction'] ?? null);
+            }
+        }
+
+        if ($dateRange !== null) {
+            return 'ASC';
+        }
+
+        return null;
+    }
+
+    private function sortDateGroupedRows(array $rows, string $alias, ?string $direction): array
+    {
+        if ($direction === null || count($rows) < 2) {
+            return $rows;
+        }
+
+        usort($rows, static function (array $left, array $right) use ($alias, $direction): int {
+            $leftValue = (string) ($left[$alias] ?? '');
+            $rightValue = (string) ($right[$alias] ?? '');
+            $comparison = strcmp($leftValue, $rightValue);
+
+            return $direction === 'DESC' ? -$comparison : $comparison;
+        });
+
+        return $rows;
     }
 
     /**

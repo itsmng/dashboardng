@@ -11,17 +11,18 @@ class DateGapFiller
      * Fill gaps in date-grouped results with zero values
      *
      * @param array $rows Results from database query
-     * @param array $dateRange Date range configuration ['start', 'end', 'interval']
+     * @param array|null $dateRange Date range configuration ['start', 'end', 'interval']
      * @param array $dateIntervalConfig Field and interval configuration
      * @return array Rows with filled gaps
      */
-    public function fillDateGaps(array $rows, array $dateRange, array $dateIntervalConfig): array
+    public function fillDateGaps(array $rows, ?array $dateRange, array $dateIntervalConfig): array
     {
-        $start = $dateRange['start'] ?? null;
-        $end = $dateRange['end'] ?? null;
         $interval = $dateRange['interval'] ?? $dateIntervalConfig['interval'];
         $fieldId = $dateIntervalConfig['field'];
         $alias = 'group_' . $fieldId;
+        $resolvedRange = $this->resolveDateRange($rows, $dateRange, $alias, $interval);
+        $start = $resolvedRange['start'] ?? null;
+        $end = $resolvedRange['end'] ?? null;
 
         if (!$start || !$end) {
             return $rows;
@@ -31,6 +32,62 @@ class DateGapFiller
         $dataByDate = $this->indexDataByDate($rows, $alias, $interval);
 
         return $this->mergeDataWithDates($allDates, $dataByDate, $alias, $interval);
+    }
+
+    private function resolveDateRange(array $rows, ?array $dateRange, string $alias, string $interval): ?array
+    {
+        $start = $dateRange['start'] ?? null;
+        $end = $dateRange['end'] ?? null;
+
+        if ($start && $end) {
+            return [
+                'start' => $start,
+                'end' => $end,
+                'interval' => $interval,
+            ];
+        }
+
+        $inferredRange = $this->inferDateRangeFromRows($rows, $alias, $interval);
+        if ($inferredRange === null) {
+            return null;
+        }
+
+        return [
+            'start' => $inferredRange['start'],
+            'end' => $inferredRange['end'],
+            'interval' => $interval,
+        ];
+    }
+
+    private function inferDateRangeFromRows(array $rows, string $alias, string $interval): ?array
+    {
+        $dates = [];
+
+        foreach ($rows as $row) {
+            $dateKey = $row[$alias] ?? null;
+            if (!$dateKey) {
+                continue;
+            }
+
+            try {
+                $date = new \DateTime($dateKey);
+                $date = $this->alignStartDate($date, $interval);
+                $dates[] = $date->format('Y-m-d');
+            } catch (\Exception $e) {
+                continue;
+            }
+        }
+
+        if ($dates === []) {
+            return null;
+        }
+
+        sort($dates);
+
+        return [
+            'start' => $dates[0],
+            'end' => $dates[count($dates) - 1],
+        ];
     }
 
     /**

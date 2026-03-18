@@ -77,6 +77,14 @@ const getMonthOrder = (label: string): number => {
     return index >= 0 ? index : 999;
 };
 
+const getLabelSortDirection = (config: WidgetConfig): number => {
+    if (config.orderBy?.field && config.groupBy?.field && config.orderBy.field === config.groupBy.field) {
+        return config.orderBy.direction === 'ASC' ? 1 : -1;
+    }
+
+    return 1;
+};
+
 /**
  * Generic Chart Widget - Renders charts based on config JSON
  * Supports bar, line, pie, doughnut chart types
@@ -197,6 +205,7 @@ export const GenericChartWidget = ({ config, widgetId: _widgetId }: GenericChart
             const preset = config.seriesPreset;
             const interval = config.groupBy?.interval;
             const isTimePreset = preset && ['yoy', 'mom', 'qoq'].includes(preset);
+            const sortDirection = getLabelSortDirection(config);
 
             const allLabels = new Set<string>();
             dataArray.forEach((series: any) => {
@@ -217,11 +226,11 @@ export const GenericChartWidget = ({ config, widgetId: _widgetId }: GenericChart
                 const allMonthNames = normalizedSample && MONTH_NAMES.includes(normalizedSample);
 
                 if (allMonthNames) {
-                    labels.sort((a, b) => getMonthOrder(a) - getMonthOrder(b));
+                    labels.sort((a, b) => (getMonthOrder(a) - getMonthOrder(b)) * sortDirection);
                 } else {
                     const allNumeric = labels.every(l => !Number.isNaN(Number(l)));
                     if (allNumeric) {
-                        labels.sort((a, b) => Number(a) - Number(b));
+                        labels.sort((a, b) => (Number(a) - Number(b)) * sortDirection);
                     }
                 }
             } else {
@@ -229,9 +238,9 @@ export const GenericChartWidget = ({ config, widgetId: _widgetId }: GenericChart
                 const allNumericLabels = labels.length > 0 && labels.every(label => !Number.isNaN(Number(label)));
 
                 if (allDateLabels) {
-                    labels.sort((a, b) => new Date(a).getTime() - new Date(b).getTime());
+                    labels.sort((a, b) => (new Date(a).getTime() - new Date(b).getTime()) * sortDirection);
                 } else if (allNumericLabels) {
-                    labels.sort((a, b) => Number(a) - Number(b));
+                    labels.sort((a, b) => (Number(a) - Number(b)) * sortDirection);
                 }
             }
 
