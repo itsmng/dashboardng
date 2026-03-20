@@ -151,7 +151,7 @@ class JoinBuilder
         }
 
         if (isset($joinParams['joinon']) && $joinParams['joinon']) {
-            $joinOn = $joinParams['joinon'];
+            $joinOn = $this->replaceJoinPlaceholders($joinParams['joinon'], $referenceTable, $joinTable);
         } else {
             $jointype = $joinParams['jointype'] ?? 'standard';
             $joinOn = $this->buildJoinCondition(
@@ -163,8 +163,46 @@ class JoinBuilder
             );
         }
 
+        $joinOn = $this->appendJoinCondition(
+            $joinOn,
+            $joinParams['condition'] ?? null,
+            $referenceTable,
+            $joinTable
+        );
+
         $joins[] = "LEFT JOIN `$joinTable` ON $joinOn";
         $addedTables[$joinTable] = true;
+    }
+
+    private function appendJoinCondition(
+        string $joinOn,
+        ?string $condition,
+        string $referenceTable,
+        string $joinTable
+    ): string {
+        if ($condition === null || trim($condition) === '') {
+            return $joinOn;
+        }
+
+        $resolvedCondition = trim($this->replaceJoinPlaceholders($condition, $referenceTable, $joinTable));
+        if ($resolvedCondition === '') {
+            return $joinOn;
+        }
+
+        if (!preg_match('/^(AND|OR)\b/i', $resolvedCondition)) {
+            $resolvedCondition = 'AND ' . $resolvedCondition;
+        }
+
+        return $joinOn . ' ' . $resolvedCondition;
+    }
+
+    private function replaceJoinPlaceholders(string $expression, string $referenceTable, string $joinTable): string
+    {
+        return str_replace(
+            ['REFTABLE', 'NEWTABLE'],
+            ["`$referenceTable`", "`$joinTable`"],
+            $expression
+        );
     }
 
     private function buildJoinCondition(
