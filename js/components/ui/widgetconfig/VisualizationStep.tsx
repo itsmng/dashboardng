@@ -6,6 +6,7 @@ interface VisualizationStepProps {
     config: {
         visualization?: string;
         chartType?: string;
+        itemtype?: string;
         colorPalette?: string;
         colors?: string[];
         pageSize?: number;
@@ -42,9 +43,10 @@ const CARD_ICONS = [
 ];
 
 export const VisualizationStep = ({ config, setConfig }: VisualizationStepProps) => {
+    const savedSearchSource = (config.itemtype || '').startsWith('savedsearch:');
     const visualizationOptions = [
         { value: 'card', icon: 'fa-id-card', label: __('Card', 'dashboardng') },
-        { value: 'chart', icon: 'fa-chart-bar', label: __('Chart', 'dashboardng') },
+        ...(!savedSearchSource ? [{ value: 'chart', icon: 'fa-chart-bar', label: __('Chart', 'dashboardng') }] : []),
         { value: 'table', icon: 'fa-table', label: __('Table', 'dashboardng') }
     ];
 
@@ -62,7 +64,7 @@ export const VisualizationStep = ({ config, setConfig }: VisualizationStepProps)
             <div className="visualization-options mb-4">
                 <div className="row g-3">
                     {visualizationOptions.map(opt => (
-                        <div key={opt.value} className="col-4">
+                        <div key={opt.value} className={savedSearchSource ? 'col-6' : 'col-4'}>
                             <div
                                 className={`visualization-option card ${config.visualization === opt.value ? 'selected' : ''}`}
                                 onClick={() => setConfig({ ...config, visualization: opt.value })}

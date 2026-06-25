@@ -212,6 +212,10 @@ const decodeHTMLEntities = (text: string): string => {
     return textarea.value;
 };
 
+const isSavedSearchSource = (itemtype: string | undefined): boolean => {
+    return (itemtype || '').startsWith('savedsearch:');
+};
+
 export const WidgetConfigModal = ({ isOpen, onClose, onSave, initialConfig = undefined, editMode = false }: WidgetConfigModalProps) => {
     const [step, setStep] = useState(1);
     const [config, setConfig] = useState<WidgetConfig>({
@@ -300,7 +304,7 @@ export const WidgetConfigModal = ({ isOpen, onClose, onSave, initialConfig = und
     const loadFields = async (itemtype: string) => {
         setLoading(true);
         try {
-            const result = await api.fetch(`/datasources/${itemtype}/fields`);
+            const result = await api.fetch(`/datasources/${encodeURIComponent(itemtype)}/fields`);
             if (result.success) {
                 const data = result.data as Fields;
                 const sanitizedFields = {
@@ -319,11 +323,16 @@ export const WidgetConfigModal = ({ isOpen, onClose, onSave, initialConfig = und
     };
 
     const handleItemtypeChange = (itemtype: string) => {
+        const savedSearchSource = isSavedSearchSource(itemtype);
         setConfig({
             ...config,
             itemtype,
+            visualization: savedSearchSource && config.visualization === 'chart' ? 'card' : config.visualization,
             groupBy: undefined,
             filters: [],
+            aggregation: { function: 'COUNT', field: undefined },
+            orderBy: { field: undefined, direction: 'DESC' },
+            outputFields: [],
             seriesMode: 'none',
             seriesPreset: 'yoy',
             seriesCount: 2,
@@ -360,12 +369,12 @@ export const WidgetConfigModal = ({ isOpen, onClose, onSave, initialConfig = und
 
             const queryConfig = {
                 itemtype: config.itemtype,
-                filters: config.filters.filter(f => f.field && (f.value || f.operator === 'is_null' || f.operator === 'is_not_null')),
-                group_by: config.groupBy ? [config.groupBy] : undefined,
-                aggregation: config.aggregation,
+                filters: isSavedSearchSource(config.itemtype) ? [] : config.filters.filter(f => f.field && (f.value || f.operator === 'is_null' || f.operator === 'is_not_null')),
+                group_by: !isSavedSearchSource(config.itemtype) && config.groupBy ? [config.groupBy] : undefined,
+                aggregation: isSavedSearchSource(config.itemtype) ? undefined : config.aggregation,
                 order_by: config.orderBy?.field ? { field: config.orderBy.field, direction: config.orderBy.direction } : undefined,
                 limit: Math.min(config.limit, 20),
-                series: previewSeries.length > 0 ? previewSeries : undefined,
+                series: !isSavedSearchSource(config.itemtype) && previewSeries.length > 0 ? previewSeries : undefined,
                 output_fields: config.outputFields && config.outputFields.length > 0 ? config.outputFields : undefined,
             };
             const result = await api.post('/query', queryConfig);
@@ -379,17 +388,22 @@ export const WidgetConfigModal = ({ isOpen, onClose, onSave, initialConfig = und
     };
 
     const handleSave = () => {
-        const normalizedFilters = config.filters.filter(f => f.field).map(f => ({
-            ...f,
-            searchtype: reverseOperatorMap[f.operator] || f.operator
-        }));
+        const savedSearchSource = isSavedSearchSource(config.itemtype);
+        const normalizedFilters = savedSearchSource
+            ? []
+            : config.filters.filter(f => f.field).map(f => ({
+                ...f,
+                searchtype: reverseOperatorMap[f.operator] || f.operator
+            }));
 
-        const normalizedSeries = config.seriesMode === 'none'
+        const normalizedSeries = config.seriesMode === 'none' || savedSearchSource
             ? []
             : normalizeSeriesFilters(config.series);
 
         const normalizedVisualizationConfig = normalizeVisualizationConfig({
             ...config,
+            groupBy: savedSearchSource ? undefined : config.groupBy,
+            aggregation: savedSearchSource ? undefined : config.aggregation,
             filters: normalizedFilters,
             series: normalizedSeries,
         }) as WidgetConfig;

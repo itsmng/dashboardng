@@ -3,6 +3,7 @@
 namespace GlpiPlugin\Dashboardng\DataSources;
 
 use CommonDBTM;
+use SavedSearch;
 use Search;
 use Session;
 use GlpiPlugin\Dashboardng\Registry\ItemtypeRegistry;
@@ -14,6 +15,7 @@ use GlpiPlugin\Dashboardng\Cache\QueryCacheManager;
  */
 class GenericDataSource
 {
+    private const SAVED_SEARCH_PREFIX = 'savedsearch:';
 
     /** @var int Default row limit */
     private int $defaultLimit = 1000;
@@ -64,7 +66,10 @@ class GenericDataSource
      */
     public function getAvailableItemtypes(): array
     {
-        return ItemtypeRegistry::getAvailableItemtypes();
+        return array_merge(
+            ItemtypeRegistry::getAvailableItemtypes(),
+            $this->getAvailableSavedSearches()
+        );
     }
 
     /**
@@ -75,6 +80,10 @@ class GenericDataSource
      */
     public function getSearchableFields(string $itemtype): array
     {
+        if ($this->isSavedSearchSource($itemtype)) {
+            return $this->getSavedSearchFields($itemtype);
+        }
+
         if (!$this->isItemtypeAllowed($itemtype)) {
             return [];
         }
@@ -83,34 +92,7 @@ class GenericDataSource
             return [];
         }
 
-        $searchOptions = Search::getOptions($itemtype);
-        $fields = [];
-
-        foreach ($searchOptions as $id => $option) {
-            // Skip non-searchable options
-            if (!is_array($option) || !isset($option['name'])) {
-                continue;
-            }
-
-            // Skip internal/technical fields
-            if (isset($option['nosearch']) && $option['nosearch']) {
-                continue;
-            }
-
-            $fields[] = [
-                'id' => $id,
-                'name' => $option['name'],
-                'field' => $option['field'] ?? null,
-                'table' => $option['table'] ?? null,
-                'datatype' => $option['datatype'] ?? 'text',
-                'linkfield' => $option['linkfield'] ?? null,
-                'searchtype' => $this->getSearchTypes($option['datatype'] ?? 'text'),
-                'aggregatable' => $this->isAggregatable($option['datatype'] ?? 'text'),
-                'groupable' => $this->isGroupable($option),
-            ];
-        }
-
-        return $fields;
+        return $this->getItemtypeSearchableFields($itemtype);
     }
 
     /**
@@ -131,6 +113,10 @@ class GenericDataSource
         $dateRange = $queryConfig['date_range'] ?? null;
         $series = $queryConfig['series'] ?? null;
         $nocache = $queryConfig['nocache'] ?? false;
+
+        if ($this->isSavedSearchSource((string) $itemtype)) {
+            return $this->executeSavedSearchQuery($queryConfig);
+        }
 
         if (!$this->isItemtypeAllowed($itemtype)) {
             return [
@@ -215,6 +201,198 @@ class GenericDataSource
                 'timestamp' => time(),
             ];
         }
+    }
+
+    private function getAvailableSavedSearches(): array
+    {
+        global $DB;
+
+        if (!SavedSearch::canView()) {
+            return [];
+        }
+
+        $searches = [];
+        $criteria = SavedSearch::getVisibilityCriteria();
+        $criteria = array_merge($criteria, [
+            'SELECT' => [
+                'id',
+                'name',
+                'itemtype',
+            ],
+            'FROM'   => SavedSearch::getTable(),
+            'ORDER'  => ['name ASC'],
+        ]);
+        $criteria['WHERE'][] = ['type' => SavedSearch::SEARCH];
+
+        foreach ($DB->request($criteria) as $row) {
+            $savedSearch = new SavedSearch();
+            if (!$savedSearch->getFromDB((int) $row['id'])) {
+                continue;
+            }
+
+            if (!class_exists($row['itemtype']) && $row['itemtype'] !== 'AllAssets') {
+                continue;
+            }
+
+            $searches[] = [
+                'itemtype' => self::SAVED_SEARCH_PREFIX . (int) $row['id'],
+                'name' => sprintf(
+                    '%s (%s)',
+                    $row['name'],
+                    is_a($row['itemtype'], CommonDBTM::class, true)
+                        ? $row['itemtype']::getTypeName(1)
+                        : $row['itemtype']
+                ),
+                'category' => __('Saved searches'),
+                'source_type' => 'saved_search',
+                'savedsearches_id' => (int) $row['id'],
+                'base_itemtype' => $row['itemtype'],
+            ];
+        }
+
+        return $searches;
+    }
+
+    private function getSavedSearchFields(string $source): array
+    {
+        $savedSearch = $this->getSavedSearchFromSource($source);
+        if ($savedSearch === null) {
+            return [];
+        }
+
+        $params = $savedSearch->getParameters($savedSearch->getID());
+        if (!$params) {
+            return [];
+        }
+
+        $itemtype = $savedSearch->fields['itemtype'];
+        if (!class_exists($itemtype) && $itemtype !== 'AllAssets') {
+            return [];
+        }
+
+        $fields = $this->getItemtypeSearchableFields($itemtype);
+        $selected = array_map('strval', $params['toview'] ?? []);
+
+        if (empty($selected)) {
+            return $fields;
+        }
+
+        usort($fields, static function (array $left, array $right) use ($selected): int {
+            $leftIndex = array_search((string) $left['id'], $selected, true);
+            $rightIndex = array_search((string) $right['id'], $selected, true);
+
+            $leftIndex = $leftIndex === false ? PHP_INT_MAX : $leftIndex;
+            $rightIndex = $rightIndex === false ? PHP_INT_MAX : $rightIndex;
+
+            return $leftIndex <=> $rightIndex;
+        });
+
+        return $fields;
+    }
+
+    private function getItemtypeSearchableFields(string $itemtype): array
+    {
+        $searchOptions = Search::getOptions($itemtype);
+        $fields = [];
+
+        foreach ($searchOptions as $id => $option) {
+            if (!is_array($option) || !isset($option['name'])) {
+                continue;
+            }
+
+            if (isset($option['nosearch']) && $option['nosearch']) {
+                continue;
+            }
+
+            $fields[] = [
+                'id' => $id,
+                'name' => $option['name'],
+                'field' => $option['field'] ?? null,
+                'table' => $option['table'] ?? null,
+                'datatype' => $option['datatype'] ?? 'text',
+                'linkfield' => $option['linkfield'] ?? null,
+                'searchtype' => $this->getSearchTypes($option['datatype'] ?? 'text'),
+                'aggregatable' => $this->isAggregatable($option['datatype'] ?? 'text'),
+                'groupable' => $this->isGroupable($option),
+            ];
+        }
+
+        return $fields;
+    }
+
+    private function executeSavedSearchQuery(array $queryConfig): array
+    {
+        try {
+            $savedSearch = $this->getSavedSearchFromSource((string) ($queryConfig['itemtype'] ?? ''));
+            if ($savedSearch === null) {
+                return [
+                    'success' => false,
+                    'error' => 'Saved search not found or not allowed',
+                    'timestamp' => time(),
+                ];
+            }
+
+            $limit = min($queryConfig['limit'] ?? $this->defaultLimit, $this->maxLimit);
+            $data = $this->executeSavedSearchListQuery(
+                $savedSearch,
+                $queryConfig['output_fields'] ?? [],
+                $queryConfig['order_by'] ?? null,
+                $limit
+            );
+
+            return [
+                'success' => true,
+                'data' => $data['rows'],
+                'total' => $data['total'],
+                'columns' => $data['columns'] ?? [],
+                'meta' => [
+                    'itemtype' => $savedSearch->fields['itemtype'],
+                    'source_type' => 'saved_search',
+                    'savedsearches_id' => $savedSearch->getID(),
+                    'limit' => $limit,
+                    'has_more' => $data['total'] > count($data['rows']),
+                ],
+                'timestamp' => time(),
+                'from_cache' => false,
+            ];
+        } catch (\Exception $e) {
+            return [
+                'success' => false,
+                'error' => $e->getMessage(),
+                'timestamp' => time(),
+            ];
+        }
+    }
+
+    private function executeSavedSearchListQuery(
+        SavedSearch $savedSearch,
+        array $outputFields,
+        ?array $orderBy,
+        int $limit
+    ): array {
+        $params = $savedSearch->getParameters($savedSearch->getID());
+        if (!$params) {
+            throw new \RuntimeException('Saved search #' . $savedSearch->getID() . ' seems to be broken!');
+        }
+
+        $itemtype = $savedSearch->fields['itemtype'];
+        $params['itemtype'] = $itemtype;
+        $params['start'] = 0;
+        $params['reset'] = 'reset';
+
+        if (!empty($outputFields)) {
+            $params['display_type'] = 'csv';
+            $params['toview'] = array_values(array_filter($outputFields, static fn($field) => is_numeric($field)));
+        }
+
+        if (!empty($orderBy['field'])) {
+            $params['sort'] = $orderBy['field'];
+            $params['order'] = $orderBy['direction'] ?? 'DESC';
+        }
+
+        $searchData = Search::getDatas($itemtype, $params);
+
+        return $this->normalizeSearchDataRows($searchData, $outputFields, $limit);
     }
 
     /**
@@ -717,6 +895,11 @@ class GenericDataSource
         // Execute search
         $searchData = Search::getDatas($itemtype, $params);
 
+        return $this->normalizeSearchDataRows($searchData, $outputFields, $limit);
+    }
+
+    private function normalizeSearchDataRows(array $searchData, array $outputFields, int $limit): array
+    {
         $rows = [];
         $columns = [];
 
@@ -738,15 +921,11 @@ class GenericDataSource
             }
         }
 
-        // Extract columns from search options
         if (isset($searchData['data']['cols'])) {
             foreach ($searchData['data']['cols'] as $col) {
                 $colId = $col['id'] ?? '';
-                // If outputFields specified, only include those columns
-                if (!empty($outputFields)) {
-                    if (!in_array($colId, $outputFields)) {
-                        continue;
-                    }
+                if (!empty($outputFields) && !in_array($colId, $outputFields)) {
+                    continue;
                 }
                 $columns[] = [
                     'id' => $colId,
@@ -760,6 +939,50 @@ class GenericDataSource
             'total' => $searchData['data']['totalcount'] ?? count($rows),
             'columns' => $columns,
         ];
+    }
+
+    private function isSavedSearchSource(string $itemtype): bool
+    {
+        return str_starts_with($itemtype, self::SAVED_SEARCH_PREFIX);
+    }
+
+    private function getSavedSearchFromSource(string $source): ?SavedSearch
+    {
+        if (!$this->isSavedSearchSource($source)) {
+            return null;
+        }
+
+        $id = (int) substr($source, strlen(self::SAVED_SEARCH_PREFIX));
+        if ($id <= 0) {
+            return null;
+        }
+
+        $savedSearch = new SavedSearch();
+        if (!$savedSearch->getFromDB($id)) {
+            return null;
+        }
+
+        if ((int) $savedSearch->fields['type'] !== SavedSearch::SEARCH) {
+            return null;
+        }
+
+        $criteria = SavedSearch::getVisibilityCriteria();
+        $criteria = array_merge($criteria, [
+            'SELECT' => ['id'],
+            'FROM'   => SavedSearch::getTable(),
+            'WHERE'  => array_merge($criteria['WHERE'] ?? [], [
+                'id' => $id,
+                'type' => SavedSearch::SEARCH,
+            ]),
+            'LIMIT'  => 1,
+        ]);
+
+        global $DB;
+        if (count($DB->request($criteria)) === 0) {
+            return null;
+        }
+
+        return $savedSearch;
     }
 
     /**

@@ -1235,6 +1235,10 @@ msgstr ""
 msgid "-- Select Collection --"
 msgstr ""
 
+#: js/components/ui/widgetconfig/DataSourceStep.js:270
+msgid "Saved searches use their stored criteria."
+msgstr ""
+
 #: js/components/ui/widgetconfig/DataSourceStep.js:271
 #: js/components/ui/widgetconfig/DataSourceStep.js:372
 msgid "optional"

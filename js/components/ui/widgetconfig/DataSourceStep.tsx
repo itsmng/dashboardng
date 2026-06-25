@@ -87,6 +87,10 @@ const isDateField = (field: Field | undefined) => {
     return ['datetime', 'date', 'timestamp'].includes(field?.datatype || '');
 };
 
+const isSavedSearchSource = (itemtype: string | undefined) => {
+    return (itemtype || '').startsWith('savedsearch:');
+};
+
 const operatorMap: Record<string, string> = {
     'equals': 'equals',
     'notequals': 'not_equals',
@@ -197,6 +201,7 @@ const buildTimeSeries = ({
 
 export const DataSourceStep = ({ config, setConfig, datasources, fields, handleItemtypeChange }: DataSourceStepProps) => {
     const groupByField = config.groupBy ? fields.groupable?.find(f => f.id === (config.groupBy as GroupBy).field || f.id === config.groupBy) : undefined;
+    const savedSearchSource = isSavedSearchSource(config.itemtype);
     const seriesMode = config.seriesMode || 'none';
     const seriesPreset = config.seriesPreset || 'yoy';
     const seriesCount = config.seriesCount || 2;
@@ -360,7 +365,13 @@ export const DataSourceStep = ({ config, setConfig, datasources, fields, handleI
                 </select>
             </div>
 
-            {config.itemtype && fields.groupable && fields.groupable.length > 0 && (
+            {savedSearchSource && (
+                <div className="alert alert-info py-2">
+                    {__('Saved searches use their stored criteria.', 'dashboardng')}
+                </div>
+            )}
+
+            {!savedSearchSource && config.itemtype && fields.groupable && fields.groupable.length > 0 && (
                 <div className="mb-3">
                     <label className="form-label">{__('Group by', 'dashboardng')} ({__('optional', 'dashboardng')})</label>
                     <select
@@ -400,7 +411,7 @@ export const DataSourceStep = ({ config, setConfig, datasources, fields, handleI
                 </div>
             )}
 
-            {config.groupBy && groupByField && isDateField(groupByField) && (
+            {!savedSearchSource && config.groupBy && groupByField && isDateField(groupByField) && (
                 <div className="mb-3">
                     <label className="form-label">{__('Date Interval', 'dashboardng')}</label>
                     <select
@@ -420,7 +431,7 @@ export const DataSourceStep = ({ config, setConfig, datasources, fields, handleI
                 </div>
             )}
 
-            {config.itemtype && (
+            {!savedSearchSource && config.itemtype && (
                 <div className="mb-3">
                     <label className="form-label">{__('Aggregation', 'dashboardng')}</label>
                     <div className="row">
@@ -461,7 +472,7 @@ export const DataSourceStep = ({ config, setConfig, datasources, fields, handleI
                 </div>
             )}
 
-            {config.itemtype && (
+            {config.itemtype && !savedSearchSource && (
                 <div className="mb-3">
                     <label className="form-label">{__('Sort by', 'dashboardng')} ({__('optional', 'dashboardng')})</label>
                     <div className="row">
@@ -526,7 +537,7 @@ export const DataSourceStep = ({ config, setConfig, datasources, fields, handleI
                 </div>
             )}
 
-            {config.visualization === 'chart' && config.itemtype && (
+            {config.visualization === 'chart' && config.itemtype && !savedSearchSource && (
                 <div className="mb-3">
                     <label className="form-label">{__('Series comparison', 'dashboardng')}</label>
                     <small className="text-muted d-block mb-2">{__('Compare time periods or filtered segments', 'dashboardng')}</small>

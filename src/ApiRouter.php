@@ -158,7 +158,7 @@ class ApiRouter
 
             $r->addRoute('GET', '/datasources/{itemtype}/fields', function ($itemtype) {
                 $handler = new GetDataSourceFields();
-                echo json_encode($handler->handle($itemtype, $_GET), JSON_UNESCAPED_UNICODE);
+                echo json_encode($handler->handle(rawurldecode($itemtype), $_GET), JSON_UNESCAPED_UNICODE);
             });
 
             $r->addRoute('POST', '/query', function () {

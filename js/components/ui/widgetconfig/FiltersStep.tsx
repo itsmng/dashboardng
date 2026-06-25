@@ -10,6 +10,7 @@ interface Filter {
 
 interface FiltersStepProps {
     config: {
+        itemtype?: string;
         filters: Filter[];
         limit: number;
     };
@@ -52,11 +53,19 @@ const normalizeOperator = (operator: string) => {
 };
 
 export const FiltersStep = ({ config, setConfig, fields, addFilter, updateFilter, removeFilter }: FiltersStepProps) => {
+    const savedSearchSource = (config.itemtype || '').startsWith('savedsearch:');
+
     return (
         <div className="step-content">
             <h5 className="mb-3">{__('Configure Filters', 'dashboardng')}</h5>
+
+            {savedSearchSource && (
+                <div className="alert alert-info py-2">
+                    {__('This widget uses the saved search criteria. Edit the saved search to change filters.', 'dashboardng')}
+                </div>
+            )}
             
-            {config.filters.map((filter, index) => (
+            {!savedSearchSource && config.filters.map((filter, index) => (
                 <div className="filter-row mb-2" key={index}>
                     <div className="card-body p-2">
                         <div className="row g-2 align-items-center">
@@ -123,10 +132,12 @@ export const FiltersStep = ({ config, setConfig, fields, addFilter, updateFilter
                 </div>
             ))}
 
-            <button className="btn btn-outline-primary btn-sm" onClick={addFilter}>
-                <i className="fas fa-plus me-1"></i>
-                {__('Add filter', 'dashboardng')}
-            </button>
+            {!savedSearchSource && (
+                <button className="btn btn-outline-primary btn-sm" onClick={addFilter}>
+                    <i className="fas fa-plus me-1"></i>
+                    {__('Add filter', 'dashboardng')}
+                </button>
+            )}
 
             <div className="mt-4">
                 <label className="form-label">{__('Limit', 'dashboardng')}</label>
