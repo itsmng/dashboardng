@@ -104,6 +104,12 @@ class GenericDataSource
     public function executeQuery(array $queryConfig): array
     {
         $itemtype = $queryConfig['itemtype'] ?? null;
+
+        if ($this->isSavedSearchSource((string) $itemtype)) {
+            return $this->executeSavedSearchQuery($queryConfig);
+        }
+
+        $queryConfig = $this->resolveDynamicQueryValues($queryConfig);
         $filters = $queryConfig['filters'] ?? [];
         $groupBy = $queryConfig['group_by'] ?? null;
         $aggregation = $queryConfig['aggregation'] ?? null;
@@ -113,10 +119,6 @@ class GenericDataSource
         $dateRange = $queryConfig['date_range'] ?? null;
         $series = $queryConfig['series'] ?? null;
         $nocache = $queryConfig['nocache'] ?? false;
-
-        if ($this->isSavedSearchSource((string) $itemtype)) {
-            return $this->executeSavedSearchQuery($queryConfig);
-        }
 
         if (!$this->isItemtypeAllowed($itemtype)) {
             return [
@@ -201,6 +203,38 @@ class GenericDataSource
                 'timestamp' => time(),
             ];
         }
+    }
+
+    private function resolveDynamicQueryValues(array $queryConfig): array
+    {
+        return $this->resolveDynamicValue($queryConfig);
+    }
+
+    private function resolveDynamicValue($value)
+    {
+        if (is_array($value)) {
+            return array_map(fn($item) => $this->resolveDynamicValue($item), $value);
+        }
+
+        if (!is_string($value)) {
+            return $value;
+        }
+
+        $now = time();
+
+        return strtr($value, [
+            '$$NOW$$'         => date('c', $now),
+            '$$TODAY$$'       => date('Y-m-d', $now),
+            '$$YESTERDAY$$'   => date('Y-m-d', strtotime('-1 day', $now)),
+            '$$TODAY-1DAY$$'  => date('Y-m-d', strtotime('-1 day', $now)),
+            '$$TODAY-7DAY$$'  => date('Y-m-d', strtotime('-7 days', $now)),
+            '$$TODAY-30DAY$$' => date('Y-m-d', strtotime('-30 days', $now)),
+            '$$LASTWEEK$$'    => date('Y-m-d', strtotime('-7 days', $now)),
+            '$$LAST6MONTH$$'  => date('Y-m-d', strtotime('-6 months', $now)),
+            '$$THISMONTH$$'   => date('Y-m-01', $now),
+            '$$THISYEAR$$'    => date('Y-01-01', $now),
+            '$$MYSELF$$'      => (string) ($_SESSION['glpiID'] ?? 0),
+        ]);
     }
 
     private function getAvailableSavedSearches(): array
@@ -845,6 +879,7 @@ class GenericDataSource
             'notequals' => 'not_equals',
             'contains' => 'contains',
             'notcontains' => 'not_contains',
+            'greaterthan' => 'greater_than',
             'morethan' => 'greater_or_equal',
             'lessthan' => 'less_than',
             'between' => 'between',
@@ -1022,9 +1057,10 @@ class GenericDataSource
         $criteria = [];
 
         foreach ($filters as $filter) {
-            $searchtype = $filter['searchtype'] ?? null;
-            if ($searchtype === null) {
+            if (!empty($filter['operator'])) {
                 $searchtype = $this->convertOperatorToSearchType($filter['operator'] ?? 'contains');
+            } else {
+                $searchtype = $this->normalizeSearchTypeForSearchCriteria($filter['searchtype'] ?? 'contains');
             }
 
             $criterion = [
@@ -1041,6 +1077,18 @@ class GenericDataSource
         }
 
         return $criteria;
+    }
+
+    private function normalizeSearchTypeForSearchCriteria(string $searchtype): string
+    {
+        return match ($searchtype) {
+            'greaterthan', 'greater_than', 'greater_or_equal' => 'morethan',
+            'less_than', 'less_or_equal' => 'lessthan',
+            'not_equals' => 'notequals',
+            'not_contains' => 'notcontains',
+            'is_null', 'is_not_null' => 'empty',
+            default => $searchtype,
+        };
     }
 
     /**

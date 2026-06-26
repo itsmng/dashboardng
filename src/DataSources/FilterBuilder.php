@@ -125,6 +125,7 @@ class FilterBuilder
             'notequals' => 'not_equals',
             'contains' => 'contains',
             'notcontains' => 'not_contains',
+            'greaterthan' => 'greater_than',
             'morethan' => 'greater_or_equal',
             'lessthan' => 'less_than',
             'empty' => 'is_null',
