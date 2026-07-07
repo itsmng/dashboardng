@@ -135,12 +135,6 @@ export const GenericTableWidget = ({ config, widgetId: _widgetId }: GenericTable
 
   const totalPages = Math.ceil(data.length / pageSize);
 
-  // Generate item link
-  const getItemLink = (row: any): string | null => {
-    if (!config.itemtype || !row.id) {return null;}
-    return `${(window as any).CFG_GLPI.root_doc}/front/${config.itemtype.toLowerCase()}.form.php?id=${row.id}`;
-  };
-
   // Helper function to decode HTML entities (e.g., &nbsp; -> non-breaking space)
   const decodeHtmlEntities = (text: string): string => {
     const textArea = document.createElement("textarea");
@@ -211,17 +205,26 @@ export const GenericTableWidget = ({ config, widgetId: _widgetId }: GenericTable
       ? columns
       : Object.keys(data[0] || {}).map((key) => ({ id: key, name: key }));
 
-  // Extract the itemtype from row keys (e.g., "Ticket_2" -> "Ticket")
-  // This is needed because GLPI Search returns keys like "Ticket_2", "Ticket_12", etc.
+  // Extract the itemtype from row keys (e.g. "Ticket_2" or "ITEM_Ticket_2" -> "Ticket").
+  // Saved-search rows include bookkeeping keys first, so scan all keys instead of only the first one.
   const getItemtypeFromRow = (row: any): string => {
-    const firstKey = Object.keys(row)[0];
-    if (firstKey && firstKey.includes("_")) {
-      return firstKey.split("_")[0];
+    for (const key of Object.keys(row)) {
+      const match = key.match(/^(?:ITEM_)?([A-Za-z][A-Za-z0-9]*)_\d+$/);
+      if (match) {
+        return match[1];
+      }
     }
     return config.itemtype || "";
   };
 
   const itemtype = getItemtypeFromRow(data[0] || {});
+
+  // Generate item link
+  const getItemLink = (row: any): string | null => {
+    const rowItemtype = getItemtypeFromRow(row);
+    if (!rowItemtype || rowItemtype.startsWith("savedsearch:") || !row.id) {return null;}
+    return `${(window as any).CFG_GLPI.root_doc}/front/${rowItemtype.toLowerCase()}.form.php?id=${row.id}`;
+  };
 
   // Helper function to get value from row by field ID
   // GLPI Search returns keys like "Ticket_2", but columns have id as just "2"
@@ -234,6 +237,10 @@ export const GenericTableWidget = ({ config, widgetId: _widgetId }: GenericTable
     const glpiKey = `${itemtype}_${fieldId}`;
     if (row[glpiKey] !== undefined) {
       return row[glpiKey];
+    }
+    const rawGlpiKey = `ITEM_${itemtype}_${fieldId}`;
+    if (row[rawGlpiKey] !== undefined) {
+      return row[rawGlpiKey];
     }
     // Try group_ prefix (for aggregated queries)
     const groupKey = `group_${fieldId}`;
