@@ -2,7 +2,7 @@
 
 global $CFG_GLPI;
 
-define('DASHBOARDNG_VERSION', '1.1.11');
+define('DASHBOARDNG_VERSION', '1.1.12');
 define('DASHBOARDNG_ITSMNG_MIN_VERSION', '2.0');
 
 $hostLoader = require __DIR__ . '/../../vendor/autoload.php';
